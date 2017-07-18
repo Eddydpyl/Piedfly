@@ -28,7 +28,7 @@ env:
     - ANDROID_HOME=/usr/local/android-sdk-24.0.2 # Depends on the cookbooks version used in the VM
     - TOOLS=${ANDROID_HOME}/tools # PATH order matters, exists more than one emulator script
     - PATH=${ANDROID_HOME}:${ANDROID_HOME}/emulator:${TOOLS}:${TOOLS}/bin:${ANDROID_HOME}/platform-tools:${PATH}
-    - ADB_INSTALL_TIMEOUT=20 # minutes (2 minutes by default)
+    - ADB_INSTALL_TIMEOUT=8 # minutes (2 minutes by default)
 
 android:
   components:
@@ -77,7 +77,7 @@ install:
   - echo yes | sdkmanager "system-images;android-${EMU};google_apis;armeabi-v7a" # Install emulator system image
   # Create and start emulator
   - echo no | avdmanager create avd -n test -k "system-images;android-${EMU};google_apis;armeabi-v7a" -f --abi armeabi-v7a
-  - emulator -avd test -engine classic -no-window -camera-back none -camera-front none -verbose -qemu -m 512 &
+  - emulator -avd test -engine classic -no-audio -no-window -gpu off -camera-back none -camera-front none -qemu -m 512 &
   # Start adbd, wait for device connected and show android serial
   - adb wait-for-device get-serialno
   # Show version and download Gradle Wrapper if it's not already cached
@@ -88,6 +88,7 @@ install:
 
 before_script:
   # When the emulator is fully booted disable animations
+  - android-wait-for-emulator
   - adb shell settings put global window_animation_scale 0 &
   - adb shell settings put global transition_animation_scale 0 &
   - adb shell settings put global animator_duration_scale 0 &
