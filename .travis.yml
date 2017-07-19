@@ -23,7 +23,7 @@ env:
   global:
     - API=26 # targetSdkVersion in build.graddle
     - BUT=26.0.0 # buildToolsVersion in build.gradle
-    - EMU=16 # The emulator will run this Sdk (must be 16 or newer)
+    - EMU=18 # The emulator will run this Sdk (must be 16 or newer)
     - GRADLE_USER_HOME="${TRAVIS_BUILD_DIR}/gradle" # Change location for Gradle Wrapper and cache
     - ANDROID_HOME=/usr/local/android-sdk-24.0.2 # Depends on the cookbooks version used in the VM
     - TOOLS=${ANDROID_HOME}/tools # PATH order matters, exists more than one emulator script

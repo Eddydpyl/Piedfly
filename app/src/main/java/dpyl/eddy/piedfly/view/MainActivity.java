@@ -1,7 +1,9 @@
-package dpyl.eddy.piedfly;
+package dpyl.eddy.piedfly.view;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+
+import dpyl.eddy.piedfly.R;
 
 public class MainActivity extends AppCompatActivity {
 
