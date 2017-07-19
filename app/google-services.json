@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1025577213480",
+    "firebase_url": "https://piedfly-7f8a7.firebaseio.com",
+    "project_id": "piedfly-7f8a7",
+    "storage_bucket": "piedfly-7f8a7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1025577213480:android:8f861c9f69a69688",
+        "android_client_info": {
+          "package_name": "dpyl.eddy.piedfly"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1025577213480-t9mvciip4dvq04robj0adl5a7s63bnn0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "dpyl.eddy.piedfly",
+            "certificate_hash": "104448d73b37086a77fb428960c5a521202e6bfe"
+          }
+        },
+        {
+          "client_id": "1025577213480-f76pcp18le8fkvnu9ocj5018s7skkp32.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCj3dh-P2ycnJylwQ62QWC7xXPDIAnY9ZI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1025577213480-f76pcp18le8fkvnu9ocj5018s7skkp32.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
