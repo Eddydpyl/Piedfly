@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Piedfly</string>
+    <string name="title_activity_phone">PhoneActivity</string>
+    <string name="sms_from">Phone Code</string>
 </resources>
