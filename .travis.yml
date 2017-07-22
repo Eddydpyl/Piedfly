@@ -6,6 +6,9 @@ branches:
   only:
     - master
 
+notifications:
+  slack: tpft:7m0fgQYO9XuGHYaP1BPSgpxV
+
 before_cache:
   - rm -f ${TRAVIS_BUILD_DIR}/gradle/caches/modules-2/modules-2.lock # Avoid to repack it due locks
   - rm -f ${TRAVIS_BUILD_DIR}/gradle/caches/*/plugin-resolution/

@@ -44,7 +44,7 @@ public class BaseActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_SIGN_IN) {
             IdpResponse response = IdpResponse.fromResultIntent(data);
-            if (resultCode == ResultCodes.OK) {
+            if (resultCode == ResultCodes.OK && response != null) {
                 // Successfully signed in
                 if (response.getPhoneNumber() == null || response.getPhoneNumber().isEmpty()){
                     // The user doesn't have an associated phone number
