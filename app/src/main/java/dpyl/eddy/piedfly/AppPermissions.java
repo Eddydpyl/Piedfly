@@ -17,6 +17,11 @@ public class AppPermissions {
      */
     public static final int REQUEST_READ_SMS = 1;
 
+    /**
+     * Id to identify a read sms permission request.
+     */
+    public static final int REQUEST_LOCATION = 2;
+
     public static void requestReadPhoneStatePermission(Fragment fragment){
         fragment.requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_READ_PHONE_STATE);
     }
@@ -31,6 +36,14 @@ public class AppPermissions {
 
     public static void requestReadSMSPermission(Activity activity){
         ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.READ_SMS}, REQUEST_READ_SMS);
+    }
+
+    public static void requestLocationPermission(Fragment fragment){
+        fragment.requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION);
+    }
+
+    public static void requestLocationPermission(Activity activity){
+        ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION);
     }
 
 }

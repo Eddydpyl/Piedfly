@@ -6,9 +6,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
@@ -91,11 +93,11 @@ public class PhoneActivity extends BaseActivity {
                 // This callback is invoked in an invalid request for verification is made,
                 // for instance if the the phone number format is not valid.
                 if (e instanceof FirebaseAuthInvalidCredentialsException) {
-                    // Invalid request
+                    // TODO: Invalid request
                 } else if (e instanceof FirebaseTooManyRequestsException) {
-                    // The SMS quota for the project has been exceeded
+                    // TODO: The SMS quota for the project has been exceeded
                 } else {
-                    // Unknown error
+                    // TODO: Unknown error
                 } mVerifying = false;
             }
 
@@ -199,19 +201,24 @@ public class PhoneActivity extends BaseActivity {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isSuccessful()) {
-                        // TODO: The user has been updated
+                        // The user has been updated
                         FirebaseUser user = task.getResult().getUser();
+                        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(PhoneActivity.this);
+                        sharedPreferences.edit().putString(getString(R.string.pref_uid), user.getUid()).apply();
                         exitActivity();
                     } else {
                         // Authentication failed, credentials may already be linked to another user account
-                        final FirebaseUser currentUser = auth.getCurrentUser();
+                        final FirebaseUser oldUser = auth.getCurrentUser();
                         auth.signInWithCredential(credential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 FirebaseUser newUser = task.getResult().getUser();
-                                if (!currentUser.getUid().equals(newUser.getUid())) {
-                                    // TODO: Merge currentUser and newUser accounts and data
-                                } exitActivity();
+                                if (!oldUser.getUid().equals(newUser.getUid())) {
+                                    // TODO: Merge oldUser and newUser accounts and data
+                                }
+                                final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(PhoneActivity.this);
+                                sharedPreferences.edit().putString(getString(R.string.pref_uid), auth.getCurrentUser().getUid()).apply();
+                                exitActivity();
                             }
                         });
                     }

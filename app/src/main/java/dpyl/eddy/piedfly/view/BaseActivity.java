@@ -1,7 +1,9 @@
 package dpyl.eddy.piedfly.view;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
@@ -10,6 +12,8 @@ import com.firebase.ui.auth.ErrorCodes;
 import com.firebase.ui.auth.IdpResponse;
 import com.firebase.ui.auth.ResultCodes;
 import com.google.firebase.auth.FirebaseAuth;
+
+import dpyl.eddy.piedfly.R;
 
 public class BaseActivity extends AppCompatActivity {
 
@@ -47,15 +51,17 @@ public class BaseActivity extends AppCompatActivity {
                     requestPhoneNumber();
                 } else {
                     // The user has a verified phone number
+                    final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+                    sharedPreferences.edit().putString(getString(R.string.pref_uid), auth.getCurrentUser().getUid()).apply();
                 }
             } else {
                 // Sign in failed
                 if (response == null) {
-                    // User pressed back button
+                    // TODO: User pressed back button
                 } else if (response.getErrorCode() == ErrorCodes.NO_NETWORK) {
-                    // No network
+                    // TODO: No network
                 } else if (response.getErrorCode() == ErrorCodes.UNKNOWN_ERROR) {
-                    // Unknown error
+                    // TODO: Unknown error
                 }
             }
         }
