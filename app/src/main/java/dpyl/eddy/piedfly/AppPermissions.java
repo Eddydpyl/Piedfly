@@ -18,7 +18,7 @@ public class AppPermissions {
     public static final int REQUEST_READ_SMS = 1;
 
     /**
-     * Id to identify a read sms permission request.
+     * Id to identify a location permission request.
      */
     public static final int REQUEST_LOCATION = 2;
 
