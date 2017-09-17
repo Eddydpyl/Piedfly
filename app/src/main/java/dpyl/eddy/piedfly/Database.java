@@ -8,6 +8,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.HashMap;
 import java.util.Map;
 
+import dpyl.eddy.piedfly.model.Emergency;
 import dpyl.eddy.piedfly.model.Flock;
 import dpyl.eddy.piedfly.model.User;
 
@@ -16,6 +17,8 @@ public class Database {
     public static void createUser(@NonNull User user) {
         if(user.getUid() == null)
             throw new RuntimeException("User has no uid");
+        if(user.getDisplayName() == null)
+            throw new RuntimeException("User has no displayName");
         else {
             final DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(user.getUid());
             userRef.setValue(user);
@@ -90,6 +93,37 @@ public class Database {
         final DatabaseReference flockRef = database.getReference("flocks").child(key).child("users").child(uid);
         userRef.removeValue();
         flockRef.removeValue();
+    }
+
+    public static void createEmergency(@NonNull Emergency emergency) {
+        if(emergency.getUid() == null)
+            throw new RuntimeException("Emergency has no uid");
+        if(emergency.getLocation() == null)
+            throw new RuntimeException("Emergency has no location");
+        else {
+            final DatabaseReference emergencyRef = FirebaseDatabase.getInstance().getReference("emergencies").push();
+            emergency.setKey(emergencyRef.getKey());
+            emergencyRef.setValue(emergency);
+        }
+    }
+
+    public static void deleteEmergency(@NonNull String key) {
+        final DatabaseReference emergencyRef = FirebaseDatabase.getInstance().getReference("emergencies").child(key);
+        emergencyRef.removeValue();
+    }
+
+    public static void updateEmergency(@NonNull Emergency emergency) {
+        if(emergency.getKey() == null)
+            throw new RuntimeException("Emergency has no key");
+        if(emergency.getUid() == null)
+            throw new RuntimeException("Emergency has no uid");
+        else {
+            DatabaseReference emergencyRef = FirebaseDatabase.getInstance().getReference("emergencies").child(emergency.getKey());
+            final Map<String, Object> childUpdates = new HashMap<>();
+            if(emergency.getLocation() != null)
+                childUpdates.put("/location", emergency.getLocation());
+            emergencyRef.updateChildren(childUpdates);
+        }
     }
 
 }

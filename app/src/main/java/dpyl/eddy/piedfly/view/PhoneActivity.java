@@ -70,7 +70,7 @@ public class PhoneActivity extends BaseActivity {
                     for (SmsMessage smsMessage : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
                         String messageOriginatingAddress = smsMessage.getDisplayOriginatingAddress();
                         String messageBody = smsMessage.getMessageBody();
-                        if(messageOriginatingAddress.equals(getString(R.string.sms_from))){
+                        if(messageOriginatingAddress.equals(getString(R.string.content_sms_from))){
                             String code = messageBody.substring(0, 6);
                             mCodeEditText.setText(code);
                             mVerifying = false;
@@ -196,8 +196,8 @@ public class PhoneActivity extends BaseActivity {
     }
 
     private void linkAccounts(final PhoneAuthCredential credential) {
-        if (auth != null && auth.getCurrentUser() != null) {
-            auth.getCurrentUser().linkWithCredential(credential).addOnCompleteListener(PhoneActivity.this, new OnCompleteListener<AuthResult>() {
+        if (mAuth != null && mAuth.getCurrentUser() != null) {
+            mAuth.getCurrentUser().linkWithCredential(credential).addOnCompleteListener(PhoneActivity.this, new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isSuccessful()) {
@@ -208,8 +208,8 @@ public class PhoneActivity extends BaseActivity {
                         exitActivity();
                     } else {
                         // Authentication failed, credentials may already be linked to another user account
-                        final FirebaseUser oldUser = auth.getCurrentUser();
-                        auth.signInWithCredential(credential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                        final FirebaseUser oldUser = mAuth.getCurrentUser();
+                        mAuth.signInWithCredential(credential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 FirebaseUser newUser = task.getResult().getUser();
@@ -217,7 +217,7 @@ public class PhoneActivity extends BaseActivity {
                                     // TODO: Merge oldUser and newUser accounts and data
                                 }
                                 final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(PhoneActivity.this);
-                                sharedPreferences.edit().putString(getString(R.string.pref_uid), auth.getCurrentUser().getUid()).apply();
+                                sharedPreferences.edit().putString(getString(R.string.pref_uid), mAuth.getCurrentUser().getUid()).apply();
                                 exitActivity();
                             }
                         });

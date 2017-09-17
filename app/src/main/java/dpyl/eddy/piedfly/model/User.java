@@ -8,12 +8,12 @@ public class User {
     private String displayName;
     private String photoUrl;
     private String countryISO;
-    private String lastKnownLocation;
+    private SimpleLocation lastKnownLocation;
     private Map<String, Boolean> flocks;
 
     public User() {}
 
-    public User(String uid, String displayName, String photoUrl, String countryISO, String lastKnownLocation, Map<String, Boolean> flocks) {
+    public User(String uid, String displayName, String photoUrl, String countryISO, SimpleLocation lastKnownLocation, Map<String, Boolean> flocks) {
         this.uid = uid;
         this.displayName = displayName;
         this.photoUrl = photoUrl;
@@ -54,11 +54,11 @@ public class User {
         this.countryISO = countryISO;
     }
 
-    public String getLastKnownLocation() {
+    public SimpleLocation getLastKnownLocation() {
         return lastKnownLocation;
     }
 
-    public void setLastKnownLocation(String lastKnownLocation) {
+    public void setLastKnownLocation(SimpleLocation lastKnownLocation) {
         this.lastKnownLocation = lastKnownLocation;
     }
 
@@ -73,7 +73,7 @@ public class User {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof User)) return false;
 
         User user = (User) o;
 

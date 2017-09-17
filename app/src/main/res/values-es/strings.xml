@@ -1,0 +1,5 @@
+<resources>
+    <string name="content_sms_from">Código</string>
+    <string name="content_request_permission_title">Autorización requerida</string>
+    <string name="content_request_permission_message">Esta aplicación requiere que se le de permiso para leer y escribir los ajustes del sistema.</string>
+</resources>

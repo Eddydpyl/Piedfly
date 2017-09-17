@@ -13,21 +13,23 @@ import com.firebase.ui.auth.IdpResponse;
 import com.firebase.ui.auth.ResultCodes;
 import com.google.firebase.auth.FirebaseAuth;
 
+import dpyl.eddy.piedfly.ExceptionHandler;
 import dpyl.eddy.piedfly.R;
 
 public class BaseActivity extends AppCompatActivity {
 
     private static final int RC_SIGN_IN = 42;
 
-    public FirebaseAuth auth;
+    public FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        auth = FirebaseAuth.getInstance();
-        if (auth.getCurrentUser() != null) {
+        Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
+        mAuth = FirebaseAuth.getInstance();
+        if (mAuth.getCurrentUser() != null) {
             // already signed in
-            if (auth.getCurrentUser().getPhoneNumber() == null || auth.getCurrentUser().getPhoneNumber().isEmpty()) {
+            if (mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) {
                 // The user doesn't have an associated phone number
                 if(!(this instanceof PhoneActivity)) requestPhoneNumber();
             } else {
@@ -52,7 +54,7 @@ public class BaseActivity extends AppCompatActivity {
                 } else {
                     // The user has a verified phone number
                     final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-                    sharedPreferences.edit().putString(getString(R.string.pref_uid), auth.getCurrentUser().getUid()).apply();
+                    sharedPreferences.edit().putString(getString(R.string.pref_uid), mAuth.getCurrentUser().getUid()).apply();
                 }
             } else {
                 // Sign in failed

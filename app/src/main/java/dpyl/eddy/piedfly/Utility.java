@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
+import dpyl.eddy.piedfly.exceptions.CountryIsoNotAvailableException;
 import dpyl.eddy.piedfly.exceptions.DeviceNotAvailableException;
 import dpyl.eddy.piedfly.exceptions.LocationNotAvailableException;
 
@@ -21,6 +22,11 @@ public class Utility {
     private static final long TENSEC = 10000;
     private static final long FIVMET = 5;
 
+    /**
+     *
+     * @param context Necessary for some inner method calls
+     * @return Last known location of the device
+     */
     public static Location getLastKnownLocation(Context context) {
         Location currentLocation;
         if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -47,18 +53,46 @@ public class Utility {
         } else {
             throw new SecurityException("The App lacks the necessary permissions");
         }
-        if(currentLocation == null)
+        if (currentLocation == null)
             throw new LocationNotAvailableException("The location could not be retrieved");
         return currentLocation;
     }
 
-    public static String getCountryISO(Context context){
+    /**
+     * TODO: Only returns either 911 or 112 (default)
+     * @param ISO3 The ISO3 code of the country from which the call is going to be made
+     * @return Emergency number of the country with the given ISO3 code
+     */
+    public static String getEmergencyNumber(String ISO3) {
+        if (Constants.USA_ISO3.equals(ISO3)) return "911";
+        else return "112";
+    }
+
+    /**
+     *
+     * @param context Necessary for some inner method calls
+     * @return The device's country ISO3 code
+     */
+    public static String getCountryISO3(Context context) {
+        String countryISO = getCountryISO(context);
+        if (countryISO.matches("[a-zA-Z]{2}")) {
+            Locale locale = new Locale("", countryISO);
+            return locale.getISO3Country();
+        } return countryISO;
+    }
+
+    /**
+     *
+     * @param context Necessary for some inner method calls
+     * @return The device's country ISO2 or ISO3 code
+     */
+    public static String getCountryISO(Context context) {
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         String countryISO = telephonyManager.getSimCountryIso();
-        if(countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2}"))
+        if (countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2,3}"))
             return countryISO.toUpperCase();
         countryISO = telephonyManager.getNetworkCountryIso();
-        if(countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2}"))
+        if (countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2,3}"))
             return countryISO.toUpperCase();
         Locale locale = Locale.getDefault();
         try {
@@ -66,15 +100,14 @@ public class Utility {
             Geocoder geocoder = new Geocoder(context, locale);
             List<Address> addresses = geocoder.getFromLocation(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude(), 1);
             if (addresses.size() > 0) countryISO = addresses.get(0).getCountryCode();
-            if(countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2}"))
+            if (countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2,3}"))
                 return countryISO.toUpperCase();
         } catch (IOException e) {
             e.printStackTrace();
         }
         countryISO = locale.getCountry();
-        if(countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2}"))
+        if (countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2,3}"))
             return countryISO.toUpperCase();
-        throw new RuntimeException("Could not retrieve a Country ISO");
+        throw new CountryIsoNotAvailableException("Could not retrieve a Country ISO");
     }
-
 }
