@@ -9,21 +9,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import dpyl.eddy.piedfly.model.Emergency;
+import dpyl.eddy.piedfly.model.Event;
 import dpyl.eddy.piedfly.model.Flock;
 import dpyl.eddy.piedfly.model.User;
 
 public class Database {
-
-    public static void createUser(@NonNull User user) {
-        if(user.getUid() == null)
-            throw new RuntimeException("User has no uid");
-        if(user.getDisplayName() == null)
-            throw new RuntimeException("User has no displayName");
-        else {
-            final DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(user.getUid());
-            userRef.setValue(user);
-        }
-    }
 
     public static void deleteUser(@NonNull String uid) {
         final DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
@@ -36,8 +26,18 @@ public class Database {
         else {
             final DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(user.getUid());
             final Map<String, Object> childUpdates = new HashMap<>();
-            if(user.getDisplayName() != null)
-                childUpdates.put("/displayName", user.getDisplayName());
+            if(user.getToken() != null)
+                childUpdates.put("/token", user.getToken());
+            if(user.getName() != null)
+                childUpdates.put("/name", user.getName());
+            if(user.getSurname() != null)
+                childUpdates.put("/surname", user.getSurname());
+            if(user.getAge() != null)
+                childUpdates.put("/age", user.getAge());
+            if(user.getPhone() != null)
+                childUpdates.put("/phone", user.getPhone());
+            if(user.getEmail() != null)
+                childUpdates.put("/email", user.getEmail());
             if(user.getPhotoUrl() != null)
                 childUpdates.put("/photoUrl", user.getPhotoUrl());
             if(user.getCountryISO() != null)
@@ -53,6 +53,8 @@ public class Database {
     public static void createFlock(@NonNull Flock flock) {
         if(flock.getName() == null)
             throw new RuntimeException("Flock has no name");
+        if(flock.getOwner() == null)
+            throw new RuntimeException("Flock has no owner");
         else {
             final DatabaseReference flockRef = FirebaseDatabase.getInstance().getReference("flocks").push();
             flock.setKey(flockRef.getKey());
@@ -73,6 +75,10 @@ public class Database {
             final Map<String, Object> childUpdates = new HashMap<>();
             if(flock.getName() != null)
                 childUpdates.put("/name", flock.getName());
+            if(flock.getOwner() != null)
+                childUpdates.put("/owner", flock.getOwner());
+            if(flock.getPhotoUrl() != null)
+                childUpdates.put("/photoUrl", flock.getPhotoUrl());
             if(flock.getUsers() != null)
                 childUpdates.put("/users", flock.getUsers());
             flockRef.updateChildren(childUpdates);
@@ -84,7 +90,7 @@ public class Database {
         final DatabaseReference userRef = database.getReference("users").child(uid).child("flocks").child(key);
         final DatabaseReference flockRef = database.getReference("flocks").child(key).child("users").child(uid);
         userRef.setValue(true);
-        flockRef.setValue(true);
+        flockRef.setValue("01");
     }
 
     public static void removeUserFromFlock(@NonNull String uid, @NonNull String key) {
@@ -96,15 +102,9 @@ public class Database {
     }
 
     public static void createEmergency(@NonNull Emergency emergency) {
-        if(emergency.getUid() == null)
-            throw new RuntimeException("Emergency has no uid");
-        if(emergency.getLocation() == null)
-            throw new RuntimeException("Emergency has no location");
-        else {
-            final DatabaseReference emergencyRef = FirebaseDatabase.getInstance().getReference("emergencies").push();
-            emergency.setKey(emergencyRef.getKey());
-            emergencyRef.setValue(emergency);
-        }
+        final DatabaseReference emergencyRef = FirebaseDatabase.getInstance().getReference("emergencies").push();
+        emergency.setKey(emergencyRef.getKey());
+        emergencyRef.setValue(emergency);
     }
 
     public static void deleteEmergency(@NonNull String key) {
@@ -115,15 +115,22 @@ public class Database {
     public static void updateEmergency(@NonNull Emergency emergency) {
         if(emergency.getKey() == null)
             throw new RuntimeException("Emergency has no key");
-        if(emergency.getUid() == null)
-            throw new RuntimeException("Emergency has no uid");
         else {
             DatabaseReference emergencyRef = FirebaseDatabase.getInstance().getReference("emergencies").child(emergency.getKey());
             final Map<String, Object> childUpdates = new HashMap<>();
             if(emergency.getLocation() != null)
                 childUpdates.put("/location", emergency.getLocation());
+            if(emergency.getUsersNearby() != null)
+                childUpdates.put("/usersNearby", emergency.getUsersNearby());
+            if(emergency.getEvents() != null)
+                childUpdates.put("/events", emergency.getEvents());
             emergencyRef.updateChildren(childUpdates);
         }
+    }
+
+    public static void createEvent(@NonNull String key, @NonNull Event event) {
+        final DatabaseReference eventRef = FirebaseDatabase.getInstance().getReference("emergencies").child(key).child("events").push();
+        eventRef.setValue(event);
     }
 
 }

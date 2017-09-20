@@ -13,8 +13,10 @@ import com.firebase.ui.auth.IdpResponse;
 import com.firebase.ui.auth.ResultCodes;
 import com.google.firebase.auth.FirebaseAuth;
 
+import dpyl.eddy.piedfly.Database;
 import dpyl.eddy.piedfly.ExceptionHandler;
 import dpyl.eddy.piedfly.R;
+import dpyl.eddy.piedfly.model.User;
 
 public class BaseActivity extends AppCompatActivity {
 
@@ -55,6 +57,12 @@ public class BaseActivity extends AppCompatActivity {
                     // The user has a verified phone number
                     final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
                     sharedPreferences.edit().putString(getString(R.string.pref_uid), mAuth.getCurrentUser().getUid()).apply();
+                    String uid = mAuth.getCurrentUser().getUid();
+                    String token = sharedPreferences.getString(getString(R.string.pref_token), null);
+                    String phone = mAuth.getCurrentUser().getPhoneNumber();
+                    String email = mAuth.getCurrentUser().getEmail();
+                    User user = new User(uid, token, phone, email);
+                    Database.updateUser(user);
                 }
             } else {
                 // Sign in failed
