@@ -16,6 +16,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import dpyl.eddy.piedfly.Database;
 import dpyl.eddy.piedfly.ExceptionHandler;
 import dpyl.eddy.piedfly.R;
+import dpyl.eddy.piedfly.hotbeacon.WifiScanService;
 import dpyl.eddy.piedfly.model.User;
 
 public class BaseActivity extends AppCompatActivity {
@@ -27,7 +28,11 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
+        Intent intent = new Intent(this, WifiScanService.class);
+        startService(intent);
+
         mAuth = FirebaseAuth.getInstance();
         if (mAuth.getCurrentUser() != null) {
             // already signed in

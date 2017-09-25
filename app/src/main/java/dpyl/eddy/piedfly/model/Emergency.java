@@ -6,14 +6,16 @@ import java.util.Map;
 public class Emergency {
 
     private String key;
+    private String uid;
     private SimpleLocation location;
     private Map<String, Boolean> usersNearby;
     private List<Event> events;
 
     public Emergency() {}
 
-    public Emergency(String key, SimpleLocation location, Map<String, Boolean> usersNearby, List<Event> events) {
+    public Emergency(String key, String uid, SimpleLocation location, Map<String, Boolean> usersNearby, List<Event> events) {
         this.key = key;
+        this.uid = uid;
         this.location = location;
         this.usersNearby = usersNearby;
         this.events = events;
@@ -25,6 +27,14 @@ public class Emergency {
 
     public void setKey(String key) {
         this.key = key;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
     public SimpleLocation getLocation() {
@@ -59,6 +69,7 @@ public class Emergency {
         Emergency emergency = (Emergency) o;
 
         if (key != null ? !key.equals(emergency.key) : emergency.key != null) return false;
+        if (!uid.equals(emergency.uid)) return false;
         if (location != null ? !location.equals(emergency.location) : emergency.location != null)
             return false;
         if (usersNearby != null ? !usersNearby.equals(emergency.usersNearby) : emergency.usersNearby != null)
@@ -70,6 +81,7 @@ public class Emergency {
     @Override
     public int hashCode() {
         int result = key != null ? key.hashCode() : 0;
+        result = 31 * result + uid.hashCode();
         result = 31 * result + (location != null ? location.hashCode() : 0);
         result = 31 * result + (usersNearby != null ? usersNearby.hashCode() : 0);
         result = 31 * result + (events != null ? events.hashCode() : 0);

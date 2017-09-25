@@ -10,16 +10,23 @@ import java.util.Map;
 
 import dpyl.eddy.piedfly.model.Emergency;
 import dpyl.eddy.piedfly.model.Event;
-import dpyl.eddy.piedfly.model.Flock;
 import dpyl.eddy.piedfly.model.User;
 
 public class Database {
 
+    /**
+     * Deletes a User from the database
+     * @param uid The User's ID (obtained when signing in)
+     */
     public static void deleteUser(@NonNull String uid) {
         final DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
         userRef.removeValue();
     }
 
+    /**
+     * Updates the attributes of a User
+     * @param user The User to be updated. Only fields with a non-null value are updated.
+     */
     public static void updateUser(@NonNull User user) {
         if(user.getUid() == null)
             throw new RuntimeException("User has no uid");
@@ -44,77 +51,68 @@ public class Database {
                 childUpdates.put("/countryISO", user.getCountryISO());
             if(user.getLastKnownLocation() != null)
                 childUpdates.put("/lastKnownLocation", user.getLastKnownLocation());
-            if(user.getFlocks() != null)
-                childUpdates.put("/flocks", user.getFlocks());
+            if(user.getFlock() != null)
+                childUpdates.put("/flock", user.getFlock());
             userRef.updateChildren(childUpdates);
         }
     }
 
-    public static void createFlock(@NonNull Flock flock) {
-        if(flock.getName() == null)
-            throw new RuntimeException("Flock has no name");
-        if(flock.getOwner() == null)
-            throw new RuntimeException("Flock has no owner");
-        else {
-            final DatabaseReference flockRef = FirebaseDatabase.getInstance().getReference("flocks").push();
-            flock.setKey(flockRef.getKey());
-            flockRef.setValue(flock);
-        }
-    }
-
-    public static void deleteFlock(@NonNull String key) {
-        final DatabaseReference flockRef = FirebaseDatabase.getInstance().getReference("flocks").child(key);
-        flockRef.removeValue();
-    }
-
-    public static void updateFlock(@NonNull Flock flock) {
-        if(flock.getKey() == null)
-            throw new RuntimeException("Flock has no key");
-        else {
-            DatabaseReference flockRef = FirebaseDatabase.getInstance().getReference("flocks").child(flock.getKey());
-            final Map<String, Object> childUpdates = new HashMap<>();
-            if(flock.getName() != null)
-                childUpdates.put("/name", flock.getName());
-            if(flock.getOwner() != null)
-                childUpdates.put("/owner", flock.getOwner());
-            if(flock.getPhotoUrl() != null)
-                childUpdates.put("/photoUrl", flock.getPhotoUrl());
-            if(flock.getUsers() != null)
-                childUpdates.put("/users", flock.getUsers());
-            flockRef.updateChildren(childUpdates);
-        }
-    }
-
-    public static void addUserToFlock(@NonNull String uid, @NonNull String key) {
+    /**
+     * Establishes a bidirectional relationship between two users: Both are added to the other's flock.
+     * @param uid1 The first User's ID (obtained when signing in)
+     * @param uid2 The second User's ID (obtained when signing in)
+     */
+    public static void addToFlock(@NonNull String uid1, @NonNull String uid2) {
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
-        final DatabaseReference userRef = database.getReference("users").child(uid).child("flocks").child(key);
-        final DatabaseReference flockRef = database.getReference("flocks").child(key).child("users").child(uid);
-        userRef.setValue(true);
-        flockRef.setValue("01");
+        final DatabaseReference user1Ref = database.getReference("users").child(uid1).child("flock").child(uid2);
+        final DatabaseReference user2Ref = database.getReference("users").child(uid2).child("flock").child(uid1);
+        user1Ref.setValue("11");
+        user2Ref.setValue("11");
     }
 
-    public static void removeUserFromFlock(@NonNull String uid, @NonNull String key) {
+    /**
+     * Removes the established relationship between the two users: Both are removed from the other's flock.
+     * @param uid1 The first User's ID (obtained when signing in)
+     * @param uid2 The second User's ID (obtained when signing in)
+     */
+    public static void removeFromFlock(@NonNull String uid1, @NonNull String uid2) {
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
-        final DatabaseReference userRef = database.getReference("users").child(uid).child("flocks").child(key);
-        final DatabaseReference flockRef = database.getReference("flocks").child(key).child("users").child(uid);
-        userRef.removeValue();
-        flockRef.removeValue();
+        final DatabaseReference user1Ref = database.getReference("users").child(uid1).child("flock").child(uid2);
+        final DatabaseReference user2Ref = database.getReference("users").child(uid2).child("flock").child(uid1);
+        user1Ref.removeValue();
+        user2Ref.removeValue();
     }
 
+    /**
+     * Creates an emergency in the database
+     * @param emergency The Emergency that is to be created.
+     */
     public static void createEmergency(@NonNull Emergency emergency) {
+        if(emergency.getUid() == null)
+            throw new RuntimeException("Emergency has no uid");
         final DatabaseReference emergencyRef = FirebaseDatabase.getInstance().getReference("emergencies").push();
         emergency.setKey(emergencyRef.getKey());
         emergencyRef.setValue(emergency);
     }
 
+    /**
+     * Deletes an Emergency from the database
+     * @param key The Emergency's key
+     */
     public static void deleteEmergency(@NonNull String key) {
         final DatabaseReference emergencyRef = FirebaseDatabase.getInstance().getReference("emergencies").child(key);
         emergencyRef.removeValue();
     }
 
+    /**
+     * Updates the attributes of an Emergency.
+     * @param emergency The Emergency to be updated. Only fields with a non-null value are updated.
+     */
     public static void updateEmergency(@NonNull Emergency emergency) {
         if(emergency.getKey() == null)
             throw new RuntimeException("Emergency has no key");
+        if(emergency.getUid() == null)
+            throw new RuntimeException("Emergency has no uid");
         else {
             DatabaseReference emergencyRef = FirebaseDatabase.getInstance().getReference("emergencies").child(emergency.getKey());
             final Map<String, Object> childUpdates = new HashMap<>();
@@ -128,6 +126,11 @@ public class Database {
         }
     }
 
+    /**
+     * Creates an Event in the database
+     * @param key The key of the Emergency to which the Event belongs.
+     * @param event The Event that is to be created.
+     */
     public static void createEvent(@NonNull String key, @NonNull Event event) {
         final DatabaseReference eventRef = FirebaseDatabase.getInstance().getReference("emergencies").child(key).child("events").push();
         eventRef.setValue(event);

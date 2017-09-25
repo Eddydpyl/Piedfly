@@ -2,9 +2,7 @@ package dpyl.eddy.piedfly.view;
 
 import android.os.Bundle;
 
-import dpyl.eddy.piedfly.AppPermissions;
 import dpyl.eddy.piedfly.R;
-import dpyl.eddy.piedfly.hotbeacon.BeaconManager;
 
 public class MainActivity extends BaseActivity {
 

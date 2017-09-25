@@ -1,5 +1,7 @@
 package dpyl.eddy.piedfly.model;
 
+import com.google.firebase.database.Exclude;
+
 import java.util.Map;
 
 public class User {
@@ -14,7 +16,7 @@ public class User {
     private String photoUrl;
     private String countryISO;
     private SimpleLocation lastKnownLocation;
-    private Map<String, Boolean> flocks;
+    private Map<String, String> flock; // values in the Map store a pair of booleans as bits in a String
 
     public User() {}
 
@@ -26,7 +28,7 @@ public class User {
         this.uid = uid;
     }
 
-    public User(String uid, String token, String name, String surname, Integer age, String phone, String email, String photoUrl, String countryISO, SimpleLocation lastKnownLocation, Map<String, Boolean> flocks) {
+    public User(String uid, String token, String name, String surname, Integer age, String phone, String email, String photoUrl, String countryISO, SimpleLocation lastKnownLocation, Map<String, String> flock) {
         this.uid = uid;
         this.token = token;
         this.name = name;
@@ -37,7 +39,7 @@ public class User {
         this.photoUrl = photoUrl;
         this.countryISO = countryISO;
         this.lastKnownLocation = lastKnownLocation;
-        this.flocks = flocks;
+        this.flock = flock;
     }
 
     public String getUid() {
@@ -120,12 +122,32 @@ public class User {
         this.lastKnownLocation = lastKnownLocation;
     }
 
-    public Map<String, Boolean> getFlocks() {
-        return flocks;
+    public Map<String, String> getFlock() {
+        return flock;
     }
 
-    public void setFlocks(Map<String, Boolean> flocks) {
-        this.flocks = flocks;
+    public void setFlock(Map<String, String> flock) {
+        this.flock = flock;
+    }
+
+    @Exclude
+    public boolean isLocationAllowed (String uid){
+        return Integer.valueOf(flock.get(uid).substring(0,1)) > 0;
+    }
+
+    @Exclude
+    public void setLocationAllowed (String uid, boolean allowed) {
+        flock.put(uid, String.valueOf(allowed ? 1 : 0) + flock.get(uid).substring(1,2));
+    }
+
+    @Exclude
+    public boolean isEmergencyAllowed (String uid){
+        return Integer.valueOf(flock.get(uid).substring(1,2)) > 0;
+    }
+
+    @Exclude
+    public void setEmergencyAllowed (String uid, boolean allowed) {
+        flock.put(uid, flock.get(uid).substring(0,1) + String.valueOf(allowed ? 1 : 0));
     }
 
     @Override
@@ -148,7 +170,7 @@ public class User {
             return false;
         if (lastKnownLocation != null ? !lastKnownLocation.equals(user.lastKnownLocation) : user.lastKnownLocation != null)
             return false;
-        return flocks != null ? flocks.equals(user.flocks) : user.flocks == null;
+        return flock != null ? flock.equals(user.flock) : user.flock == null;
 
     }
 
@@ -164,7 +186,7 @@ public class User {
         result = 31 * result + (photoUrl != null ? photoUrl.hashCode() : 0);
         result = 31 * result + (countryISO != null ? countryISO.hashCode() : 0);
         result = 31 * result + (lastKnownLocation != null ? lastKnownLocation.hashCode() : 0);
-        result = 31 * result + (flocks != null ? flocks.hashCode() : 0);
+        result = 31 * result + (flock != null ? flock.hashCode() : 0);
         return result;
     }
 }
