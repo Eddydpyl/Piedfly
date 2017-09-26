@@ -2,6 +2,7 @@ package dpyl.eddy.piedfly.model;
 
 public class Event {
 
+    private String key;
     private Long time;
     private SimpleLocation location;
     private String uid;
@@ -10,12 +11,21 @@ public class Event {
 
     public Event() {}
 
-    public Event(Long time, SimpleLocation location, String uid, String text, EventType eventType) {
+    public Event(String key, Long time, SimpleLocation location, String uid, String text, EventType eventType) {
+        this.key = key;
         this.time = time;
         this.location = location;
         this.uid = uid;
         this.text = text;
         this.eventType = eventType;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public Long getTime() {
@@ -65,20 +75,23 @@ public class Event {
 
         Event event = (Event) o;
 
+        if (key != null ? !key.equals(event.key) : event.key != null) return false;
         if (!time.equals(event.time)) return false;
-        if (!location.equals(event.location)) return false;
+        if (location != null ? !location.equals(event.location) : event.location != null)
+            return false;
         if (!uid.equals(event.uid)) return false;
-        if (!text.equals(event.text)) return false;
+        if (text != null ? !text.equals(event.text) : event.text != null) return false;
         return eventType == event.eventType;
 
     }
 
     @Override
     public int hashCode() {
-        int result = time.hashCode();
-        result = 31 * result + location.hashCode();
+        int result = key != null ? key.hashCode() : 0;
+        result = 31 * result + time.hashCode();
+        result = 31 * result + (location != null ? location.hashCode() : 0);
         result = 31 * result + uid.hashCode();
-        result = 31 * result + text.hashCode();
+        result = 31 * result + (text != null ? text.hashCode() : 0);
         result = 31 * result + eventType.hashCode();
         return result;
     }
