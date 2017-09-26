@@ -1,7 +1,9 @@
 package dpyl.eddy.piedfly;
 
-class Constants {
+public class Constants {
 
-    static final String USA_ISO3 = "USA";
+    public static final String USA_ISO3 = "USA";
+
+    public static final String MESSAGE_TYPE_EMERGENCY = "EMERGENCY";
 
 }

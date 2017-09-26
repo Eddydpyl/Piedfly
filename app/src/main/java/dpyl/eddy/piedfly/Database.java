@@ -132,7 +132,14 @@ public class Database {
      * @param event The Event that is to be created.
      */
     public static void createEvent(@NonNull String key, @NonNull Event event) {
+        if(event.getTime() == null)
+            throw new RuntimeException("Event has no time");
+        if(event.getUid() == null)
+            throw new RuntimeException("Event has no uid");
+        if(event.getEventType() == null)
+            throw new RuntimeException("Event has no eventType");
         final DatabaseReference eventRef = FirebaseDatabase.getInstance().getReference("emergencies").child(key).child("events").push();
+        event.setKey(eventRef.getKey());
         eventRef.setValue(event);
     }
 
