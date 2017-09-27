@@ -31,6 +31,7 @@ public class MessagingService extends FirebaseMessagingService {
         // TODO: Create a push notification if required
         if (type.equals(Constants.MESSAGE_TYPE_EMERGENCY)) {
             // An Emergency has been triggered that involves the user in one way or another
+            // TODO: Retrieve the Emergency
         }
     }
 }

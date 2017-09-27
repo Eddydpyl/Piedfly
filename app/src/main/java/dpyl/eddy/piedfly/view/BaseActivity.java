@@ -14,7 +14,7 @@ import com.firebase.ui.auth.ResultCodes;
 import com.google.firebase.auth.FirebaseAuth;
 
 import dpyl.eddy.piedfly.Database;
-import dpyl.eddy.piedfly.ExceptionHandler;
+import dpyl.eddy.piedfly.exceptions.ExceptionHandler;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.hotbeacon.WifiScanService;
 import dpyl.eddy.piedfly.model.User;

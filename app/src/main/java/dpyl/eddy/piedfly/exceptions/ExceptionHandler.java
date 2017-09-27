@@ -1,8 +1,4 @@
-package dpyl.eddy.piedfly;
-
-import dpyl.eddy.piedfly.exceptions.CountryIsoNotAvailableException;
-import dpyl.eddy.piedfly.exceptions.DeviceNotAvailableException;
-import dpyl.eddy.piedfly.exceptions.LocationNotAvailableException;
+package dpyl.eddy.piedfly.exceptions;
 
 public class ExceptionHandler implements Thread.UncaughtExceptionHandler{
 
