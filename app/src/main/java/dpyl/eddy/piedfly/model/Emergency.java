@@ -1,24 +1,31 @@
 package dpyl.eddy.piedfly.model;
 
-import java.util.List;
 import java.util.Map;
 
 public class Emergency {
 
     private String key;
-    private String uid;
-    private SimpleLocation location;
-    private Map<String, Boolean> usersNearby;
-    private List<Event> events;
+    private String uid; // The uid of the User that is in danger
+    private String trigger; // The uid of the User that triggered the Emergency
+    private String checker; // The uid of the User that stopped the Emergency
+    private SimpleLocation start; // Last known location of the user that triggered the Emergency when doing so
+    private SimpleLocation finish; // Last known location of the user that finished the Emergency when doing so
+    private Map<String, Boolean> usersNearby; // Nearby users that agreed to help
 
     public Emergency() {}
 
-    public Emergency(String key, String uid, SimpleLocation location, Map<String, Boolean> usersNearby, List<Event> events) {
+    public Emergency(String key) {
+        this.key = key;
+    }
+
+    public Emergency(String key, String uid, String trigger, String checker, SimpleLocation start, SimpleLocation finish, Map<String, Boolean> usersNearby) {
         this.key = key;
         this.uid = uid;
-        this.location = location;
+        this.trigger = trigger;
+        this.checker = checker;
+        this.start = start;
+        this.finish = finish;
         this.usersNearby = usersNearby;
-        this.events = events;
     }
 
     public String getKey() {
@@ -37,12 +44,36 @@ public class Emergency {
         this.uid = uid;
     }
 
-    public SimpleLocation getLocation() {
-        return location;
+    public String getTrigger() {
+        return trigger;
     }
 
-    public void setLocation(SimpleLocation location) {
-        this.location = location;
+    public void setTrigger(String trigger) {
+        this.trigger = trigger;
+    }
+
+    public String getChecker() {
+        return checker;
+    }
+
+    public void setChecker(String checker) {
+        this.checker = checker;
+    }
+
+    public SimpleLocation getStart() {
+        return start;
+    }
+
+    public void setStart(SimpleLocation start) {
+        this.start = start;
+    }
+
+    public SimpleLocation getFinish() {
+        return finish;
+    }
+
+    public void setFinish(SimpleLocation finish) {
+        this.finish = finish;
     }
 
     public Map<String, Boolean> getUsersNearby() {
@@ -53,14 +84,6 @@ public class Emergency {
         this.usersNearby = usersNearby;
     }
 
-    public List<Event> getEvents() {
-        return events;
-    }
-
-    public void setEvents(List<Event> events) {
-        this.events = events;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -69,22 +92,27 @@ public class Emergency {
         Emergency emergency = (Emergency) o;
 
         if (key != null ? !key.equals(emergency.key) : emergency.key != null) return false;
-        if (!uid.equals(emergency.uid)) return false;
-        if (location != null ? !location.equals(emergency.location) : emergency.location != null)
+        if (uid != null ? !uid.equals(emergency.uid) : emergency.uid != null) return false;
+        if (trigger != null ? !trigger.equals(emergency.trigger) : emergency.trigger != null)
             return false;
-        if (usersNearby != null ? !usersNearby.equals(emergency.usersNearby) : emergency.usersNearby != null)
+        if (checker != null ? !checker.equals(emergency.checker) : emergency.checker != null)
             return false;
-        return events != null ? events.equals(emergency.events) : emergency.events == null;
+        if (start != null ? !start.equals(emergency.start) : emergency.start != null) return false;
+        if (finish != null ? !finish.equals(emergency.finish) : emergency.finish != null)
+            return false;
+        return usersNearby != null ? usersNearby.equals(emergency.usersNearby) : emergency.usersNearby == null;
 
     }
 
     @Override
     public int hashCode() {
         int result = key != null ? key.hashCode() : 0;
-        result = 31 * result + uid.hashCode();
-        result = 31 * result + (location != null ? location.hashCode() : 0);
+        result = 31 * result + (uid != null ? uid.hashCode() : 0);
+        result = 31 * result + (trigger != null ? trigger.hashCode() : 0);
+        result = 31 * result + (checker != null ? checker.hashCode() : 0);
+        result = 31 * result + (start != null ? start.hashCode() : 0);
+        result = 31 * result + (finish != null ? finish.hashCode() : 0);
         result = 31 * result + (usersNearby != null ? usersNearby.hashCode() : 0);
-        result = 31 * result + (events != null ? events.hashCode() : 0);
         return result;
     }
 }

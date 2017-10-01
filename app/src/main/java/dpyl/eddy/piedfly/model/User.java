@@ -15,8 +15,9 @@ public class User {
     private String email;
     private String photoUrl;
     private String countryISO;
+    private Map<String, String> flock; // The keys hold the uid of those in the flock, while the values hold the key of the active poke (or true if there's none)
     private SimpleLocation lastKnownLocation;
-    private Map<String, String> flock; // values in the Map store a pair of booleans as bits in a String
+    private String emergency; // The key of the currently active Emergency for this user (or null if there's none)
 
     public User() {}
 
@@ -24,11 +25,7 @@ public class User {
         this.uid = uid;
     }
 
-    public User(String uid, String token, String phone, String email) {
-        this.uid = uid;
-    }
-
-    public User(String uid, String token, String name, String surname, Integer age, String phone, String email, String photoUrl, String countryISO, SimpleLocation lastKnownLocation, Map<String, String> flock) {
+    public User(String uid, String token, String name, String surname, Integer age, String phone, String email, String photoUrl, String countryISO, Map<String, String> flock, SimpleLocation lastKnownLocation, String emergency) {
         this.uid = uid;
         this.token = token;
         this.name = name;
@@ -38,8 +35,9 @@ public class User {
         this.email = email;
         this.photoUrl = photoUrl;
         this.countryISO = countryISO;
-        this.lastKnownLocation = lastKnownLocation;
         this.flock = flock;
+        this.lastKnownLocation = lastKnownLocation;
+        this.emergency = emergency;
     }
 
     public String getUid() {
@@ -114,14 +112,6 @@ public class User {
         this.countryISO = countryISO;
     }
 
-    public SimpleLocation getLastKnownLocation() {
-        return lastKnownLocation;
-    }
-
-    public void setLastKnownLocation(SimpleLocation lastKnownLocation) {
-        this.lastKnownLocation = lastKnownLocation;
-    }
-
     public Map<String, String> getFlock() {
         return flock;
     }
@@ -130,24 +120,30 @@ public class User {
         this.flock = flock;
     }
 
-    @Exclude
-    public boolean isLocationAllowed (String uid){
-        return Integer.valueOf(flock.get(uid).substring(0,1)) > 0;
+    public SimpleLocation getLastKnownLocation() {
+        return lastKnownLocation;
+    }
+
+    public void setLastKnownLocation(SimpleLocation lastKnownLocation) {
+        this.lastKnownLocation = lastKnownLocation;
+    }
+
+    public String getEmergency() {
+        return emergency;
+    }
+
+    public void setEmergency(String emergency) {
+        this.emergency = emergency;
     }
 
     @Exclude
-    public void setLocationAllowed (String uid, boolean allowed) {
-        flock.put(uid, String.valueOf(allowed ? 1 : 0) + flock.get(uid).substring(1,2));
+    public String getPoke (String uid){
+        return flock.get(uid);
     }
 
     @Exclude
-    public boolean isEmergencyAllowed (String uid){
-        return Integer.valueOf(flock.get(uid).substring(1,2)) > 0;
-    }
-
-    @Exclude
-    public void setEmergencyAllowed (String uid, boolean allowed) {
-        flock.put(uid, flock.get(uid).substring(0,1) + String.valueOf(allowed ? 1 : 0));
+    public void setPoke (String uid, String key) {
+        flock.put(uid, key);
     }
 
     @Override
@@ -168,9 +164,10 @@ public class User {
             return false;
         if (countryISO != null ? !countryISO.equals(user.countryISO) : user.countryISO != null)
             return false;
+        if (flock != null ? !flock.equals(user.flock) : user.flock != null) return false;
         if (lastKnownLocation != null ? !lastKnownLocation.equals(user.lastKnownLocation) : user.lastKnownLocation != null)
             return false;
-        return flock != null ? flock.equals(user.flock) : user.flock == null;
+        return emergency != null ? emergency.equals(user.emergency) : user.emergency == null;
 
     }
 
@@ -185,8 +182,9 @@ public class User {
         result = 31 * result + (email != null ? email.hashCode() : 0);
         result = 31 * result + (photoUrl != null ? photoUrl.hashCode() : 0);
         result = 31 * result + (countryISO != null ? countryISO.hashCode() : 0);
-        result = 31 * result + (lastKnownLocation != null ? lastKnownLocation.hashCode() : 0);
         result = 31 * result + (flock != null ? flock.hashCode() : 0);
+        result = 31 * result + (lastKnownLocation != null ? lastKnownLocation.hashCode() : 0);
+        result = 31 * result + (emergency != null ? emergency.hashCode() : 0);
         return result;
     }
 }

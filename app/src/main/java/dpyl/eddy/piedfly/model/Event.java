@@ -2,30 +2,20 @@ package dpyl.eddy.piedfly.model;
 
 public class Event {
 
-    private String key;
-    private Long time;
-    private SimpleLocation location;
-    private String uid;
-    private String text;
+    private Long time; // Time at which the Event was triggered
+    private SimpleLocation location; // Last known location of the user that triggered the Event
+    private String uid; // The uid of the User that triggered the Event
+    private String text; // Information pertaining the Event
     private EventType eventType;
 
     public Event() {}
 
-    public Event(String key, Long time, SimpleLocation location, String uid, String text, EventType eventType) {
-        this.key = key;
+    public Event(Long time, SimpleLocation location, String uid, String text, EventType eventType) {
         this.time = time;
         this.location = location;
         this.uid = uid;
         this.text = text;
         this.eventType = eventType;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
     }
 
     public Long getTime() {
@@ -75,11 +65,10 @@ public class Event {
 
         Event event = (Event) o;
 
-        if (key != null ? !key.equals(event.key) : event.key != null) return false;
-        if (!time.equals(event.time)) return false;
+        if (time != null ? !time.equals(event.time) : event.time != null) return false;
         if (location != null ? !location.equals(event.location) : event.location != null)
             return false;
-        if (!uid.equals(event.uid)) return false;
+        if (uid != null ? !uid.equals(event.uid) : event.uid != null) return false;
         if (text != null ? !text.equals(event.text) : event.text != null) return false;
         return eventType == event.eventType;
 
@@ -87,12 +76,11 @@ public class Event {
 
     @Override
     public int hashCode() {
-        int result = key != null ? key.hashCode() : 0;
-        result = 31 * result + time.hashCode();
+        int result = time != null ? time.hashCode() : 0;
         result = 31 * result + (location != null ? location.hashCode() : 0);
-        result = 31 * result + uid.hashCode();
+        result = 31 * result + (uid != null ? uid.hashCode() : 0);
         result = 31 * result + (text != null ? text.hashCode() : 0);
-        result = 31 * result + eventType.hashCode();
+        result = 31 * result + (eventType != null ? eventType.hashCode() : 0);
         return result;
     }
 }

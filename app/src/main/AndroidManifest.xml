@@ -17,6 +17,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <service android:name=".messaging.InstantiationService">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
@@ -52,6 +53,7 @@
             android:name=".view.PhoneActivity"
             android:label="@string/title_activity_phone"
             android:theme="@style/AppTheme.NoActionBar" />
+
     </application>
 
 </manifest>
