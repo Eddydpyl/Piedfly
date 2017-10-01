@@ -29,9 +29,13 @@
             </intent-filter>
         </service>
         <service
-            android:name=".hotbeacon.WifiScanService"
+            android:name=".MonitorService"
             android:enabled="true"
             android:exported="true"/>
+        <service
+            android:name=".hotbeacon.WifiScanService"
+            android:enabled="true"
+            android:exported="true" />
 
         <receiver
             android:name=".hotbeacon.WifiScanReceiver"
@@ -46,6 +50,7 @@
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

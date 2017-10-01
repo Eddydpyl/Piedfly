@@ -27,4 +27,5 @@ public class WifiScanService extends Service {
     public void onDestroy() {
         super.onDestroy();
     }
+
 }

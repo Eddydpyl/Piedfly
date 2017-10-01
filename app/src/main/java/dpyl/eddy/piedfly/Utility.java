@@ -13,49 +13,73 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
-import dpyl.eddy.piedfly.exceptions.CountryIsoNotAvailableException;
-import dpyl.eddy.piedfly.exceptions.DeviceNotAvailableException;
-import dpyl.eddy.piedfly.exceptions.LocationNotAvailableException;
-
 public class Utility {
 
-    private static final long TENSEC = 10000;
-    private static final long FIVMET = 5;
+    private static final int SIGMIN = 1000 * 60 * 2;
 
     /**
-     *
      * @param context Necessary for some inner method calls
      * @return Last known location of the device
      */
     public static Location getLastKnownLocation(Context context) {
-        Location currentLocation;
         if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-            Boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-            Boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-            if (!isGPSEnabled && !isNetworkEnabled) {
-                throw new DeviceNotAvailableException("Neither the GPS nor the Network are available");
-            } else {
-                List<String> providers = locationManager.getProviders(true);
-                Location bestLocation = null;
-                for (String provider : providers) {
-                    Location location = locationManager.getLastKnownLocation(provider);
-                    if (location == null) continue;
-                    if (bestLocation == null) bestLocation = location;
-                    else {
-                        long timeDifference = location.getTime() - bestLocation.getTime();
-                        float accuraryDifference = bestLocation.getAccuracy() - location.getAccuracy();
-                        if(timeDifference >= TENSEC || (timeDifference >= TENSEC/2 && accuraryDifference >= FIVMET/2) || accuraryDifference >= FIVMET)
-                            bestLocation = location;
-                    }
-                } currentLocation = bestLocation;
-            }
+            List<String> providers = locationManager.getProviders(true);
+            Location bestLocation = null;
+            for (String provider : providers) {
+                Location location = locationManager.getLastKnownLocation(provider);
+                if(location != null && isBetterLocation(location, bestLocation)) bestLocation = location;
+            } return bestLocation;
         } else {
             throw new SecurityException("The App lacks the necessary permissions");
         }
-        if (currentLocation == null)
-            throw new LocationNotAvailableException("The location could not be retrieved");
-        return currentLocation;
+    }
+
+    /**
+     * Determines whether one Location reading is better than the current Location fix
+     * @param location  The new Location that you want to evaluate
+     * @param currentBestLocation  The current Location fix, to which you want to compare the new one
+     */
+    public static boolean isBetterLocation(Location location, Location currentBestLocation) {
+        if (currentBestLocation == null) {
+            // A new location is always better than no location
+            return true;
+        }
+
+        // Check whether the new location fix is newer or older
+        long timeDelta = location.getTime() - currentBestLocation.getTime();
+        boolean isSignificantlyNewer = timeDelta > SIGMIN;
+        boolean isSignificantlyOlder = timeDelta < -SIGMIN;
+        boolean isNewer = timeDelta > 0;
+
+        // If it's been more than two minutes since the current location, use the new location
+        // because the user has likely moved
+        if (isSignificantlyNewer) {
+            return true;
+            // If the new location is more than two minutes older, it must be worse
+        } else if (isSignificantlyOlder) {
+            return false;
+        }
+
+        // Check whether the new location fix is more or less accurate
+        int accuracyDelta = (int) (location.getAccuracy() - currentBestLocation.getAccuracy());
+        boolean isLessAccurate = accuracyDelta > 0;
+        boolean isMoreAccurate = accuracyDelta < 0;
+        boolean isSignificantlyLessAccurate = accuracyDelta > 200;
+
+        // Check if the old and new location are from the same provider
+        boolean isFromSameProvider = isSameProvider(location.getProvider(),
+                currentBestLocation.getProvider());
+
+        // Determine location quality using a combination of timeliness and accuracy
+        if (isMoreAccurate) {
+            return true;
+        } else if (isNewer && !isLessAccurate) {
+            return true;
+        } else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -69,20 +93,18 @@ public class Utility {
     }
 
     /**
-     *
      * @param context Necessary for some inner method calls
      * @return The device's country ISO3 code
      */
     public static String getCountryISO3(Context context) {
         String countryISO = getCountryISO(context);
-        if (countryISO.matches("[a-zA-Z]{2}")) {
+        if (countryISO != null && countryISO.matches("[a-zA-Z]{2}")) {
             Locale locale = new Locale("", countryISO);
             return locale.getISO3Country();
         } return countryISO;
     }
 
     /**
-     *
      * @param context Necessary for some inner method calls
      * @return The device's country ISO2 or ISO3 code
      */
@@ -108,6 +130,13 @@ public class Utility {
         countryISO = locale.getCountry();
         if (countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2,3}"))
             return countryISO.toUpperCase();
-        throw new CountryIsoNotAvailableException("Could not retrieve a Country ISO");
+        return null;
+    }
+
+    /** Checks whether two providers are the same */
+    private static boolean isSameProvider(String provider1, String provider2) {
+        if (provider1 == null) {
+            return provider2 == null;
+        } return provider1.equals(provider2);
     }
 }

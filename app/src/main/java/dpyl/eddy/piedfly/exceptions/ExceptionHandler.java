@@ -12,13 +12,8 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler{
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {
-        if (e instanceof DeviceNotAvailableException) {
-
-        } else if (e instanceof LocationNotAvailableException) {
-
-        } else if (e instanceof CountryIsoNotAvailableException) {
-
-        }else if (mDefaultUEH != null) {
+        // Handle specific uncaught exceptions
+        if (mDefaultUEH != null) {
             mDefaultUEH.uncaughtException(t, e);
         } else System.exit(1);
     }
