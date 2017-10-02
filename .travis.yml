@@ -66,7 +66,7 @@ install:
   - echo no | avdmanager create avd -n test -k "system-images;android-${EMU};google_apis;armeabi-v7a" -f --abi armeabi-v7a
   - emulator -avd test -engine classic -no-audio -no-window -gpu off -camera-back none -camera-front none -qemu -m 512 &
   # Start adbd, wait for device connected and show android serial
-  - adb wait-for-device get-serialno
+  - travis_wait adb wait-for-device get-serialno
   # Show version and download Gradle Wrapper if it's not already cached
   - cd ${TRAVIS_BUILD_DIR} && ./gradlew --version
   # Clean project and download missing dependencies and components
