@@ -8,7 +8,7 @@ branches:
     - master
 
 notifications:
-  slack: tpft:0GUe6iPVwe60Frjs9HL2ROzx
+  slack: tpft:uDf3mAwrYHFj6aNYw4ijeoDH
   email: false
 
 language: android
@@ -19,6 +19,9 @@ android:
     - platform-tools
     - build-tools-26.0.2
     - android-26
+
+before_install:
+  - chmod +x gradlew
 
 script:
    - ./gradlew build connectedCheck
