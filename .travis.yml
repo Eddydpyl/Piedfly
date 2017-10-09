@@ -1,6 +1,6 @@
 language: android
 jdk: oraclejdk8
-sudo: false # false for Container-Based Infrastructure, required for Sudo-enabled Infrastructure
+sudo: false
 after_failure: "cat $TRAVIS_BUILD_DIR/app/build/reports/lint-results.xml"
 
 branches:
