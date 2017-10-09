@@ -1,9 +1,12 @@
 package dpyl.eddy.piedfly.model;
 
+import android.support.annotation.Keep;
+
 import com.google.firebase.database.Exclude;
 
 import java.util.Map;
 
+@Keep
 public class User {
 
     private String uid;

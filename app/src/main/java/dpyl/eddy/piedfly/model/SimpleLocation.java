@@ -1,5 +1,8 @@
 package dpyl.eddy.piedfly.model;
 
+import android.support.annotation.Keep;
+
+@Keep
 public class SimpleLocation {
 
     private Long time;

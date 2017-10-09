@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 ext {
     travisBuild = System.getenv("TRAVIS") == "true"
-    // allows for -Dpre-dex=false to be set
     preDexEnabled = "true".equals(System.getProperty("pre-dex", "true"))
     supportLibVersion = '26.1.0'
     playServicesVersion  = '11.4.2'
@@ -36,6 +35,9 @@ android {
     dexOptions {
         // Skip pre-dexing when running on Travis CI or when disabled via -Dpre-dex=false.
         preDexLibraries = preDexEnabled && !travisBuild
+    }
+    lintOptions{
+        disable 'MissingTranslation'
     }
 }
 

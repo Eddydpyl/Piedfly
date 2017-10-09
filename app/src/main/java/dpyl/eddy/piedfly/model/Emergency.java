@@ -1,7 +1,10 @@
 package dpyl.eddy.piedfly.model;
 
+import android.support.annotation.Keep;
+
 import java.util.Map;
 
+@Keep
 public class Emergency {
 
     private String key;
