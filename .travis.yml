@@ -1,89 +1,24 @@
 language: android
 jdk: oraclejdk8
 sudo: required # false for Container-Based Infrastructure, required for Sudo-enabled Infrastructure
+after_failure: "cat $TRAVIS_BUILD_DIR/app/build/outputs/lint-results-debug.xml"
 
 branches:
   only:
     - master
 
 notifications:
-  slack: tpft:7m0fgQYO9XuGHYaP1BPSgpxV
-
-before_cache:
-  - rm -f ${TRAVIS_BUILD_DIR}/gradle/caches/modules-2/modules-2.lock # Avoid to repack it due locks
-  - rm -f ${TRAVIS_BUILD_DIR}/gradle/caches/*/plugin-resolution/
-
-cache:
-  directories:
-    - ${TRAVIS_BUILD_DIR}/gradle/caches/
-    - ${TRAVIS_BUILD_DIR}/gradle/wrapper/
-    - ${TRAVIS_BUILD_DIR}/android/build-cache
-
-notifications:
+  slack: tpft:0GUe6iPVwe60Frjs9HL2ROzx
   email: false
 
-env:
-  global:
-    - API=26 # targetSdkVersion in build.graddle
-    - BUT=26.0.0 # buildToolsVersion in build.gradle
-    - EMU=18 # The emulator will run this Sdk (must be 16 or newer)
-    - GRADLE_USER_HOME="${TRAVIS_BUILD_DIR}/gradle" # Change location for Gradle Wrapper and cache
-    - ANDROID_HOME=/usr/local/android-sdk-24.0.2 # Depends on the cookbooks version used in the VM
-    - TOOLS=${ANDROID_HOME}/tools # PATH order matters, exists more than one emulator script
-    - PATH=${ANDROID_HOME}:${ANDROID_HOME}/emulator:${TOOLS}:${TOOLS}/bin:${ANDROID_HOME}/platform-tools:${PATH}
-    - ADB_INSTALL_TIMEOUT=8 # minutes (2 minutes by default)
-
+language: android
 android:
   components:
-    - tools
+    - tools # to get the new `repository-11.xml`
+    - tools # see https://github.com/travis-ci/travis-ci/issues/6040#issuecomment-219367943)
     - platform-tools
-    - tools
-
-    # The BuildTools version used by your project
-    - build-tools-${BUT}
-
-    # The SDK version used to compile your project
-    - android-${API}
-
-    - extra-android-m2repository
-    - extra-google-m2repository
-
-before_install:
-  - chmod +x gradlew
-  - echo 'count=0' > /home/travis/.android/repositories.cfg # Avoid warning
-
-install:
-  # Update sdk tools to latest version and install/update components
-  - echo yes | sdkmanager "tools"
-  - echo yes | sdkmanager "platforms;android-${API}" # Android platform required by SDK tools
-  - echo yes | sdkmanager "platforms;android-${EMU}" # Android platform required by emulator
-  - echo yes | sdkmanager "extras;android;m2repository"
-  - echo yes | sdkmanager "extras;google;m2repository"
-  - echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2"
-  - echo yes | sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout-solver;1.0.2"
-  - echo yes | sdkmanager "system-images;android-${EMU};google_apis;armeabi-v7a" # Install emulator system image
-  # Create and start emulator
-  - echo no | avdmanager create avd -n test -k "system-images;android-${EMU};google_apis;armeabi-v7a" -f --abi armeabi-v7a
-  - emulator -avd test -engine classic -no-audio -no-window -gpu off -camera-back none -camera-front none -qemu -m 512 &
-  # Start adbd, wait for device connected and show android serial
-  - travis_wait adb wait-for-device get-serialno
-  # Show version and download Gradle Wrapper if it's not already cached
-  - cd ${TRAVIS_BUILD_DIR} && ./gradlew --version
-  # Clean project and download missing dependencies and components
-  - cd ${TRAVIS_BUILD_DIR} && ./gradlew clean build
-  - sdkmanager --list || true
-
-before_script:
-  # When the emulator is fully booted disable animations
-  - android-wait-for-emulator
-  - adb shell settings put global window_animation_scale 0 &
-  - adb shell settings put global transition_animation_scale 0 &
-  - adb shell settings put global animator_duration_scale 0 &
-  - adb shell input keyevent 82 &
+    - build-tools-26.0.2
+    - android-26
 
 script:
-  - cd ${TRAVIS_BUILD_DIR} && ./gradlew connectedAndroidTest
-
-after_script:
-  # Show lint results
-  - cat ${TRAVIS_BUILD_DIR}/*/build/reports/lint-results.xml
+   - ./gradlew build connectedCheck
