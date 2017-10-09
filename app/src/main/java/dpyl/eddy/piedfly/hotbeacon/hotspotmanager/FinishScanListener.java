@@ -16,8 +16,11 @@
 
 package dpyl.eddy.piedfly.hotbeacon.hotspotmanager;
 
+import android.support.annotation.Keep;
+
 import java.util.ArrayList;
 
+@Keep
 public interface FinishScanListener {
 
 

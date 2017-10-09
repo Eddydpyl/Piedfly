@@ -27,8 +27,10 @@ import android.content.Context;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
+import android.support.annotation.Keep;
 import android.util.Log;
 
+@Keep
 public class WifiApManager {
     private final WifiManager mWifiManager;
     private Context context;

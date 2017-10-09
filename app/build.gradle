@@ -1,5 +1,13 @@
 apply plugin: 'com.android.application'
 
+ext {
+    travisBuild = System.getenv("TRAVIS") == "true"
+    // allows for -Dpre-dex=false to be set
+    preDexEnabled = "true".equals(System.getProperty("pre-dex", "true"))
+    supportLibVersion = '26.1.0'
+    playServicesVersion  = '11.4.2'
+}
+
 android {
     compileSdkVersion 26
     buildToolsVersion "26.0.2"
@@ -11,11 +19,12 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         resConfigs "auto"
+        multiDexEnabled  true
         vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -24,11 +33,10 @@ android {
         timeOutInMs 20 * 60 * 1000  // 20 minutes
         installOptions "-d","-t"
     }
-}
-
-ext {
-    supportLibVersion = '26.1.0'
-    playServicesVersion  = '11.4.2'
+    dexOptions {
+        // Skip pre-dexing when running on Travis CI or when disabled via -Dpre-dex=false.
+        preDexLibraries = preDexEnabled && !travisBuild
+    }
 }
 
 dependencies {

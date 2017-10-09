@@ -16,6 +16,9 @@
 
 package dpyl.eddy.piedfly.hotbeacon.hotspotmanager;
 
+import android.support.annotation.Keep;
+
+@Keep
 public class ClientScanResult {
 
     private String IpAddr;
