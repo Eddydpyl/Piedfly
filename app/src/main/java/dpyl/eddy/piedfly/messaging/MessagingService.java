@@ -1,5 +1,7 @@
 package dpyl.eddy.piedfly.messaging;
 
+import android.util.Log;
+
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -9,9 +11,11 @@ import dpyl.eddy.piedfly.Constants;
 
 public class MessagingService extends FirebaseMessagingService {
 
+    private static final String MESSAGE_TYPE_EMERGENCY_FLOCK = "EMERGENCY_FLOCK";
+    private static final String MESSAGE_TYPE_EMERGENCY_NEARBY = "EMERGENCY_NEARBY";
+
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-
         // Check if message contains a data payload.
         if (remoteMessage.getData().size() > 0) {
             Map<String, String> data = remoteMessage.getData();
@@ -22,15 +26,16 @@ public class MessagingService extends FirebaseMessagingService {
         if (remoteMessage.getNotification() != null) {
             RemoteMessage.Notification notification = remoteMessage.getNotification();
         }
-
-        // Also if you intend on generating your own notifications as a result of a received FCM
-        // message, here is where that should be initiated. See sendNotification method below.
     }
 
     private void sendNotification(String type, String key){
+        Log.i("notificationFIRE", type);
         // TODO: Create a push notification if required
-        if (type.equals(Constants.MESSAGE_TYPE_EMERGENCY)) {
-            // An Emergency has been triggered that involves the user in one way or another
+        if (type.equals(MESSAGE_TYPE_EMERGENCY_FLOCK)) {
+            // An Emergency has been triggered by someone in the user's flock
+            // TODO: Retrieve the Emergency
+        } else if (type.equals(MESSAGE_TYPE_EMERGENCY_NEARBY)) {
+            // An Emergency has been triggered by someone nearby the user
             // TODO: Retrieve the Emergency
         }
     }

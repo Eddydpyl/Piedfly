@@ -1,17 +1,19 @@
 const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+admin.initializeApp(functions.config().firebase);
 
-exports.sendEmergencyNotifications = functions.database.ref('/emergencies/{pushId}/uid').onCreate(event => {
+exports.sendEmergencyNotifications = functions.database.ref(`/emergencies/{pushId}/uid`).onCreate(event => {
 
-    return event.data.ref.parent.once("value").then(function(emergency){
+    return event.data.ref.parent.once('value').then(function(emergency){
 
         const emergencyKey = emergency.val().key;
         const emergencyUid = emergency.val().uid;
 
-        return admin.database().ref('/users/${emergencyUid}/flock').once('value').then(function(flock) {
+        return admin.database().ref(`/users/${emergencyUid}/flock`).once('value').then(function(flock) {
             var promises = [];
             flock.forEach(function(snapshot) {
                 var uid = snapshot.key;
-                const promise = admin.database().ref('/users/${uid}/token').once('value');
+                const promise = admin.database().ref(`/users/${uid}/token`).once('value');
                 promises.push(promise);
             });
             return Promise.all(promises).then(results => {
@@ -21,7 +23,7 @@ exports.sendEmergencyNotifications = functions.database.ref('/emergencies/{pushI
                 });
                 const payload = {
                     data: {
-                        type: 'EMERGENCY',
+                        type: 'EMERGENCY_FLOCK',
                         key: emergencyKey,
                     }
                 };

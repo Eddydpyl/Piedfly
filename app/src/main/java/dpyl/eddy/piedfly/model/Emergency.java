@@ -13,7 +13,8 @@ public class Emergency {
     private String checker; // The uid of the User that stopped the Emergency
     private SimpleLocation start; // Last known location of the user that triggered the Emergency when doing so
     private SimpleLocation finish; // Last known location of the user that finished the Emergency when doing so
-    private Map<String, Boolean> usersNearby; // Nearby users that agreed to help
+    private Map<String, Boolean> usersNearby; // Nearby users (updated in real time)
+    private Map<String, Boolean> helpersNearby; // Nearby users that agreed to help
 
     public Emergency() {}
 
@@ -21,7 +22,7 @@ public class Emergency {
         this.key = key;
     }
 
-    public Emergency(String key, String uid, String trigger, String checker, SimpleLocation start, SimpleLocation finish, Map<String, Boolean> usersNearby) {
+    public Emergency(String key, String uid, String trigger, String checker, SimpleLocation start, SimpleLocation finish, Map<String, Boolean> usersNearby, Map<String, Boolean> helpersNearby) {
         this.key = key;
         this.uid = uid;
         this.trigger = trigger;
@@ -29,6 +30,7 @@ public class Emergency {
         this.start = start;
         this.finish = finish;
         this.usersNearby = usersNearby;
+        this.helpersNearby = helpersNearby;
     }
 
     public String getKey() {
@@ -87,6 +89,14 @@ public class Emergency {
         this.usersNearby = usersNearby;
     }
 
+    public Map<String, Boolean> getHelpersNearby() {
+        return helpersNearby;
+    }
+
+    public void setHelpersNearby(Map<String, Boolean> helpersNearby) {
+        this.helpersNearby = helpersNearby;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -103,7 +113,9 @@ public class Emergency {
         if (start != null ? !start.equals(emergency.start) : emergency.start != null) return false;
         if (finish != null ? !finish.equals(emergency.finish) : emergency.finish != null)
             return false;
-        return usersNearby != null ? usersNearby.equals(emergency.usersNearby) : emergency.usersNearby == null;
+        if (usersNearby != null ? !usersNearby.equals(emergency.usersNearby) : emergency.usersNearby != null)
+            return false;
+        return helpersNearby != null ? helpersNearby.equals(emergency.helpersNearby) : emergency.helpersNearby == null;
 
     }
 
@@ -116,6 +128,7 @@ public class Emergency {
         result = 31 * result + (start != null ? start.hashCode() : 0);
         result = 31 * result + (finish != null ? finish.hashCode() : 0);
         result = 31 * result + (usersNearby != null ? usersNearby.hashCode() : 0);
+        result = 31 * result + (helpersNearby != null ? helpersNearby.hashCode() : 0);
         return result;
     }
 }
