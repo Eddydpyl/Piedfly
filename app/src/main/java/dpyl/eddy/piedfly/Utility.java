@@ -33,7 +33,7 @@ public class Utility {
                 if(location != null && isBetterLocation(location, bestLocation)) bestLocation = location;
             } return bestLocation;
         } else {
-            throw new SecurityException("The App lacks the necessary permissions");
+            throw new SecurityException("The App lacks the necessary permissions for retrieving the last known location");
         }
     }
 

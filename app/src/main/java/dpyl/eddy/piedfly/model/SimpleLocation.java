@@ -1,5 +1,6 @@
 package dpyl.eddy.piedfly.model;
 
+import android.location.Location;
 import android.support.annotation.Keep;
 
 @Keep
@@ -11,6 +12,12 @@ public class SimpleLocation {
     private Double altitude;
 
     public SimpleLocation() {}
+
+    public SimpleLocation(Location location) {
+        this.time = location.getTime();
+        this.latitude = location.getLatitude();
+        this.longitude = location.getLongitude();
+    }
 
     public SimpleLocation(Long time, Double latitude, Double longitude) {
         this.time = time;

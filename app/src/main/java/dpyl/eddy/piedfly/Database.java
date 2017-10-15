@@ -56,10 +56,6 @@ public class Database {
             childUpdates.put("/photoUrl", user.getPhotoUrl());
         if(user.getCountryISO() != null)
             childUpdates.put("/countryISO", user.getCountryISO());
-        if(user.getFlock() != null)
-            childUpdates.put("/flock", user.getFlock());
-        if(user.getLastKnownLocation() != null)
-            childUpdates.put("/lastKnownLocation", user.getLastKnownLocation());
         userRef.updateChildren(childUpdates);
     }
 

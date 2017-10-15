@@ -1,13 +1,9 @@
 package dpyl.eddy.piedfly.messaging;
 
-import android.util.Log;
-
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.Map;
-
-import dpyl.eddy.piedfly.Constants;
 
 public class MessagingService extends FirebaseMessagingService {
 
@@ -29,7 +25,6 @@ public class MessagingService extends FirebaseMessagingService {
     }
 
     private void sendNotification(String type, String key){
-        Log.i("notificationFIRE", type);
         // TODO: Create a push notification if required
         if (type.equals(MESSAGE_TYPE_EMERGENCY_FLOCK)) {
             // An Emergency has been triggered by someone in the user's flock
