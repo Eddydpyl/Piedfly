@@ -1,9 +1,12 @@
 package dpyl.eddy.piedfly;
 
+/**
+ * Constants that control the inner workings of the App
+ */
+
 public class Constants {
 
-    public static final String USA_ISO3 = "USA";
-
-    public static final String MESSAGE_TYPE_EMERGENCY = "EMERGENCY";
+    static final double RADIUS_KM = 0.5; // Distance in km for someone to be considered nearby
+    static final int SIGMIN = 1000 * 60 * 2; // Time in milliseconds for a location to be considered significantly older/newer
 
 }

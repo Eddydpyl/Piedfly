@@ -13,9 +13,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
+import static dpyl.eddy.piedfly.Constants.SIGMIN;
+
 public class Utility {
 
-    private static final int SIGMIN = 1000 * 60 * 2;
+    private static final String USA_ISO3 = "USA";
 
     /**
      * @param context Necessary for some inner method calls
@@ -31,7 +33,7 @@ public class Utility {
                 if(location != null && isBetterLocation(location, bestLocation)) bestLocation = location;
             } return bestLocation;
         } else {
-            throw new SecurityException("The App lacks the necessary permissions");
+            throw new SecurityException("The App lacks the necessary permissions for retrieving the last known location");
         }
     }
 
@@ -88,7 +90,7 @@ public class Utility {
      * @return Emergency number of the country with the given ISO3 code
      */
     public static String getEmergencyNumber(String ISO3) {
-        if (Constants.USA_ISO3.equals(ISO3)) return "911";
+        if (USA_ISO3.equals(ISO3)) return "911";
         else return "112";
     }
 

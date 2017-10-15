@@ -37,24 +37,26 @@ public class MonitorService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-            mLocationCallback = new LocationCallback(){
-                @Override
-                public void onLocationResult(LocationResult locationResult) {
-                    Location bestLocation = null;
-                    for (Location location : locationResult.getLocations()) {
-                        if (Utility.isBetterLocation(location, bestLocation)) bestLocation = location;
-                    }
-                    final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-                    String uid = sharedPreferences.getString(getBaseContext().getString(R.string.pref_uid), "");
-                    if (bestLocation != null && !uid.isEmpty()) {
-                        SimpleLocation simpleLocation = new SimpleLocation(bestLocation.getTime(), bestLocation.getLatitude(), bestLocation.getLongitude());
-                        Database.setLastKnownLocation(uid, simpleLocation);
-                    }
+        if (mFusedLocationClient == null || mLocationCallback == null) {
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+                mLocationCallback = new LocationCallback(){
+                    @Override
+                    public void onLocationResult(LocationResult locationResult) {
+                        Location bestLocation = null;
+                        for (Location location : locationResult.getLocations()) {
+                            if (Utility.isBetterLocation(location, bestLocation)) bestLocation = location;
+                        }
+                        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+                        String uid = sharedPreferences.getString(getBaseContext().getString(R.string.pref_uid), "");
+                        if (bestLocation != null && !uid.isEmpty()) {
+                            SimpleLocation simpleLocation = new SimpleLocation(bestLocation.getTime(), bestLocation.getLatitude(), bestLocation.getLongitude());
+                            Database.setLastKnownLocation(uid, simpleLocation);
+                        }
+                    };
                 };
-            };
-            mFusedLocationClient.requestLocationUpdates(createLocationRequest(), mLocationCallback, null);
+                mFusedLocationClient.requestLocationUpdates(createLocationRequest(), mLocationCallback, null);
+            }
         }
     }
 
@@ -62,6 +64,8 @@ public class MonitorService extends Service {
     public void onDestroy() {
         super.onDestroy();
         mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+        mFusedLocationClient = null;
+        mLocationCallback = null;
     }
 
     private LocationRequest createLocationRequest() {
