@@ -5,42 +5,40 @@ admin.initializeApp(functions.config().firebase);
 // Sends a notification to the Users inside the flock of the one to whom the Emergency refers to.
 exports.emergencyFlockNotification = functions.database.ref(`/emergencies/{pushId}/uid`).onCreate(event => {
 
-    return event.data.ref.parent.once('value').then(function(emergency){
+    const emergencyKey = event.params.pushId;
+    const emergencyUid = event.data.val();
 
-        const emergencyKey = emergency.val().key;
-        const emergencyUid = emergency.val().uid;
-
-        return admin.database().ref(`/users/${emergencyUid}/flock`).once('value').then(function(flock) {
-            var promises = [];
+    return admin.database().ref(`/users/${emergencyUid}/flock`).once('value').then(function(flock) {
+        var promises = [];
+        if (flock) {
             flock.forEach(function(snapshot) {
                 var uid = snapshot.key;
                 const promise = admin.database().ref(`/users/${uid}/token`).once('value');
                 promises.push(promise);
             });
-            return Promise.all(promises).then(results => {
-                var tokens = [];
-                results.forEach(function(token) {
-                    tokens.push(token.val());
+        }
+        return Promise.all(promises).then(results => {
+            var tokens = [];
+            results.forEach(function(token) {
+                tokens.push(token.val());
+            });
+            const payload = {
+                data: {
+                    type: 'EMERGENCY_FLOCK',
+                    key: emergencyKey,
+                }
+            };
+            return admin.messaging().sendToDevice(tokens, payload)
+            .then(function (response) {
+                response.results.forEach((result, index) => {
+                    const error = result.error;
+                    if (error) console.error('Failure sending notification to:', tokens[index], error);
                 });
-                const payload = {
-                    data: {
-                        type: 'EMERGENCY_FLOCK',
-                        key: emergencyKey,
-                    }
-                };
-                return admin.messaging().sendToDevice(tokens, payload)
-                .then(function (response) {
-                    response.results.forEach((result, index) => {
-                        const error = result.error;
-                        if (error) console.error('Failure sending notification to:', tokens[index], error);
-                    });
-                })
-                .catch(function (error) {
-                    console.log('Error sending messages:', error);
-                });
+            })
+            .catch(function (error) {
+                console.log('Error sending messages:', error);
             });
         });
-
     });
 
 });
@@ -57,35 +55,90 @@ exports.emergencyNearbyNotification = functions.database.ref(`/emergencies/{push
         newUsers = usersNearby;
     }
 
-    return event.data.ref.parent.once('value').then(function(emergency){
+    const emergencyKey = event.params.pushId;
 
-        const emergencyKey = emergency.val().key;
-
-        var promises = [];
+    var promises = [];
+    if (newUsers) {
         newUsers.forEach(function(uid) {
             const promise = admin.database().ref(`/users/${uid}/token`).once('value');
             promises.push(promise);
         });
-        return Promise.all(promises).then(results => {
-            var tokens = [];
-            results.forEach(function(token) {
-                tokens.push(token.val());
+    }
+    return Promise.all(promises).then(results => {
+        var tokens = [];
+        results.forEach(function(token) {
+            tokens.push(token.val());
+        });
+        const payload = {
+            data: {
+                type: 'EMERGENCY_NEARBY',
+                key: emergencyKey,
+            }
+        };
+        return admin.messaging().sendToDevice(tokens, payload)
+        .then(function (response) {
+            response.results.forEach((result, index) => {
+                const error = result.error;
+                if (error) console.error('Failure sending notification to:', tokens[index], error);
             });
-            const payload = {
-                data: {
-                    type: 'EMERGENCY_NEARBY',
-                    key: emergencyKey,
-                }
-            };
-            return admin.messaging().sendToDevice(tokens, payload)
-            .then(function (response) {
-                response.results.forEach((result, index) => {
-                    const error = result.error;
-                    if (error) console.error('Failure sending notification to:', tokens[index], error);
+        })
+        .catch(function (error) {
+            console.log('Error sending messages:', error);
+        });
+    });
+
+});
+
+// Sends a notification to the Users participating in the Emergency to which the Event belongs
+exports.eventNotification = functions.database.ref(`/events/{emergency}/{pushId}`).onCreate(event => {
+
+    const eventKey = event.params.pushId;
+    const emergencyKey = event.params.emergency;
+
+    return admin.database().ref(`/emergencies/${emergencyKey}`).once('value').then(function(emergency) {
+
+        const emergencyUid = emergency.val().uid;
+
+        const helpersNearby = [];
+        if (emergency.val().helpersNearby) {
+            const helpersNearby = Object.keys(emergency.val().helpersNearby);
+        }
+
+        return admin.database().ref(`/users/${emergencyUid}/flock`).once('value').then(function(flock) {
+            var promises = [];
+            if (flock) {
+                flock.forEach(function(snapshot) {
+                    var uid = snapshot.key;
+                    const promise = admin.database().ref(`/users/${uid}/token`).once('value');
+                    promises.push(promise);
                 });
-            })
-            .catch(function (error) {
-                console.log('Error sending messages:', error);
+            }
+            helpersNearby.forEach(function(uid) {
+                const promise = admin.database().ref(`/users/${uid}/token`).once('value');
+                promises.push(promise);
+            });
+            return Promise.all(Array.from(new Set(promises))).then(results => {
+                var tokens = [];
+                results.forEach(function(token) {
+                    tokens.push(token.val());
+                });
+                const payload = {
+                    data: {
+                        type: 'EVENT',
+                        key: eventKey,
+                        emergency: emergencyKey,
+                    }
+                };
+                return admin.messaging().sendToDevice(tokens, payload)
+                .then(function (response) {
+                    response.results.forEach((result, index) => {
+                        const error = result.error;
+                        if (error) console.error('Failure sending notification to:', tokens[index], error);
+                    });
+                })
+                .catch(function (error) {
+                    console.log('Error sending messages:', error);
+                });
             });
         });
 
