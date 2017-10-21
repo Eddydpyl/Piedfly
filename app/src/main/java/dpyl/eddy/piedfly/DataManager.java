@@ -6,24 +6,23 @@ import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import dpyl.eddy.piedfly.exceptions.ExceptionHandler;
-import dpyl.eddy.piedfly.exceptions.IllegalDatabaseState;
 import dpyl.eddy.piedfly.model.Emergency;
 import dpyl.eddy.piedfly.model.Event;
+import dpyl.eddy.piedfly.model.EventType;
 import dpyl.eddy.piedfly.model.Poke;
+import dpyl.eddy.piedfly.model.Request;
+import dpyl.eddy.piedfly.model.RequestType;
 import dpyl.eddy.piedfly.model.SimpleLocation;
 import dpyl.eddy.piedfly.model.User;
 
-public class Database {
+public class DataManager {
 
     private static FirebaseDatabase mDatabase;
     private static GeoFire mGeoFire;
@@ -59,6 +58,16 @@ public class Database {
         userRef.updateChildren(childUpdates);
     }
 
+    public static void requestJoinFlock(@NonNull Request request) {
+        if(request.getUid() == null)
+            throw new RuntimeException("Request has no uid");
+        if(request.getTrigger() == null)
+            throw new RuntimeException("Request has no trigger");
+        request.setRequestType(RequestType.JOIN_FLOCK);
+        final DatabaseReference requestRef = mDatabase.getReference("requests").push();
+        requestRef.setValue(request);
+    }
+
     public static void addToFlock(@NonNull String uid1, @NonNull String uid2) {
         final DatabaseReference user1Ref = mDatabase.getReference("users").child(uid1).child("flock").child(uid2);
         final DatabaseReference user2Ref = mDatabase.getReference("users").child(uid2).child("flock").child(uid1);
@@ -87,11 +96,14 @@ public class Database {
             throw new RuntimeException("Emergency has no uid");
         if(emergency.getTrigger() == null)
             throw new RuntimeException("Emergency has no trigger");
-        final DatabaseReference userRef = mDatabase.getReference("users").child(emergency.getUid()).child("emergency");
         final DatabaseReference emergencyRef = mDatabase.getReference("emergencies").push();
+        final DatabaseReference userRef = mDatabase.getReference("users").child(emergency.getUid()).child("emergency");
+        final DatabaseReference eventRef = mDatabase.getReference("events").child(emergency.getKey()).push();
         emergency.setKey(emergencyRef.getKey());
         emergencyRef.setValue(emergency);
         userRef.setValue(emergency.getKey());
+        Event event = new Event(System.currentTimeMillis(), emergency.getStart(), emergency.getTrigger(), null, EventType.START);
+        eventRef.setValue(event);
         if (emergency.getStart() != null) readyGeoQuery(emergency);
     }
 
@@ -102,28 +114,27 @@ public class Database {
             throw new RuntimeException("Emergency has no uid");
         if(emergency.getChecker() == null)
             throw new RuntimeException("Emergency has no checker");
-        final DatabaseReference userRef = mDatabase.getReference("users").child(emergency.getUid()).child("emergency");
         final DatabaseReference emergencyRef = mDatabase.getReference("emergencies").child(emergency.getKey());
+        final DatabaseReference userRef = mDatabase.getReference("users").child(emergency.getUid()).child("emergency");
+        final DatabaseReference eventRef = mDatabase.getReference("events").child(emergency.getKey()).push();
         final Map<String, Object> childUpdates = new HashMap<>();
-        if(emergency.getChecker() != null)
-            childUpdates.put("/checker", emergency.getChecker());
+        childUpdates.put("/checker", emergency.getChecker());
         if(emergency.getFinish() != null)
             childUpdates.put("/finish", emergency.getFinish());
         emergencyRef.updateChildren(childUpdates);
         userRef.removeValue();
+        Event event = new Event(System.currentTimeMillis(), emergency.getFinish(), emergency.getChecker(), null, EventType.FINISH);
+        eventRef.setValue(event);
         dropGeoQuery();
     }
 
-    public static void updateEmergency(@NonNull Emergency emergency) {
-        if(emergency.getKey() == null)
-            throw new RuntimeException("Emergency has no key");
-        DatabaseReference emergencyRef = mDatabase.getReference("emergencies").child(emergency.getKey());
-        final Map<String, Object> childUpdates = new HashMap<>();
-        if(emergency.getUsersNearby() != null)
-            childUpdates.put("/usersNearby", emergency.getUsersNearby());
-        if(emergency.getHelpersNearby() != null)
-            childUpdates.put("/helpersNearby", emergency.getHelpersNearby());
-        emergencyRef.updateChildren(childUpdates);
+    /**
+     * @param key The key of the Emergency that the user wishes to join
+     * @param uid The uid of the User that is to join the Emergency
+     */
+    public static void joinEmergency(@NonNull String key, @NonNull String uid) {
+        DatabaseReference emergencyRef = mDatabase.getReference("emergencies").child(key).child("helpersNearby").child(uid);
+        emergencyRef.setValue(true);
     }
 
     /**
@@ -145,9 +156,9 @@ public class Database {
             throw new RuntimeException("Poke has no uid");
         if(poke.getTrigger() == null)
             throw new RuntimeException("Poke has no trigger");
+        final DatabaseReference pokeRef = mDatabase.getReference("pokes").push();
         final DatabaseReference userRef = mDatabase.getReference("users").child(poke.getUid()).child("flock").child(poke.getTrigger());
         final DatabaseReference triggerRef = mDatabase.getReference("users").child(poke.getTrigger()).child("flock").child(poke.getUid());
-        final DatabaseReference pokeRef = mDatabase.getReference("pokes").push();
         poke.setKey(pokeRef.getKey());
         pokeRef.setValue(poke);
         userRef.setValue(poke.getKey());
@@ -163,12 +174,13 @@ public class Database {
             throw new RuntimeException("Poke has no trigger");
         if(poke.getChecker() == null)
             throw new RuntimeException("Poke has no checker");
+        final DatabaseReference pokeRef = mDatabase.getReference("pokes").child(poke.getKey());
         final DatabaseReference userRef = mDatabase.getReference("users").child(poke.getUid()).child("flock").child(poke.getTrigger());
         final DatabaseReference triggerRef = mDatabase.getReference("users").child(poke.getTrigger()).child("flock").child(poke.getUid());
-        final DatabaseReference pokeRef = mDatabase.getReference("pokes").child(poke.getKey());
         final Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/checker", poke.getChecker());
-        childUpdates.put("/finish", poke.getFinish());
+        if (poke.getFinish() != null)
+            childUpdates.put("/finish", poke.getFinish());
         pokeRef.updateChildren(childUpdates);
         userRef.setValue(true);
         triggerRef.setValue(true);
@@ -181,51 +193,14 @@ public class Database {
         mGeoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
             @Override
             public void onKeyEntered(final String key, GeoLocation location) {
-                DatabaseReference emergencyRef = mDatabase.getReference("emergencies").child(emergency.getKey());
-                emergencyRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        Emergency dataSnapshotValue = dataSnapshot.getValue(Emergency.class);
-                       if (dataSnapshotValue != null && dataSnapshotValue.getKey() != null) {
-                           Map<String, Boolean> usersNearby = dataSnapshotValue.getUsersNearby();
-                           if (usersNearby == null) usersNearby = new HashMap<>();
-                           usersNearby.put(key, true);
-                           dataSnapshotValue.setUsersNearby(usersNearby);
-                           updateEmergency(dataSnapshotValue);
-                       } else ExceptionHandler.handleException(Thread.currentThread(),
-                               new IllegalDatabaseState("An Emergency was deleted from the database"));
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        // TODO: Error handling
-                    }
-                });
+                DatabaseReference emergencyRef = mDatabase.getReference("emergencies").child(emergency.getKey()).child("usersNearby").child(key);
+                emergencyRef.setValue(true);
             }
 
             @Override
             public void onKeyExited(final String key) {
-                DatabaseReference emergencyRef = mDatabase.getReference("emergencies").child(emergency.getKey());
-                emergencyRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        Emergency dataSnapshotValue = dataSnapshot.getValue(Emergency.class);
-                        if (dataSnapshotValue != null && dataSnapshotValue.getKey() != null) {
-                            Map<String, Boolean> usersNearby = dataSnapshotValue.getUsersNearby();
-                            if (usersNearby != null) {
-                                usersNearby.remove(key);
-                                dataSnapshotValue.setUsersNearby(usersNearby);
-                                updateEmergency(dataSnapshotValue);
-                            }
-                        } else ExceptionHandler.handleException(Thread.currentThread(),
-                                new IllegalDatabaseState("An Emergency was deleted from the database"));
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        // TODO: Error handling
-                    }
-                });
+                DatabaseReference emergencyRef = mDatabase.getReference("emergencies").child(emergency.getKey()).child("usersNearby").child(key);
+                emergencyRef.removeValue();
             }
 
             @Override

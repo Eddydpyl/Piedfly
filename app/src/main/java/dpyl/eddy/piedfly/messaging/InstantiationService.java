@@ -6,7 +6,7 @@ import android.preference.PreferenceManager;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
 
-import dpyl.eddy.piedfly.Database;
+import dpyl.eddy.piedfly.DataManager;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.model.User;
 
@@ -22,7 +22,7 @@ public class InstantiationService extends FirebaseInstanceIdService {
         if (!uid.isEmpty()) {
             User user = new User(uid);
             user.setToken(refreshedToken);
-            Database.updateUser(user);
+            DataManager.updateUser(user);
         }
     }
 }

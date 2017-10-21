@@ -6,7 +6,9 @@ package dpyl.eddy.piedfly;
 
 public class Constants {
 
-    static final double RADIUS_KM = 0.5; // Distance in km for someone to be considered nearby
-    static final int SIGMIN = 1000 * 60 * 2; // Time in milliseconds for a location to be considered significantly older/newer
+    public static final double RADIUS_KM = 0.5; // Distance in kilometers for someone to be considered nearby.
+    public static final int SIGMIN = 1000 * 60 * 2; // Time in milliseconds for a location to be considered significantly older/newer.
+    public static final int LOCATION_SLOWEST_INTERVAL = 10000; // Maximum time in milliseconds between each lastKnownLocation update.
+    public static final int LOCATION_FASTEST_INTERVAL = 5000; // Minimum time in milliseconds between each lastKnownLocation update.
 
 }

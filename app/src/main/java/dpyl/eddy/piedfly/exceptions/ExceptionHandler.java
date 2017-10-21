@@ -13,9 +13,7 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler{
     @Override
     public void uncaughtException(Thread t, Throwable e) {
         // Handle specific uncaught exceptions
-        if (e instanceof IllegalDatabaseState) {
-            // TODO: Report error to developers
-        } else if (mDefaultUEH != null) {
+        if (mDefaultUEH != null) {
             mDefaultUEH.uncaughtException(t, e);
         } else System.exit(1);
     }
