@@ -1,5 +1,8 @@
 package dpyl.eddy.piedfly.messaging;
 
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -7,8 +10,11 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.model.Emergency;
 import dpyl.eddy.piedfly.model.Event;
 import dpyl.eddy.piedfly.model.Poke;
@@ -41,8 +47,8 @@ public class MessagingService extends FirebaseMessagingService {
     }
 
     private void sendNotification(Map<String, String> data){
-        String type = data.get("type");
-        String key = data.get("key");
+        final String type = data.get("type");
+        final String key = data.get("key");
         // TODO: Create a push notification if required
         if (type.equals(MESSAGE_TYPE_EVENT)) {
             // An Event in an Emergency the user is taking part in has been created
@@ -64,6 +70,10 @@ public class MessagingService extends FirebaseMessagingService {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     Emergency emergency = dataSnapshot.getValue(Emergency.class);
+                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+                    Set<String> emergencies = sharedPreferences.getStringSet(getString(R.string.pref_emergencies_flock), new HashSet<String>());
+                    emergencies.add(key);
+                    sharedPreferences.edit().putStringSet(getString(R.string.pref_emergencies_flock), emergencies).apply();
                 }
 
                 @Override
@@ -78,11 +88,15 @@ public class MessagingService extends FirebaseMessagingService {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     Emergency emergency = dataSnapshot.getValue(Emergency.class);
+                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+                    Set<String> emergencies = sharedPreferences.getStringSet(getString(R.string.pref_emergencies_nearby), new HashSet<String>());
                     if (state) {
                         // The user has entered the perimeter
+                        emergencies.add(key);
                     } else {
                         // The user has left the perimeter
-                    }
+                        emergencies.remove(key);
+                    } sharedPreferences.edit().putStringSet(getString(R.string.pref_emergencies_nearby), emergencies).apply();
                 }
 
                 @Override

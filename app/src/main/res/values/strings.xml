@@ -4,6 +4,8 @@
 
     <string name="pref_uid">uidFirebase</string>
     <string name="pref_token">tokenFirebase</string>
+    <string name="pref_emergencies_flock">emergenciesFlock</string>
+    <string name="pref_emergencies_nearby">emergenciesNearby</string>
 
     <string name="content_request_permission_title">Permissions Needed</string>
     <string name="content_request_permission_message">This App requires you to allow it to read and write the system settings.</string>
