@@ -3,10 +3,11 @@
     <string name="title_activity_phone">PhoneActivity</string>
 
     <string name="pref_uid">uidFirebase</string>
-    <string name="pref_small_ID">smallID</string>
+    <string name="pref_tiny_ID">tinyID</string>
     <string name="pref_token">tokenFirebase</string>
     <string name="pref_emergencies_flock">emergenciesFlock</string>
     <string name="pref_emergencies_nearby">emergenciesNearby</string>
+    <string name="pref_SSID">SSID</string>
 
     <string name="content_request_permission_title">Permissions Needed</string>
     <string name="content_request_permission_message">This App requires you to allow it to read and write the system settings.</string>

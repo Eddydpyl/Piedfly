@@ -7,10 +7,10 @@ exports.addAccount = functions.auth.user().onCreate(event => {
     const uid = event.data.uid;
     return admin.database().ref(`/userCount`).once('value').then(function(userCount) {
         var value = (userCount) ? userCount.val() + 1 : 0;
-        const smallID = value.toString(36);
+        const tinyID = value.toString(36);
         admin.database().ref(`/userCount`).set(value);
-        admin.database().ref(`/users/${uid}/smallID`).set(smallID);
-        return admin.database().ref(`/smallID/${smallID}`).set(uid);
+        admin.database().ref(`/users/${uid}/tinyID`).set(tinyID);
+        return admin.database().ref(`/tinyID/${tinyID}`).set(uid);
     });
 });
 

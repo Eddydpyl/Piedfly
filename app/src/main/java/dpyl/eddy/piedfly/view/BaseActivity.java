@@ -117,7 +117,7 @@ public class BaseActivity extends AppCompatActivity {
     // We must always have the smallID in memory, in case we need to start a beacon.
     private void checkSmallID() {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        if (sharedPreferences.getString(getString(R.string.pref_small_ID), "").isEmpty()) {
+        if (sharedPreferences.getString(getString(R.string.pref_tiny_ID), "").isEmpty()) {
             String uid = sharedPreferences.getString(getString(R.string.pref_uid), "");
             if (uid.isEmpty()) readyUser();
             else {
@@ -125,7 +125,7 @@ public class BaseActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         String smallID = dataSnapshot.getValue(String.class);
-                        sharedPreferences.edit().putString(getString(R.string.pref_small_ID), smallID).apply();
+                        sharedPreferences.edit().putString(getString(R.string.pref_tiny_ID), smallID).apply();
                     }
 
                     @Override
