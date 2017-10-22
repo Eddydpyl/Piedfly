@@ -33,12 +33,26 @@ public class DataManager {
         if (mGeoFire == null) mGeoFire = new GeoFire(mDatabase.getReference("geofire"));
     }
 
-    public static void updateUser(@NonNull User user) {
+    public static void createUser(@NonNull User user) {
         if(user.getUid() == null)
             throw new RuntimeException("User has no uid");
         final DatabaseReference userRef = mDatabase.getReference("users").child(user.getUid());
         final Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/uid", user.getUid());
+        if(user.getToken() != null)
+            childUpdates.put("/token", user.getToken());
+        if(user.getPhone() != null)
+            childUpdates.put("/phone", user.getPhone());
+        if(user.getEmail() != null)
+            childUpdates.put("/email", user.getEmail());
+        userRef.updateChildren(childUpdates);
+    }
+
+    public static void updateUser(@NonNull User user) {
+        if(user.getUid() == null)
+            throw new RuntimeException("User has no uid");
+        final DatabaseReference userRef = mDatabase.getReference("users").child(user.getUid());
+        final Map<String, Object> childUpdates = new HashMap<>();
         if(user.getToken() != null)
             childUpdates.put("/token", user.getToken());
         if(user.getName() != null)
@@ -47,10 +61,6 @@ public class DataManager {
             childUpdates.put("/surname", user.getSurname());
         if(user.getAge() != null)
             childUpdates.put("/age", user.getAge());
-        if(user.getPhone() != null)
-            childUpdates.put("/phone", user.getPhone());
-        if(user.getEmail() != null)
-            childUpdates.put("/email", user.getEmail());
         if(user.getPhotoUrl() != null)
             childUpdates.put("/photoUrl", user.getPhotoUrl());
         if(user.getCountryISO() != null)

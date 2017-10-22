@@ -2,6 +2,18 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
 
+// Updates the userCount and smallID when a new user registers
+exports.addAccount = functions.auth.user().onCreate(event => {
+    const uid = event.data.uid;
+    return admin.database().ref(`/userCount`).once('value').then(function(userCount) {
+        var value = (userCount) ? userCount.val() + 1 : 0;
+        const smallID = value.toString(36);
+        admin.database().ref(`/userCount`).set(value);
+        admin.database().ref(`/users/${uid}/smallID`).set(smallID);
+        return admin.database().ref(`/smallID/${smallID}`).set(uid);
+    });
+});
+
 // Sends a notification to the Users inside the flock of the one to whom the Emergency refers to.
 exports.emergencyFlockNotification = functions.database.ref(`/emergencies/{pushId}/uid`).onCreate(event => {
 

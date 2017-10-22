@@ -12,6 +12,10 @@ import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.ErrorCodes;
 import com.firebase.ui.auth.IdpResponse;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import dpyl.eddy.piedfly.AppPermissions;
 import dpyl.eddy.piedfly.DataManager;
@@ -78,6 +82,18 @@ public class BaseActivity extends AppCompatActivity {
         }
     }
 
+    private void readyUser() {
+        if (mAuth.getCurrentUser() != null) {
+            final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+            sharedPreferences.edit().putString(getString(R.string.pref_uid), mAuth.getCurrentUser().getUid()).apply();
+            User user = new User(mAuth.getCurrentUser().getUid());
+            user.setToken(sharedPreferences.getString(getString(R.string.pref_token), null));
+            user.setPhone(mAuth.getCurrentUser().getPhoneNumber());
+            user.setEmail(mAuth.getCurrentUser().getEmail());
+            DataManager.createUser(user);
+        } else checkState();
+    }
+
     private void checkState() {
         if (mAuth.getCurrentUser() != null) {
             // The user is already signed in
@@ -89,6 +105,7 @@ public class BaseActivity extends AppCompatActivity {
                 }
             } else {
                 // The user has a verified phone number
+                checkSmallID();
                 startServices();
             }
         } else {
@@ -97,14 +114,27 @@ public class BaseActivity extends AppCompatActivity {
         }
     }
 
-    private void readyUser() {
+    // We must always have the smallID in memory, in case we need to start a beacon.
+    private void checkSmallID() {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        sharedPreferences.edit().putString(getString(R.string.pref_uid), mAuth.getCurrentUser().getUid()).apply();
-        User user = new User(mAuth.getCurrentUser().getUid());
-        user.setToken(sharedPreferences.getString(getString(R.string.pref_token), null));
-        user.setPhone(mAuth.getCurrentUser().getPhoneNumber());
-        user.setEmail(mAuth.getCurrentUser().getEmail());
-        DataManager.updateUser(user);
+        if (sharedPreferences.getString(getString(R.string.pref_small_ID), "").isEmpty()) {
+            String uid = sharedPreferences.getString(getString(R.string.pref_uid), "");
+            if (uid.isEmpty()) readyUser();
+            else {
+                FirebaseDatabase.getInstance().getReference("users").child(uid).child("smallID").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        String smallID = dataSnapshot.getValue(String.class);
+                        sharedPreferences.edit().putString(getString(R.string.pref_small_ID), smallID).apply();
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        // TODO: Error handling
+                    }
+                });
+            }
+        }
     }
 
     private void startServices() {

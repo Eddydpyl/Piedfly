@@ -10,6 +10,7 @@ import java.util.Map;
 public class User {
 
     private String uid;
+    private String smallID;
     private String token;
     private String name;
     private String surname;
@@ -28,8 +29,9 @@ public class User {
         this.uid = uid;
     }
 
-    public User(String uid, String token, String name, String surname, Integer age, String phone, String email, String photoUrl, String countryISO, Map<String, String> flock, SimpleLocation lastKnownLocation, String emergency) {
+    public User(String uid, String smallID, String token, String name, String surname, Integer age, String phone, String email, String photoUrl, String countryISO, Map<String, String> flock, SimpleLocation lastKnownLocation, String emergency) {
         this.uid = uid;
+        this.smallID = smallID;
         this.token = token;
         this.name = name;
         this.surname = surname;
@@ -49,6 +51,14 @@ public class User {
 
     public void setUid(String uid) {
         this.uid = uid;
+    }
+
+    public String getSmallID() {
+        return smallID;
+    }
+
+    public void setSmallID(String smallID) {
+        this.smallID = smallID;
     }
 
     public String getToken() {
@@ -156,7 +166,8 @@ public class User {
 
         User user = (User) o;
 
-        if (!uid.equals(user.uid)) return false;
+        if (uid != null ? !uid.equals(user.uid) : user.uid != null) return false;
+        if (smallID != null ? !smallID.equals(user.smallID) : user.smallID != null) return false;
         if (token != null ? !token.equals(user.token) : user.token != null) return false;
         if (name != null ? !name.equals(user.name) : user.name != null) return false;
         if (surname != null ? !surname.equals(user.surname) : user.surname != null) return false;
@@ -176,7 +187,8 @@ public class User {
 
     @Override
     public int hashCode() {
-        int result = uid.hashCode();
+        int result = uid != null ? uid.hashCode() : 0;
+        result = 31 * result + (smallID != null ? smallID.hashCode() : 0);
         result = 31 * result + (token != null ? token.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (surname != null ? surname.hashCode() : 0);
