@@ -7,8 +7,12 @@
     <string name="pref_token">tokenFirebase</string>
     <string name="pref_emergencies_flock">emergenciesFlock</string>
     <string name="pref_emergencies_nearby">emergenciesNearby</string>
-    <string name="pref_SSID">SSID</string>
+
+    <string name="pref_power_toggle">powerToggle</string>
+    <string name="pref_passive_monitoring">passiveMonitoring</string>
 
     <string name="content_request_permission_title">Permissions Needed</string>
     <string name="content_request_permission_message">This App requires you to allow it to read and write the system settings.</string>
+    <string name="content_notification_title">You Are Protected</string>
+    <string name="content_notification_text">If in danger, press the power button repeatedly</string>
 </resources>

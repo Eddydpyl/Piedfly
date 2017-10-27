@@ -21,15 +21,13 @@ import dpyl.eddy.piedfly.Utility;
 import dpyl.eddy.piedfly.DataManager;
 import dpyl.eddy.piedfly.model.SimpleLocation;
 
-// TODO: Passive Monitoring
-
-public class MonitorService extends Service {
+public class LocationService extends Service {
 
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
-    private Boolean mLocationUpdating;
+    private boolean mLocationUpdating;
 
-    public MonitorService() {}
+    public LocationService() {}
 
     @Override
     public void onCreate() {
@@ -73,7 +71,6 @@ public class MonitorService extends Service {
         mFusedLocationClient.removeLocationUpdates(mLocationCallback);
         mFusedLocationClient = null;
         mLocationCallback = null;
-        mLocationUpdating = null;
     }
 
     private LocationRequest createLocationRequest() {

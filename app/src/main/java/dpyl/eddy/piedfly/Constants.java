@@ -11,5 +11,6 @@ public class Constants {
     public static final int LOCATION_SLOWEST_INTERVAL = 10000; // Maximum time in milliseconds between each lastKnownLocation update.
     public static final int LOCATION_FASTEST_INTERVAL = 5000; // Minimum time in milliseconds between each lastKnownLocation update.
     public static final int BEACON_PRECISION = 5; // Precision the location transmitted through HotBeacon: +/- 1,1 * 10^(5-x) meters.
-
+    public static final int POWER_INTERVAL = 3000; // Maximum time in milliseconds between ACTION_SCREEN_ON or ACTION_SCREEN_OFF.
+    public static final int POWER_CLICKS = 10; // Number of times the power button must be pressed before starting an Emergency.
 }

@@ -22,8 +22,9 @@ import dpyl.eddy.piedfly.DataManager;
 import dpyl.eddy.piedfly.exceptions.ExceptionHandler;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.hotbeacon.WifiScanService;
-import dpyl.eddy.piedfly.monitor.MonitorService;
+import dpyl.eddy.piedfly.monitor.LocationService;
 import dpyl.eddy.piedfly.model.User;
+import dpyl.eddy.piedfly.monitor.PassiveService;
 
 public class BaseActivity extends AppCompatActivity {
 
@@ -138,13 +139,12 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     private void startServices() {
+        Intent passiveService = new Intent(this, PassiveService.class);
+        startService(passiveService);
         if (AppPermissions.requestLocationPermission(this)) {
-            Intent monitorService = new Intent(this, MonitorService.class);
+            Intent monitorService = new Intent(this, LocationService.class);
             startService(monitorService);
-        }
-        if (AppPermissions.requestWifiStatePermission(this)){
-            Intent wifiScanService = new Intent(this, WifiScanService.class);
-            startService(wifiScanService);
-        }
+        } Intent wifiScanService = new Intent(this, WifiScanService.class);
+        startService(wifiScanService);
     }
 }

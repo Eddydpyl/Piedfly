@@ -36,11 +36,6 @@ public class AppPermissions {
      */
     public static final int REQUEST_LOCATION = 2;
 
-    /**
-     * Id to identify an access & change wifi state permission request.
-     */
-    public static final int REQUEST_WIFI_STATE = 2;
-
     public static boolean requestReadPhoneStatePermission(Fragment fragment){
         if (ContextCompat.checkSelfPermission(fragment.getContext(), Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             fragment.requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_READ_PHONE_STATE);
@@ -81,22 +76,6 @@ public class AppPermissions {
         if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 || ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION);
-            return false;
-        } return true;
-    }
-
-    public static boolean requestWifiStatePermission(Fragment fragment){
-        if (ContextCompat.checkSelfPermission(fragment.getContext(), Manifest.permission.ACCESS_WIFI_STATE) != PackageManager.PERMISSION_GRANTED
-                || ContextCompat.checkSelfPermission(fragment.getContext(), Manifest.permission.CHANGE_WIFI_STATE) != PackageManager.PERMISSION_GRANTED) {
-            fragment.requestPermissions(new String[]{Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.CHANGE_WIFI_STATE}, REQUEST_WIFI_STATE);
-            return false;
-        } return true;
-    }
-
-    public static boolean requestWifiStatePermission(Activity activity){
-        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_WIFI_STATE) != PackageManager.PERMISSION_GRANTED
-                || ContextCompat.checkSelfPermission(activity, Manifest.permission.CHANGE_WIFI_STATE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.CHANGE_WIFI_STATE}, REQUEST_WIFI_STATE);
             return false;
         } return true;
     }

@@ -19,8 +19,11 @@ import dpyl.eddy.piedfly.model.SimpleLocation;
 
 public class BeaconManager {
 
+    // TODO: Listen for when the network becomes available one again
+
     static final String IDENTIFIER = "¬";
     private static final String SEPARATOR = "{";
+    private static final String HOTSPOT_DEFAULT = "HotSpot";
 
     /**
      * Creates a hotspot on the device, containing information encoded in its SSID
@@ -33,19 +36,21 @@ public class BeaconManager {
         SimpleLocation location = new SimpleLocation(Utility.getLastKnownLocation(context));
         Beacon beacon = new Beacon(tinyID, location, message);
         WifiConfiguration wifiConfiguration = new WifiConfiguration();
-        sharedPreferences.edit().putString(context.getString(R.string.pref_SSID), wifiConfiguration.SSID).apply();
         wifiConfiguration.SSID = encodeBeacon(beacon);
         WifiApManager wifiApManager = new WifiApManager(context);
         wifiApManager.setWifiApEnabled(wifiConfiguration, true);
     }
 
-    /**
-     * Stop the current hotspot and restores its original SSID
-     */
-    public static void stopBeacon(Context context) {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+    public static void startBeacon(Context context, Beacon beacon) {
         WifiConfiguration wifiConfiguration = new WifiConfiguration();
-        wifiConfiguration.SSID = sharedPreferences.getString(context.getString(R.string.pref_SSID), "HotSpot");
+        wifiConfiguration.SSID = encodeBeacon(beacon);
+        WifiApManager wifiApManager = new WifiApManager(context);
+        wifiApManager.setWifiApEnabled(wifiConfiguration, true);
+    }
+
+    public static void stopBeacon(Context context) {
+        WifiConfiguration wifiConfiguration = new WifiConfiguration();
+        wifiConfiguration.SSID = HOTSPOT_DEFAULT;
         WifiApManager wifiApManager = new WifiApManager(context);
         wifiApManager.setWifiApEnabled(wifiConfiguration, false);
     }

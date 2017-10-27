@@ -6,6 +6,8 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.TelephonyManager;
 
@@ -133,6 +135,12 @@ public class Utility {
         if (countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2,3}"))
             return countryISO.toUpperCase();
         return null;
+    }
+
+    public static boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
     /** Checks whether two providers are the same */

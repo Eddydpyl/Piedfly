@@ -14,6 +14,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.List;
 
 import dpyl.eddy.piedfly.DataManager;
+import dpyl.eddy.piedfly.Utility;
 import dpyl.eddy.piedfly.model.Beacon;
 import dpyl.eddy.piedfly.model.Emergency;
 
@@ -27,41 +28,44 @@ public class WifiScanReceiver extends BroadcastReceiver {
             for (ScanResult scanResult : scanResults){
                 // Check if the SSID matches one of our own
                 if (scanResult.SSID.substring(0,BeaconManager.IDENTIFIER.length()).equals(BeaconManager.IDENTIFIER)) {
-                    // TODO: Check if the device has a connection to the Internet and, if not, replicate the beacon
-                    // Decode the information contained inside it and attempt to start en Emergency
                     final Beacon beacon = BeaconManager.decodeBeacon(scanResult.SSID);
-                    final FirebaseDatabase database = FirebaseDatabase.getInstance();
-                    database.getReference("tinyID").child(beacon.getTinyID()).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            final String uid = dataSnapshot.getValue(String.class);
-                            database.getReference("users").child(uid).child("emergency").addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    // If there's already an Emergency ongoing for the User, there's no need to start another
-                                    if (dataSnapshot.getValue(String.class) == null) {
-                                        Emergency emergency = new Emergency();
-                                        emergency.setUid(uid);
-                                        emergency.setTrigger(uid);
-                                        emergency.setStart(beacon.getLocation());
-                                        DataManager.startEmergency(emergency);
-                                    }
-                                }
-
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-                                    // TODO:Error handling
-                                }
-                            });
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            // TODO:Error handling
-                        }
-                    });
+                    if (Utility.isNetworkAvailable(context)) startEmergency(beacon);
+                    else BeaconManager.startBeacon(context, beacon);
                 }
             }
         }
+    }
+
+    private void startEmergency(final Beacon beacon) {
+        final FirebaseDatabase database = FirebaseDatabase.getInstance();
+        database.getReference("tinyID").child(beacon.getTinyID()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final String uid = dataSnapshot.getValue(String.class);
+                database.getReference("users").child(uid).child("emergency").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        // If there's already an Emergency ongoing for the User, there's no need to start another
+                        if (dataSnapshot.getValue(String.class) == null) {
+                            Emergency emergency = new Emergency();
+                            emergency.setUid(uid);
+                            emergency.setTrigger(uid);
+                            emergency.setStart(beacon.getLocation());
+                            DataManager.startEmergency(emergency);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        // TODO:Error handling
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // TODO:Error handling
+            }
+        });
     }
 }
