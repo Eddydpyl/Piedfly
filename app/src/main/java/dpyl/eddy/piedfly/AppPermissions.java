@@ -11,8 +11,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+
+import java.util.ArrayList;
 
 /**
  * This class contains methods that check if a certain permission has been granted and reports it.
@@ -36,66 +37,16 @@ public class AppPermissions {
      */
     public static final int REQUEST_LOCATION = 2;
 
-    public static boolean requestReadPhoneStatePermission(Fragment fragment){
-        if (ContextCompat.checkSelfPermission(fragment.getContext(), Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            fragment.requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_READ_PHONE_STATE);
-            return false;
-        } return true;
-    }
-
     public static boolean requestReadPhoneStatePermission(Activity activity){
-        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_READ_PHONE_STATE);
-            return false;
-        } return true;
-    }
-
-    public static boolean requestReadSMSPermission(Fragment fragment){
-        if (ContextCompat.checkSelfPermission(fragment.getContext(), Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
-            fragment.requestPermissions(new String[]{Manifest.permission.READ_SMS}, REQUEST_READ_SMS);
-            return false;
-        } return true;
+        return requestPermission(activity, REQUEST_READ_PHONE_STATE, Manifest.permission.READ_PHONE_STATE);
     }
 
     public static boolean requestReadSMSPermission(Activity activity){
-        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.READ_SMS}, REQUEST_READ_SMS);
-            return false;
-        } return true;
-    }
-
-    public static boolean requestLocationPermission(Fragment fragment){
-        if (ContextCompat.checkSelfPermission(fragment.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                || ContextCompat.checkSelfPermission(fragment.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            fragment.requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION);
-            return false;
-        } return true;
+        return requestPermission(activity, REQUEST_READ_SMS, Manifest.permission.READ_SMS);
     }
 
     public static boolean requestLocationPermission(Activity activity){
-        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                || ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION);
-            return false;
-        } return true;
-    }
-
-    public static boolean requestWriteSettingsPermission(final Fragment fragment){
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.System.canWrite(fragment.getContext())) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(fragment.getContext());
-            builder.setMessage(R.string.content_request_permission_message).setTitle(R.string.content_request_permission_title);
-            builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                @TargetApi(Build.VERSION_CODES.M)
-                public void onClick(DialogInterface dialog, int id) {
-                    Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
-                    intent.setData(Uri.parse("package:" + fragment.getActivity().getPackageName()));
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    fragment.startActivity(intent);
-                    dialog.dismiss();
-                }
-            }); builder.create().show();
-            return false;
-        } return true;
+        return requestPermission(activity, REQUEST_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION);
     }
 
     public static boolean requestWriteSettingsPermission(final Activity activity){
@@ -114,6 +65,25 @@ public class AppPermissions {
             }); builder.create().show();
             return false;
         } return true;
+    }
+
+    public static boolean requestPermission(Activity activity, int requestCode, String... permissions) {
+        boolean granted = true;
+        ArrayList<String> permissionsNeeded = new ArrayList<>();
+        for (String s : permissions) {
+            int permissionCheck = ContextCompat.checkSelfPermission(activity, s);
+            boolean hasPermission = (permissionCheck == PackageManager.PERMISSION_GRANTED);
+            granted &= hasPermission;
+            if (!hasPermission) permissionsNeeded.add(s);
+        } if (granted) return true;
+        else {
+            ActivityCompat.requestPermissions(activity, permissionsNeeded.toArray(new String[permissionsNeeded.size()]), requestCode);
+            return false;
+        }
+    }
+
+    public static boolean permissionGranted(int requestCode, int permissionCode, int[] grantResults) {
+        return requestCode == permissionCode && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
     }
 
 }

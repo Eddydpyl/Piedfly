@@ -46,7 +46,7 @@ public class WifiScanReceiver extends BroadcastReceiver {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         // If there's already an Emergency ongoing for the User, there's no need to start another
-                        if (dataSnapshot.getValue(String.class) == null) {
+                        if (!dataSnapshot.exists()) {
                             Emergency emergency = new Emergency();
                             emergency.setUid(uid);
                             emergency.setTrigger(uid);

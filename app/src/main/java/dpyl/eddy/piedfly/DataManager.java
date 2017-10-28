@@ -6,9 +6,11 @@ import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,11 +28,12 @@ public class DataManager {
 
     private static FirebaseDatabase mDatabase;
     private static GeoFire mGeoFire;
-    private static GeoQuery mGeoQuery;
+    private static Map<String, GeoQuery> mGeoQueries;
 
     static {
         if (mDatabase == null) mDatabase = FirebaseDatabase.getInstance();
         if (mGeoFire == null) mGeoFire = new GeoFire(mDatabase.getReference("geofire"));
+        if (mGeoQueries == null) mGeoQueries = new HashMap<>();
     }
 
     public static void createUser(@NonNull User user) {
@@ -68,7 +71,7 @@ public class DataManager {
         userRef.updateChildren(childUpdates);
     }
 
-    public static void requestJoinFlock(@NonNull Request request) {
+    public static String requestJoinFlock(@NonNull Request request) {
         if(request.getUid() == null)
             throw new RuntimeException("Request has no uid");
         if(request.getTrigger() == null)
@@ -76,6 +79,7 @@ public class DataManager {
         request.setRequestType(RequestType.JOIN_FLOCK);
         final DatabaseReference requestRef = mDatabase.getReference("requests").push();
         requestRef.setValue(request);
+        return requestRef.getKey();
     }
 
     public static void addToFlock(@NonNull String uid1, @NonNull String uid2) {
@@ -92,16 +96,34 @@ public class DataManager {
         user2Ref.removeValue();
     }
 
-    public static void setLastKnownLocation (@NonNull String uid, @NonNull SimpleLocation location) {
+    public static void setLastKnownLocation (@NonNull String uid, @NonNull final SimpleLocation location) {
         final DatabaseReference userRef = mDatabase.getReference("users").child(uid);
         final Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/lastKnownLocation", location);
         userRef.updateChildren(childUpdates);
         mGeoFire.setLocation(uid, new GeoLocation(location.getLatitude(), location.getLongitude()));
-        if (mGeoQuery != null) mGeoQuery.setCenter(new GeoLocation(location.getLatitude(), location.getLongitude()));
+        if (!mGeoQueries.isEmpty()) {
+            userRef.child("emergency").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        String key = dataSnapshot.getValue(String.class);
+                        if (mGeoQueries.containsKey(key)) {
+                            GeoQuery geoQuery = mGeoQueries.get(key);
+                            geoQuery.setCenter(new GeoLocation(location.getLatitude(), location.getLongitude()));
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    // TODO: Error handling
+                }
+            });
+        }
     }
 
-    public static void startEmergency(@NonNull Emergency emergency) {
+    public static String startEmergency(@NonNull Emergency emergency) {
         if(emergency.getUid() == null)
             throw new RuntimeException("Emergency has no uid");
         if(emergency.getTrigger() == null)
@@ -115,6 +137,7 @@ public class DataManager {
         Event event = new Event(System.currentTimeMillis(), emergency.getStart(), emergency.getTrigger(), null, EventType.START);
         eventRef.setValue(event);
         if (emergency.getStart() != null) readyGeoQuery(emergency);
+        return emergencyRef.getKey();
     }
 
     public static void stopEmergency(@NonNull Emergency emergency) {
@@ -135,22 +158,15 @@ public class DataManager {
         userRef.removeValue();
         Event event = new Event(System.currentTimeMillis(), emergency.getFinish(), emergency.getChecker(), null, EventType.FINISH);
         eventRef.setValue(event);
-        dropGeoQuery();
+        dropGeoQuery(emergency);
     }
 
-    /**
-     * @param key The key of the Emergency that the user wishes to join
-     * @param uid The uid of the User that is to join the Emergency
-     */
     public static void joinEmergency(@NonNull String key, @NonNull String uid) {
         DatabaseReference emergencyRef = mDatabase.getReference("emergencies").child(key).child("helpersNearby").child(uid);
         emergencyRef.setValue(true);
     }
 
-    /**
-     * @param key The key of the Emergency that the Event belongs to
-     */
-    public static void createEvent(@NonNull String key, @NonNull Event event) {
+    public static String createEvent(@NonNull String key, @NonNull Event event) {
         if(event.getTime() == null)
             throw new RuntimeException("Event has no time");
         if(event.getUid() == null)
@@ -159,9 +175,10 @@ public class DataManager {
             throw new RuntimeException("Event has no eventType");
         final DatabaseReference eventRef = mDatabase.getReference("events").child(key).push();
         eventRef.setValue(event);
+        return eventRef.getKey();
     }
 
-    public static void startPoke(@NonNull Poke poke) {
+    public static String startPoke(@NonNull Poke poke) {
         if(poke.getUid() == null)
             throw new RuntimeException("Poke has no uid");
         if(poke.getTrigger() == null)
@@ -173,6 +190,7 @@ public class DataManager {
         pokeRef.setValue(poke);
         userRef.setValue(poke.getKey());
         triggerRef.setValue(poke.getKey());
+        return pokeRef.getKey();
     }
 
     public static void finishPoke(@NonNull Poke poke) {
@@ -197,20 +215,22 @@ public class DataManager {
     }
 
     private static void readyGeoQuery(@NonNull final Emergency emergency) {
-        dropGeoQuery();
+        dropGeoQuery(emergency);
         SimpleLocation location = emergency.getStart();
-        mGeoQuery = mGeoFire.queryAtLocation(new GeoLocation(location.getLatitude(), location.getLongitude()), Constants.RADIUS_KM);
-        mGeoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
+        GeoQuery geoQuery = mGeoFire.queryAtLocation(new GeoLocation(location.getLatitude(), location.getLongitude()), Constants.RADIUS_KM);
+        geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
             @Override
             public void onKeyEntered(final String key, GeoLocation location) {
                 DatabaseReference emergencyRef = mDatabase.getReference("emergencies").child(emergency.getKey()).child("usersNearby").child(key);
                 emergencyRef.setValue(true);
+                checkEmergency();
             }
 
             @Override
             public void onKeyExited(final String key) {
                 DatabaseReference emergencyRef = mDatabase.getReference("emergencies").child(emergency.getKey()).child("usersNearby").child(key);
                 emergencyRef.removeValue();
+                checkEmergency();
             }
 
             @Override
@@ -223,13 +243,27 @@ public class DataManager {
             public void onGeoQueryError(DatabaseError error) {
                 // TODO: Error handling
             }
-        });
+
+            private void checkEmergency() {
+                mDatabase.getReference("emergencies").child(emergency.getKey()).child("checker").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) dropGeoQuery(emergency);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        // TODO: Error handling
+                    }
+                });
+            }
+        }); mGeoQueries.put(emergency.getKey(), geoQuery);
     }
 
-    private static void dropGeoQuery() {
-        if (mGeoQuery != null) {
-            mGeoQuery.removeAllListeners();
-            mGeoQuery = null;
+    private static void dropGeoQuery(@NonNull final Emergency emergency) {
+        if (mGeoQueries.containsKey(emergency.getKey())) {
+            mGeoQueries.get(emergency.getKey()).removeAllListeners();
+            mGeoQueries.remove(emergency.getKey());
         }
     }
 }

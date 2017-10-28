@@ -14,47 +14,6 @@ exports.addAccount = functions.auth.user().onCreate(event => {
     });
 });
 
-// Sends a notification to the Users inside the flock of the one to whom the Emergency refers to.
-exports.emergencyFlockNotification = functions.database.ref(`/emergencies/{pushId}/uid`).onCreate(event => {
-
-    const emergencyKey = event.params.pushId;
-    const emergencyUid = event.data.val();
-
-    return admin.database().ref(`/users/${emergencyUid}/flock`).once('value').then(function(flock) {
-        var promises = [];
-        if (flock) {
-            flock.forEach(function(snapshot) {
-                var uid = snapshot.key;
-                const promise = admin.database().ref(`/users/${uid}/token`).once('value');
-                promises.push(promise);
-            });
-        }
-        return Promise.all(promises).then(results => {
-            var tokens = [];
-            results.forEach(function(token) {
-                tokens.push(token.val());
-            });
-            const payload = {
-                data: {
-                    type: 'EMERGENCY_FLOCK',
-                    key: emergencyKey,
-                }
-            };
-            return admin.messaging().sendToDevice(tokens, payload)
-            .then(function (response) {
-                response.results.forEach((result, index) => {
-                    const error = result.error;
-                    if (error) console.error('Failure sending notification to:', tokens[index], error);
-                });
-            })
-            .catch(function (error) {
-                console.log('Error sending messages:', error);
-            });
-        });
-    });
-
-});
-
 // Sends a notification to the Users nearby the one to whom the Emergency refers to, every time they enter or leave the perimeter.
 exports.emergencyNearbyNotification = functions.database.ref(`/emergencies/{pushId}/usersNearby`).onWrite(event => {
 
@@ -122,7 +81,7 @@ exports.eventNotification = functions.database.ref(`/events/{emergency}/{pushId}
 
         const helpersNearby = [];
         if (emergency.val().helpersNearby) {
-            const helpersNearby = Object.keys(emergency.val().helpersNearby);
+            helpersNearby = Object.keys(emergency.val().helpersNearby);
         }
 
         return admin.database().ref(`/users/${emergencyUid}/flock`).once('value').then(function(flock) {

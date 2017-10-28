@@ -11,6 +11,7 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 
+import dpyl.eddy.piedfly.AppState;
 import dpyl.eddy.piedfly.Constants;
 import dpyl.eddy.piedfly.DataManager;
 import dpyl.eddy.piedfly.R;
@@ -53,7 +54,8 @@ public class PassiveService extends Service {
                             emergency.setUid(uid);
                             emergency.setTrigger(uid);
                             emergency.setStart(simpleLocation);
-                            DataManager.startEmergency(emergency);
+                            String key = DataManager.startEmergency(emergency);
+                            AppState.registerEmergencyFlock(getBaseContext(), key);
                             // TODO: Open the App for the user
                         }
                     } else counter = 0;
