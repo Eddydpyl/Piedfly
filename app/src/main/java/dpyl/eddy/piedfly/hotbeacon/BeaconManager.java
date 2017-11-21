@@ -19,9 +19,9 @@ import dpyl.eddy.piedfly.model.SimpleLocation;
 
 public class BeaconManager {
 
-    // TODO: Listen for when the network becomes available one again
+    // TODO: Listen for when the network becomes available once again
 
-    static final String IDENTIFIER = "¬";
+    private static final String IDENTIFIER = "¬";
     private static final String SEPARATOR = "{";
     private static final String HOTSPOT_DEFAULT = "HotSpot";
 
@@ -39,20 +39,34 @@ public class BeaconManager {
         wifiConfiguration.SSID = encodeBeacon(beacon);
         WifiApManager wifiApManager = new WifiApManager(context);
         wifiApManager.setWifiApEnabled(wifiConfiguration, true);
+        sharedPreferences.edit().putString(context.getString(R.string.pref_last_hotbeacon), wifiConfiguration.SSID).apply();
     }
 
     public static void startBeacon(Context context, Beacon beacon) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         WifiConfiguration wifiConfiguration = new WifiConfiguration();
         wifiConfiguration.SSID = encodeBeacon(beacon);
         WifiApManager wifiApManager = new WifiApManager(context);
         wifiApManager.setWifiApEnabled(wifiConfiguration, true);
+        sharedPreferences.edit().putString(context.getString(R.string.pref_last_hotbeacon), wifiConfiguration.SSID).apply();
     }
 
-    public static void stopBeacon(Context context) {
+    public static void stopBeacon(Context context, boolean reset) {
         WifiConfiguration wifiConfiguration = new WifiConfiguration();
-        wifiConfiguration.SSID = HOTSPOT_DEFAULT;
+        if (reset) wifiConfiguration.SSID = HOTSPOT_DEFAULT;
         WifiApManager wifiApManager = new WifiApManager(context);
         wifiApManager.setWifiApEnabled(wifiConfiguration, false);
+    }
+
+    public static boolean isLastHotBeacon(Context context, String SSID) {
+        if (!isHotBeacon(SSID)) return false;
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String lastHotBeacon = sharedPreferences.getString(context.getString(R.string.pref_last_hotbeacon), "");
+        return !lastHotBeacon.isEmpty() && SSID.equals(lastHotBeacon);
+    }
+
+    public static boolean isHotBeacon(String SSID) {
+        return SSID != null && SSID.length() >= IDENTIFIER.length() && SSID.substring(0,IDENTIFIER.length()).equals(IDENTIFIER);
     }
 
     private static String encodeBeacon(Beacon beacon) {

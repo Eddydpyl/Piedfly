@@ -27,7 +27,7 @@ public class WifiScanReceiver extends BroadcastReceiver {
             List<ScanResult> scanResults = wifiManager.getScanResults();
             for (ScanResult scanResult : scanResults){
                 // Check if the SSID matches one of our own
-                if (scanResult.SSID.substring(0,BeaconManager.IDENTIFIER.length()).equals(BeaconManager.IDENTIFIER)) {
+                if (BeaconManager.isHotBeacon(scanResult.SSID)) {
                     final Beacon beacon = BeaconManager.decodeBeacon(scanResult.SSID);
                     if (Utility.isNetworkAvailable(context)) startEmergency(beacon);
                     else BeaconManager.startBeacon(context, beacon);

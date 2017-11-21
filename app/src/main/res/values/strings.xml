@@ -7,6 +7,7 @@
     <string name="pref_token">tokenFirebase</string>
     <string name="pref_emergencies_flock">emergenciesFlock</string>
     <string name="pref_emergencies_nearby">emergenciesNearby</string>
+    <string name="pref_last_hotbeacon">lastHotBeacon</string>
 
     <string name="pref_power_toggle">powerToggle</string>
     <string name="pref_passive_monitoring">passiveMonitoring</string>
