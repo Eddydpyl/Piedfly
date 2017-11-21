@@ -1,3 +1,10 @@
 <resources>
     <dimen name="fab_margin">16dp</dimen>
+    <dimen name="contact_name_width">150dp</dimen>
+    <dimen name="slider_height">64dp</dimen>
+    <dimen name="frame_elevation">2dp</dimen>
+    <dimen name="slider_elevation">4dp</dimen>
+    <dimen name="recycler_view_overscroll">204dp</dimen>
+    <dimen name="flock_item_marginRight">32dp</dimen>
+    <dimen name="map_contactDetails_height">180dp</dimen>
 </resources>

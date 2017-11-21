@@ -16,4 +16,17 @@
     <string name="content_request_permission_message">This App requires you to allow it to read and write the system settings.</string>
     <string name="content_notification_title">You Are Protected</string>
     <string name="content_notification_text">If in danger, press the power button repeatedly</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="slide_for_alarm">Slide for Alarm</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete_contact_dialog">Do you really want to delete this contact ?</string>
+    <string name="load_error_image">This image could not be loaded.</string>
+    <string name="activity_maps_title">Map</string>
+    <string name="select_a_photo">Select a photo.</string>
+    <string name="permission_location_cancelled">We need your location for the map to work.</string>
+    <string name="delete_caps">DELETE</string>
+    <string name="delete">Delete</string>
+    <string name="content_description_userDirections">Button to check your current location in the map.</string>
 </resources>

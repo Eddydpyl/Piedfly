@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- TODO: at some point remove text for tool text or add default text--><!--TODO: check material design guidelines, simplify, use same measures throughout app design-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <android.support.design.widget.AppBarLayout
+            android:id="@+id/map_AppBarLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.AppBarOverlay">
+
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/map_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                android:title="@string/activity_maps_title"
+                android:titleTextColor="@color/white"
+                app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+        </android.support.design.widget.AppBarLayout>
+
+
+        <FrameLayout
+            android:id="@+id/map_upperDetailBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/map_AppBarLayout"
+            android:background="@color/material_light_white"
+            android:elevation="@dimen/frame_elevation">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/map_recycler"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </FrameLayout>
+
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context="michaelstevan.saveme.activities.MapsActivity" />
+
+
+        <android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/map_contact_details"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/map_contactDetails_height"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="@dimen/material_component_cards_padding_from_edge_of_screen_to_card"
+            card_view:cardCornerRadius="@dimen/cardview_default_radius">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/map_contact_details_image"
+                    android:layout_width="82dp"
+                    android:layout_height="82dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_margin="@dimen/default_icon_margin"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:src="@drawable/default_contact" />
+
+
+                <TextView
+                    android:id="@+id/map_contact_details_name"
+                    android:layout_width="@dimen/contact_name_width"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:layout_below="@+id/map_contact_details_image"
+                    android:layout_marginLeft="@dimen/default_icon_margin"
+                    android:ellipsize="end"
+                    android:lines="1"
+                    android:text="Michael Stevan"
+                    android:textColor="@color/primary_text"
+                    android:textSize="@dimen/material_typography_title" />
+
+                <TextView
+                    android:id="@+id/map_contact_details_location"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/map_contact_details_name"
+                    android:layout_marginLeft="@dimen/default_icon_margin"
+                    android:layout_marginRight="@dimen/default_icon_margin"
+                    android:ellipsize="end"
+                    android:lines="1"
+                    android:text="Last seen in Avd la Coruña 3 mins ago."
+                    android:textColor="@color/secondary_text"
+                    android:textSize="@dimen/material_typography_caption" />
+
+                <ImageView
+                    android:id="@+id/map_contact_details_call"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginRight="@dimen/flock_item_marginRight"
+                    android:src="@drawable/ic_call_48dp"
+                    android:tint="@drawable/main_colored_states" />
+
+            </RelativeLayout>
+
+
+        </android.support.v7.widget.CardView>
+
+    </RelativeLayout>
+
+
+</LinearLayout>
+
+

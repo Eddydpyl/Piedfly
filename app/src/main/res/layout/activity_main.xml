@@ -1,18 +1,105 @@
-<?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="dpyl.eddy.piedfly.view.MainActivity">
+<?xml version="1.0" encoding="utf-8"?><!-- TODO: at some point remove text for tool text or add default text--><!--TODO: check material design guidelines, simplify, use same measures throughout app design-->
 
-    <TextView
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <android.support.design.widget.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.AppBarOverlay">
+
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                android:title="@string/app_name"
+                app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+        </android.support.design.widget.AppBarLayout>
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="2"
+            android:background="@color/colorSecondaryAccent"
+            android:elevation="@dimen/frame_elevation">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/userImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_above="@+id/slide_for_alarm"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:clickable="true"
+                android:elevation="@dimen/slider_elevation"
+                android:focusable="true"
+                android:maxHeight="250dp"
+                android:maxWidth="250dp"
+                android:padding="@dimen/default_area_margin"
+                android:src="@drawable/default_contact" />
+
+
+            <ImageView
+                android:id="@+id/userDirections"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_above="@+id/slide_for_alarm"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:layout_margin="@dimen/default_area_margin"
+                android:clickable="true"
+                android:contentDescription="@string/content_description_userDirections"
+                android:elevation="@dimen/slider_elevation"
+                android:focusable="true"
+                android:paddingEnd="0dp"
+                android:paddingStart="64dp"
+                android:src="@drawable/ic_user_directions" />
+
+
+            <com.ncorti.slidetoact.SlideToActView
+                android:id="@+id/slide_for_alarm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="@dimen/default_icon_margin"
+                android:elevation="@dimen/slider_elevation"
+                app:slider_height="@dimen/slider_height"
+                app:text="@string/slide_for_alarm" />
+
+        </RelativeLayout>
+
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/flock_list"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="3" />
+
+
+    </LinearLayout>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="@dimen/fab_margin"
+        android:clickable="true"
+        android:focusable="true"
+        app:srcCompat="@drawable/ic_add_white_24dp" />
 
-</android.support.constraint.ConstraintLayout>
+</RelativeLayout>

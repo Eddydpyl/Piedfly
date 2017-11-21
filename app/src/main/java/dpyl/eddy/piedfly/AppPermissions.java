@@ -37,6 +37,21 @@ public class AppPermissions {
      */
     public static final int REQUEST_LOCATION = 2;
 
+    /**
+     * Id to identify a read contacts permission request.
+     */
+    public static final int REQUEST_READ_CONTACTS = 3;
+
+    /**
+     * Id to identify an external storage permission request.
+     */
+    public static final int REQUEST_EXTERNAL_STORAGE = 4;
+
+    /**
+     * Id to identify a call permission request.
+     */
+    public static final int REQUEST_CALL_PHONE = 5;
+
     public static boolean requestReadPhoneStatePermission(Activity activity){
         return requestPermission(activity, REQUEST_READ_PHONE_STATE, Manifest.permission.READ_PHONE_STATE);
     }
@@ -47,6 +62,18 @@ public class AppPermissions {
 
     public static boolean requestLocationPermission(Activity activity){
         return requestPermission(activity, REQUEST_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION);
+    }
+
+    public static boolean requestReadContactsPermission(Activity activity){
+        return requestPermission(activity, REQUEST_READ_CONTACTS, Manifest.permission.READ_CONTACTS);
+    }
+
+    public static boolean requestExternalStoragePermission(Activity activity){
+        return requestPermission(activity, REQUEST_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+    }
+
+    public static boolean requestCallPermission(Activity activity){
+        return requestPermission(activity, REQUEST_CALL_PHONE, Manifest.permission.CALL_PHONE);
     }
 
     public static boolean requestWriteSettingsPermission(final Activity activity){
