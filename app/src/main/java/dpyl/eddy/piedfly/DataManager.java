@@ -60,8 +60,6 @@ public class DataManager {
             childUpdates.put("/token", user.getToken());
         if(user.getName() != null)
             childUpdates.put("/name", user.getName());
-        if(user.getSurname() != null)
-            childUpdates.put("/surname", user.getSurname());
         if(user.getAge() != null)
             childUpdates.put("/age", user.getAge());
         if(user.getPhotoUrl() != null)
@@ -85,8 +83,8 @@ public class DataManager {
     public static void addToFlock(@NonNull String uid1, @NonNull String uid2) {
         final DatabaseReference user1Ref = mDatabase.getReference("users").child(uid1).child("flock").child(uid2);
         final DatabaseReference user2Ref = mDatabase.getReference("users").child(uid2).child("flock").child(uid1);
-        user1Ref.setValue(true);
-        user2Ref.setValue(true);
+        user1Ref.setValue(Constants.PLACEHOLDER);
+        user2Ref.setValue(Constants.PLACEHOLDER);
     }
 
     public static void removeFromFlock(@NonNull String uid1, @NonNull String uid2) {

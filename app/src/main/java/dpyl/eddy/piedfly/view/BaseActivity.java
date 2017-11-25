@@ -107,6 +107,7 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
             user.setToken(sharedPreferences.getString(getString(R.string.pref_token), null));
             user.setPhone(mAuth.getCurrentUser().getPhoneNumber());
             user.setEmail(mAuth.getCurrentUser().getEmail());
+            user.setName(mAuth.getCurrentUser().getDisplayName());
             DataManager.createUser(user);
         } else checkState();
     }

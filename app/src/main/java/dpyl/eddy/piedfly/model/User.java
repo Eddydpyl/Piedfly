@@ -13,7 +13,6 @@ public class User {
     private String tinyID;
     private String token;
     private String name;
-    private String surname;
     private Integer age;
     private String phone;
     private String email;
@@ -29,12 +28,11 @@ public class User {
         this.uid = uid;
     }
 
-    public User(String uid, String tinyID, String token, String name, String surname, Integer age, String phone, String email, String photoUrl, String countryISO, Map<String, String> flock, SimpleLocation lastKnownLocation, String emergency) {
+    public User(String uid, String tinyID, String token, String name, Integer age, String phone, String email, String photoUrl, String countryISO, Map<String, String> flock, SimpleLocation lastKnownLocation, String emergency) {
         this.uid = uid;
         this.tinyID = tinyID;
         this.token = token;
         this.name = name;
-        this.surname = surname;
         this.age = age;
         this.phone = phone;
         this.email = email;
@@ -75,14 +73,6 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public void setSurname(String surname) {
-        this.surname = surname;
     }
 
     public Integer getAge() {
@@ -170,7 +160,6 @@ public class User {
         if (tinyID != null ? !tinyID.equals(user.tinyID) : user.tinyID != null) return false;
         if (token != null ? !token.equals(user.token) : user.token != null) return false;
         if (name != null ? !name.equals(user.name) : user.name != null) return false;
-        if (surname != null ? !surname.equals(user.surname) : user.surname != null) return false;
         if (age != null ? !age.equals(user.age) : user.age != null) return false;
         if (phone != null ? !phone.equals(user.phone) : user.phone != null) return false;
         if (email != null ? !email.equals(user.email) : user.email != null) return false;
@@ -191,7 +180,6 @@ public class User {
         result = 31 * result + (tinyID != null ? tinyID.hashCode() : 0);
         result = 31 * result + (token != null ? token.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (surname != null ? surname.hashCode() : 0);
         result = 31 * result + (age != null ? age.hashCode() : 0);
         result = 31 * result + (phone != null ? phone.hashCode() : 0);
         result = 31 * result + (email != null ? email.hashCode() : 0);

@@ -65,6 +65,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
 
     private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
     private SharedPreferences mSharedPreferences;
+    private RecyclerView recyclerView;
     private UserAdapter mUserAdapter;
     private String mPhoneNumber;
 
@@ -113,9 +114,10 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
             }
         });
 
-        final RecyclerView recyclerView = (RecyclerView) findViewById(R.id.flock_list);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView = (RecyclerView) findViewById(R.id.flock_list);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setAdapter(mUserAdapter);
+        recyclerView.setLayoutManager(layoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.addItemDecoration(new BottomOffsetDecoration());
         recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL));
@@ -257,6 +259,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
             DatabaseReference dataQuery = FirebaseDatabase.getInstance().getReference().child("users");
             FirebaseRecyclerOptions<User> options = new FirebaseRecyclerOptions.Builder<User>().setIndexedQuery(keyQuery, dataQuery, User.class).build();
             mUserAdapter =  new UserAdapter(options, this, this);
+            recyclerView.setAdapter(mUserAdapter);
         }
     }
 
