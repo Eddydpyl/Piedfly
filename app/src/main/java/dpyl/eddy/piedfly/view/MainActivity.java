@@ -1,8 +1,13 @@
 package dpyl.eddy.piedfly.view;
 
+import android.app.Application;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -18,19 +23,34 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.ncorti.slidetoact.SlideToActView;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.ref.WeakReference;
+import java.util.HashSet;
+import java.util.Set;
+
 import de.hdodenhof.circleimageview.CircleImageView;
 import dpyl.eddy.piedfly.AppPermissions;
+import dpyl.eddy.piedfly.AppState;
+import dpyl.eddy.piedfly.DataManager;
 import dpyl.eddy.piedfly.R;
+import dpyl.eddy.piedfly.Utility;
+import dpyl.eddy.piedfly.model.Emergency;
+import dpyl.eddy.piedfly.model.Request;
+import dpyl.eddy.piedfly.model.RequestType;
+import dpyl.eddy.piedfly.model.SimpleLocation;
 import dpyl.eddy.piedfly.model.User;
 import dpyl.eddy.piedfly.view.adapter.UserAdapter;
 import dpyl.eddy.piedfly.view.recyclerview.BottomOffsetDecoration;
@@ -43,8 +63,10 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
     private static final int REQUEST_PICK_CONTACT = 100;
     private static final int REQUEST_PICK_IMAGE = 101;
 
+    private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
+    private SharedPreferences mSharedPreferences;
     private UserAdapter mUserAdapter;
-    private String phoneNumber;
+    private String mPhoneNumber;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,9 +107,9 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
 
         slideForAlarm.setOnSlideCompleteListener(new SlideToActView.OnSlideCompleteListener() {
             @Override
-            public void onSlideComplete(@NotNull SlideToActView slideToActView) {
-                // TODO: Start an Emergency for the user
-                slideToActView.resetSlider(); // We reset the slider by now
+            public void onSlideComplete(@NotNull final SlideToActView slideToActView) {
+                startEmergency();
+                slideForAlarm.resetSlider();
             }
         });
 
@@ -140,6 +162,27 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         super.onStart();
         attachRecyclerViewAdapter();
         if (mUserAdapter != null) mUserAdapter.startListening();
+        // Listen to changes to the App state and update the UI accordingly
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mStateListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+                if (key.equals(getString(R.string.pref_emergencies_flock))) {
+                    Set<String> emergencies = mSharedPreferences.getStringSet(key, new HashSet<String>());
+                    if (emergencies.isEmpty()) {
+                        // TODO: There was at least an emergency active and now they have all been stopped
+                    } else {
+                        // TODO: There is at least one emergency active
+                    }
+                } else if (key.equals(getString(R.string.pref_emergencies_nearby))) {
+                    Set<String> emergencies = mSharedPreferences.getStringSet(key, new HashSet<String>());
+                    if (emergencies.isEmpty()) {
+                        // TODO: There was at least an emergency active and now they have all been stopped
+                    } else {
+                        // TODO: There is at least one emergency active
+                    }
+                }
+            }
+        }; mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
     }
 
     @Override
@@ -156,7 +199,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                 } break;
             case AppPermissions.REQUEST_CALL_PHONE:
                 if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_CALL_PHONE, grantResults)) {
-                    if (phoneNumber != null) startPhoneCall(phoneNumber);
+                    if (mPhoneNumber != null) startPhoneCall(mPhoneNumber);
                 } break;
         }
     }
@@ -166,7 +209,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_PICK_CONTACT && resultCode == RESULT_OK) {
             Uri uriContact = data.getData();
-            // TODO: Search for a user with the retrieved phone number and, if it exists, send a Request
+            new ContactTask(getApplication(), mAuth.getCurrentUser().getUid()).execute(uriContact);
         }
         if (requestCode == REQUEST_PICK_IMAGE && resultCode == RESULT_OK) {
             Uri uriUserImage = data.getData();
@@ -204,6 +247,8 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
             mUserAdapter.stopListening();
             mUserAdapter = null;
         }
+        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(mStateListener);
+        mSharedPreferences = null;
     }
 
     private void attachRecyclerViewAdapter() {
@@ -215,8 +260,19 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         }
     }
 
+    private void startEmergency() {
+        Emergency emergency = new Emergency();
+        String uid = mAuth.getCurrentUser().getUid();
+        SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(getBaseContext()));
+        emergency.setUid(uid);
+        emergency.setTrigger(uid);
+        emergency.setStart(simpleLocation);
+        String key = DataManager.startEmergency(emergency);
+        AppState.registerEmergencyFlock(getBaseContext(), key);
+    }
+
     private void startPhoneCall(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+        this.mPhoneNumber = phoneNumber;
         if (AppPermissions.requestCallPermission(this)) {
             Intent intent = new Intent(Intent.ACTION_DIAL);
             intent.setData(Uri.parse("tel:" + phoneNumber));
@@ -236,6 +292,49 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         if (AppPermissions.requestExternalStoragePermission(this)) {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             startActivityForResult(intent, REQUEST_PICK_IMAGE);
+        }
+    }
+
+    private static class ContactTask extends AsyncTask<Uri, Void, Void> {
+
+        private WeakReference<Application> weakReference;
+        private String uid;
+
+        ContactTask(Application context, String uid) {
+            weakReference = new WeakReference<Application>(context);
+            this.uid = uid;
+        }
+
+        @Override
+        protected Void doInBackground(Uri... uris) {
+            Cursor cursor = weakReference.get().getContentResolver().query(uris[0], new String[] {ContactsContract.Contacts.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER}, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                final String name = cursor.getString(0);
+                final String phone = cursor.getString(1);
+                cursor.close();
+                // TODO: Format phone so that it matches the ones in the database
+                FirebaseDatabase.getInstance().getReference("users").orderByChild("phone").equalTo(phone).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            User user = dataSnapshot.getValue(User.class);
+                            Request request = new Request(user.getUid(), uid, RequestType.JOIN_FLOCK);
+                            DataManager.requestJoinFlock(request);
+                            Toast toast = new Toast(weakReference.get());
+                            toast.setDuration(Toast.LENGTH_SHORT);
+                            toast.setText(weakReference.get().getString(R.string.content_join_flock_request) + " " + name + ".");
+                            toast.show();
+                        } else {
+                            // TODO: A User with the provided phone does not exist
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        // TODO: Error Handling
+                    }
+                });
+            } return null;
         }
     }
 }

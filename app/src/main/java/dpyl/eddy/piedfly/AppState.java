@@ -25,6 +25,18 @@ public class AppState {
         unRegisterEmergency(context, emergencyKey, context.getString(R.string.pref_emergencies_nearby));
     }
 
+    public static boolean emergencyFlock(Context context) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        Set<String> emergencies = sharedPreferences.getStringSet(context.getString(R.string.pref_emergencies_flock), new HashSet<String>());
+        return !emergencies.isEmpty();
+    }
+
+    public static boolean emergencyNearby(Context context) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        Set<String> emergencies = sharedPreferences.getStringSet(context.getString(R.string.pref_emergencies_nearby), new HashSet<String>());
+        return !emergencies.isEmpty();
+    }
+
     private static void registerEmergency(Context context, String emergencyKey, String type) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         Set<String> emergencies = sharedPreferences.getStringSet(context.getString(R.string.pref_emergencies_flock), new HashSet<String>());

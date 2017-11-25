@@ -130,7 +130,7 @@ public class DataManager {
             throw new RuntimeException("Emergency has no trigger");
         final DatabaseReference emergencyRef = mDatabase.getReference("emergencies").push();
         final DatabaseReference userRef = mDatabase.getReference("users").child(emergency.getUid()).child("emergency");
-        final DatabaseReference eventRef = mDatabase.getReference("events").child(emergency.getKey()).push();
+        final DatabaseReference eventRef = mDatabase.getReference("events").child(emergencyRef.getKey()).push();
         emergency.setKey(emergencyRef.getKey());
         emergencyRef.setValue(emergency);
         userRef.setValue(emergency.getKey());
