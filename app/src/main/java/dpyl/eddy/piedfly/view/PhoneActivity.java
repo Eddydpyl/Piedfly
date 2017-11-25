@@ -1,5 +1,6 @@
 package dpyl.eddy.piedfly.view;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -9,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
 import android.view.View;
@@ -131,17 +133,18 @@ public class PhoneActivity extends BaseActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_READ_PHONE_STATE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                writePhoneNumber();
-            }
+            if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_READ_PHONE_STATE, grantResults)) writePhoneNumber();
         }
     }
 
     @SuppressLint("HardwareIds")
     private void writePhoneNumber() {
-        TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        String phoneNumber = telephonyManager.getLine1Number();
-        if (phoneNumber != null && !phoneNumber.isEmpty() && !phoneNumber.contains("?")) mPhoneEditText.setText(phoneNumber);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+            TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+            String phoneNumber = telephonyManager.getLine1Number();
+            if (phoneNumber != null && !phoneNumber.isEmpty() && !phoneNumber.contains("?"))
+                mPhoneEditText.setText(phoneNumber);
+        }
     }
 
     private void linkAccounts(final PhoneAuthCredential credential) {

@@ -1,10 +1,12 @@
 package dpyl.eddy.piedfly.view;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
@@ -26,7 +28,8 @@ import dpyl.eddy.piedfly.monitor.LocationService;
 import dpyl.eddy.piedfly.model.User;
 import dpyl.eddy.piedfly.monitor.PassiveService;
 
-public class BaseActivity extends AppCompatActivity {
+@SuppressLint("Registered")
+public class BaseActivity extends AppCompatActivity implements FirebaseAuth.AuthStateListener{
 
     static final int EMAIL_SIGN_IN = 42;
     static final int PHONE_SIGN_IN = 43;
@@ -41,15 +44,23 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
         checkState();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == AppPermissions.REQUEST_LOCATION) {
+            if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_LOCATION, grantResults)) startServices();
+        }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == EMAIL_SIGN_IN) {
+        if (requestCode == EMAIL_SIGN_IN && mAuth.getCurrentUser() == null) {
             IdpResponse response = IdpResponse.fromResultIntent(data);
             if (resultCode == Activity.RESULT_OK && response != null) {
                 // Successfully signed in
@@ -81,6 +92,11 @@ public class BaseActivity extends AppCompatActivity {
                 checkState();
             }
         }
+    }
+
+    @Override
+    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+
     }
 
     private void readyUser() {
@@ -115,7 +131,7 @@ public class BaseActivity extends AppCompatActivity {
         }
     }
 
-    // We must always have the smallID in memory, in case we need to start a beacon.
+    // We must always have the smallID in memory, just in case we need to start a beacon.
     private void checkSmallID() {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         if (sharedPreferences.getString(getString(R.string.pref_tiny_ID), "").isEmpty()) {

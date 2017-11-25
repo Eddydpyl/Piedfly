@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Piedfly</string>
     <string name="title_activity_phone">PhoneActivity</string>
+    <string name="title_activity_maps">MapsActivity</string>
 
     <string name="pref_uid">uidFirebase</string>
     <string name="pref_tiny_ID">tinyID</string>

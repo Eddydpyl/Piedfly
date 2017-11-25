@@ -58,6 +58,7 @@
 
         <activity
             android:name=".view.MainActivity"
+            android:label="@string/app_name"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -68,6 +69,15 @@
             android:name=".view.PhoneActivity"
             android:label="@string/title_activity_phone"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".view.MapsActivity"
+            android:label="@string/title_activity_maps"
+            android:parentActivityName=".view.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".view.MainActivity" />
+        </activity>
 
     </application>
 
