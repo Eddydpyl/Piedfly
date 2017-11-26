@@ -55,6 +55,7 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserAdapter.UserH
     @Override
     protected void onBindViewHolder(UserHolder holder, int position, User model) {
         holder.uid = model.getUid();
+        holder.itemView.setTag(model.getUid());
         Glide.with(context).load(model.getPhotoUrl()).into(holder.mContactImage);
         holder.mContactName.setText(model.getName());
         holder.mContactCall.setTag(model.getPhone());

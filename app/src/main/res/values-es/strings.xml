@@ -3,4 +3,6 @@
     <string name="content_request_permission_message">Esta aplicación requiere que se le de permiso para leer y escribir los ajustes del sistema.</string>
     <string name="content_notification_title">Estás Protegid@</string>
     <string name="content_notification_text">En caso de peligro, pulsa repetidamente el botón de bloqueo </string>
+    <string name="content_undo_caps">DESHACER</string>
+    <string name="content_removed">eliminado.</string>
 </resources>
