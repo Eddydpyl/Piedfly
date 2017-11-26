@@ -56,7 +56,13 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserAdapter.UserH
     protected void onBindViewHolder(UserHolder holder, int position, User model) {
         holder.uid = model.getUid();
         holder.itemView.setTag(model.getUid());
-        Glide.with(context).load(model.getPhotoUrl()).into(holder.mContactImage);
+
+        //TODO: arreglar glide y usar placeholder, mientras a lo cutre:
+        if (model.getPhotoUrl()==null||model.getPhotoUrl().isEmpty()) {
+            Glide.with(context).load(R.drawable.default_contact).into(holder.mContactImage);
+        } else {
+            Glide.with(context).load(model.getPhotoUrl()).into(holder.mContactImage);
+        }
         holder.mContactName.setText(model.getName());
         holder.mContactCall.setTag(model.getPhone());
         holder.mContactDirections.setTag(model.getLastKnownLocation());
