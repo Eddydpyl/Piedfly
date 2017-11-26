@@ -23,7 +23,7 @@
     <string name="content_no">No</string>
     <string name="content_description_userDirections">Button to check your current location in the map.</string>
     <string name="content_undo_caps">UNDO</string>
-    <string name="content_removed">Removed.</string>
+    <string name="content_removed">Removed</string>
 
     <string name="action_settings">Settings</string>
     <string name="slide_for_alarm">Slide for Alarm</string>

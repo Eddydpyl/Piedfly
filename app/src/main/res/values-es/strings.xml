@@ -4,5 +4,5 @@
     <string name="content_notification_title">Estás Protegid@</string>
     <string name="content_notification_text">En caso de peligro, pulsa repetidamente el botón de bloqueo </string>
     <string name="content_undo_caps">DESHACER</string>
-    <string name="content_removed">eliminado.</string>
+    <string name="content_removed">eliminado</string>
 </resources>

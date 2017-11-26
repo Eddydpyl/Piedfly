@@ -130,8 +130,6 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                 final String deleteUid = viewHolder.itemView.getTag().toString();
                 final String userUID = mAuth.getCurrentUser().getUid();
 
-                //TODO: should we use a single instance of the database ? Is this the best way of doing this ?
-                //TODO: where should we add these methods ?
                 //Delete users from respective flocks
                 DataManager.removeFromFlock(deleteUid, userUID);
 
