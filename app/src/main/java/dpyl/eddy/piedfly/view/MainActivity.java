@@ -29,7 +29,10 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -39,10 +42,13 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.ncorti.slidetoact.SlideToActView;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.Set;
@@ -69,6 +75,8 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
     private static final int REQUEST_PICK_CONTACT = 100;
     private static final int REQUEST_PICK_IMAGE = 101;
 
+    public static CircleImageView userImage;
+
     private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
     private SharedPreferences mSharedPreferences;
     private RecyclerView mRecyclerView;
@@ -76,7 +84,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
     private String mPhoneNumber;
 
     //TODO: lo hago aquí en vez de en data manager pk necesita implementar callbacks, ver si cambiar
-    private static FirebaseStorage mFirebaseStorage;
+    private FirebaseStorage mFirebaseStorage;
 
     private CoordinatorLayout mCoordinatorLayout;
 
@@ -94,8 +102,9 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
             mFirebaseStorage = FirebaseStorage.getInstance();
         }
         mCoordinatorLayout = findViewById(R.id.mainActivityRootLayout);
+        userImage = (CircleImageView) findViewById(R.id.userImage);
+        setUserImage();
 
-        final CircleImageView userImage = (CircleImageView) findViewById(R.id.userImage);
         final ImageView userDirections = (ImageView) findViewById(R.id.userDirections);
         final SlideToActView slideForAlarm = (SlideToActView) findViewById(R.id.slide_for_alarm);
         final FloatingActionButton faButton = (FloatingActionButton) findViewById(R.id.fab);
@@ -250,25 +259,23 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         }
         if (requestCode == REQUEST_PICK_IMAGE && resultCode == RESULT_OK) {
             Uri uriUserImage = data.getData();
-            // TODO: Upload the image to Firebase and update the user's photoUrl
 
             String userUID = mAuth.getCurrentUser().getUid();
             Bitmap image = null;
 
+            try {
+                image = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uriUserImage);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
             StorageReference photoRef = mFirebaseStorage.getReference().child(userUID + ".jpg");
+
             startUpload(userUID, photoRef, image);
 
         }
     }
 
-    private void startUpload(String userUID, StorageReference photRef, Bitmap image) {
-
-
-        User updatePhoto = new User();
-        updatePhoto.setUid(userUID);
-        updatePhoto.setPhotoUrl("");
-        DataManager.updateUser(updatePhoto);
-    }
 
     @Override
     public void onListItemClick(int position, View view, String uid) {
@@ -349,6 +356,31 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         }
     }
 
+    //TODO: see if this is the proper way of doing this
+    /*private static class SetImageTask extends AsyncTask<Void, Void, Void> {
+
+        private WeakReference<Application> weakReference;
+
+        public SetImageTask(Application context) {
+            this.weakReference = new WeakReference<>(context);
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(weakReference.get());
+            String url = sharedPreferences.getString(weakReference.get().getString(R.string.pref_photo_url), null);
+
+            //TODO: Configure GlideApp properly to use center crop and placeholder image.
+            if (url == null || url.isEmpty()) {
+                Glide.with(weakReference.get()).load(R.drawable.default_contact).into(userImage);
+            } else {
+                Glide.with(weakReference.get()).load(url).into(userImage);
+            }
+
+            return null;
+        }
+    }*/
+
     private static class ContactTask extends AsyncTask<Uri, Void, Void> {
 
         private WeakReference<Application> weakReference;
@@ -393,6 +425,8 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         }
     }
 
+
+    //other
     private void setUpRecycler() {
         mRecyclerView = (RecyclerView) findViewById(R.id.flock_list);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
@@ -402,4 +436,54 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         mRecyclerView.addItemDecoration(new BottomOffsetDecoration());
         mRecyclerView.addItemDecoration(new DividerItemDecoration(mRecyclerView.getContext(), DividerItemDecoration.VERTICAL));
     }
+
+    //TODO: move these two elsewhere ?
+    private void startUpload(final String userUID, StorageReference photoRef, Bitmap image) {
+
+        if (image == null) return;
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        image.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] data = baos.toByteArray();
+
+        UploadTask uploadTask = photoRef.putBytes(data);
+        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                String imageUrl = taskSnapshot.getDownloadUrl().toString();
+
+                final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                sharedPreferences.edit().putString(getString(R.string.pref_photo_url), imageUrl).apply();
+
+                User updatePhoto = new User();
+                updatePhoto.setUid(userUID);
+                updatePhoto.setPhotoUrl(imageUrl);
+                DataManager.updateUser(updatePhoto);
+                setUserImage();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                //TODO: handle error properly
+                Toast.makeText(MainActivity.this, R.string.content_upload_error, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+
+    private void setUserImage() {
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String url = sharedPreferences.getString(getString(R.string.pref_photo_url), null);
+
+        //TODO: Configure GlideApp properly to use center crop and placeholder image.
+        if (url == null || url.isEmpty()) {
+            Glide.with(this).load(R.drawable.default_contact).into(userImage);
+        } else {
+            Glide.with(this).load(url).into(userImage);
+        }
+
+    }
+
 }

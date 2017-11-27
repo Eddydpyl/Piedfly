@@ -9,6 +9,7 @@
     <string name="pref_emergencies_flock">emergenciesFlock</string>
     <string name="pref_emergencies_nearby">emergenciesNearby</string>
     <string name="pref_last_hotbeacon">lastHotBeacon</string>
+    <string name="pref_photo_url">photoUrl</string>
 
     <string name="pref_power_toggle">powerToggle</string>
     <string name="pref_passive_monitoring">passiveMonitoring</string>
@@ -35,4 +36,5 @@
     <string name="permission_location_cancelled">We need your location for the map to work.</string>
     <string name="delete_caps">DELETE</string>
     <string name="delete">Delete</string>
+    <string name="content_upload_error">Image upload unsuccessful, please try again.</string>
 </resources>
