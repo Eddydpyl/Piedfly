@@ -36,6 +36,7 @@ public class DataManager {
         if (mGeoQueries == null) mGeoQueries = new HashMap<>();
     }
 
+
     public static void createUser(@NonNull User user) {
         if(user.getUid() == null)
             throw new RuntimeException("User has no uid");
@@ -257,6 +258,7 @@ public class DataManager {
             }
         }); mGeoQueries.put(emergency.getKey(), geoQuery);
     }
+
 
     private static void dropGeoQuery(@NonNull final Emergency emergency) {
         if (mGeoQueries.containsKey(emergency.getKey())) {

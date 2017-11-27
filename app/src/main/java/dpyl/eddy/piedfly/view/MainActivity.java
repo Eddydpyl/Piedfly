@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -36,6 +37,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.ncorti.slidetoact.SlideToActView;
 
 import org.jetbrains.annotations.NotNull;
@@ -72,6 +75,9 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
     private UserAdapter mUserAdapter;
     private String mPhoneNumber;
 
+    //TODO: lo hago aquí en vez de en data manager pk necesita implementar callbacks, ver si cambiar
+    private static FirebaseStorage mFirebaseStorage;
+
     private CoordinatorLayout mCoordinatorLayout;
 
     @Override
@@ -84,6 +90,9 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        if (mFirebaseStorage == null) {
+            mFirebaseStorage = FirebaseStorage.getInstance();
+        }
         mCoordinatorLayout = findViewById(R.id.mainActivityRootLayout);
 
         final CircleImageView userImage = (CircleImageView) findViewById(R.id.userImage);
@@ -242,7 +251,23 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         if (requestCode == REQUEST_PICK_IMAGE && resultCode == RESULT_OK) {
             Uri uriUserImage = data.getData();
             // TODO: Upload the image to Firebase and update the user's photoUrl
+
+            String userUID = mAuth.getCurrentUser().getUid();
+            Bitmap image = null;
+
+            StorageReference photoRef = mFirebaseStorage.getReference().child(userUID + ".jpg");
+            startUpload(userUID, photoRef, image);
+
         }
+    }
+
+    private void startUpload(String userUID, StorageReference photRef, Bitmap image) {
+
+
+        User updatePhoto = new User();
+        updatePhoto.setUid(userUID);
+        updatePhoto.setPhotoUrl("");
+        DataManager.updateUser(updatePhoto);
     }
 
     @Override
