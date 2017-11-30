@@ -6,7 +6,6 @@ package dpyl.eddy.piedfly;
 
 public class Constants {
 
-    public static final int LOADED_IMAGE_RESOLUTION = 500;// Used to resize upcoming images from firebase.
     public static final String PLACEHOLDER = "placeholder"; // Used to fill a value in the database when we don't want it to be null.
     public static final double RADIUS_KM = 0.5; // Distance in kilometers for someone to be considered nearby.
     public static final int SIGMIN = 1000 * 60 * 2; // Time in milliseconds for a location to be considered significantly older/newer.

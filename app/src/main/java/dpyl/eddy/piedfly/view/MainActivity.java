@@ -56,7 +56,6 @@ import java.util.Set;
 import de.hdodenhof.circleimageview.CircleImageView;
 import dpyl.eddy.piedfly.AppPermissions;
 import dpyl.eddy.piedfly.AppState;
-import dpyl.eddy.piedfly.Constants;
 import dpyl.eddy.piedfly.DataManager;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.Utility;
@@ -477,7 +476,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
     private void setUserImage() {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String url = sharedPreferences.getString(getString(R.string.pref_photo_url), null);
-        Picasso.with(userImage.getContext()).load(url).resize(Constants.LOADED_IMAGE_RESOLUTION, Constants.LOADED_IMAGE_RESOLUTION).centerInside().onlyScaleDown().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(userImage);
+        Picasso.with(userImage.getContext()).load(url).fit().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(userImage);
     }
 
 }

@@ -15,7 +15,6 @@ import com.google.firebase.database.DatabaseError;
 import com.squareup.picasso.Picasso;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-import dpyl.eddy.piedfly.Constants;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.model.User;
 
@@ -58,7 +57,7 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserAdapter.UserH
         holder.uid = model.getUid();
         holder.itemView.setTag(model.getUid());
 
-        Picasso.with(holder.itemView.getContext()).load(model.getPhotoUrl()).resize(Constants.LOADED_IMAGE_RESOLUTION, Constants.LOADED_IMAGE_RESOLUTION).centerInside().onlyScaleDown().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(holder.mContactImage);
+        Picasso.with(holder.itemView.getContext()).load(model.getPhotoUrl()).fit().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(holder.mContactImage);
 
         holder.mContactName.setText(model.getName());
         holder.mContactCall.setTag(model.getPhone());
