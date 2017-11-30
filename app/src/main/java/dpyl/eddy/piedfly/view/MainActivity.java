@@ -29,7 +29,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -44,6 +43,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.ncorti.slidetoact.SlideToActView;
+import com.squareup.picasso.Picasso;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -56,6 +56,7 @@ import java.util.Set;
 import de.hdodenhof.circleimageview.CircleImageView;
 import dpyl.eddy.piedfly.AppPermissions;
 import dpyl.eddy.piedfly.AppState;
+import dpyl.eddy.piedfly.Constants;
 import dpyl.eddy.piedfly.DataManager;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.Utility;
@@ -476,14 +477,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
     private void setUserImage() {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String url = sharedPreferences.getString(getString(R.string.pref_photo_url), null);
-
-        //TODO: Configure GlideApp properly to use center crop and placeholder image.
-        if (url == null || url.isEmpty()) {
-            Glide.with(this).load(R.drawable.default_contact).into(userImage);
-        } else {
-            Glide.with(this).load(url).into(userImage);
-        }
-
+        Picasso.with(userImage.getContext()).load(url).resize(Constants.LOADED_IMAGE_RESOLUTION, Constants.LOADED_IMAGE_RESOLUTION).centerInside().onlyScaleDown().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(userImage);
     }
 
 }

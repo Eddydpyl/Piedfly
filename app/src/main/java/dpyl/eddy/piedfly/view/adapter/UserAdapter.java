@@ -9,12 +9,13 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.database.DatabaseError;
+import com.squareup.picasso.Picasso;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import dpyl.eddy.piedfly.Constants;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.model.User;
 
@@ -57,12 +58,8 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserAdapter.UserH
         holder.uid = model.getUid();
         holder.itemView.setTag(model.getUid());
 
-        //TODO: arreglar glide y usar placeholder, mientras a lo cutre:
-        if (model.getPhotoUrl()==null||model.getPhotoUrl().isEmpty()) {
-            Glide.with(context).load(R.drawable.default_contact).into(holder.mContactImage);
-        } else {
-            Glide.with(context).load(model.getPhotoUrl()).into(holder.mContactImage);
-        }
+        Picasso.with(holder.itemView.getContext()).load(model.getPhotoUrl()).resize(Constants.LOADED_IMAGE_RESOLUTION, Constants.LOADED_IMAGE_RESOLUTION).centerInside().onlyScaleDown().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(holder.mContactImage);
+
         holder.mContactName.setText(model.getName());
         holder.mContactCall.setTag(model.getPhone());
         holder.mContactDirections.setTag(model.getLastKnownLocation());
