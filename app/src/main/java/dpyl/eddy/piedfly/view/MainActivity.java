@@ -148,7 +148,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                 final String deleteUid = viewHolder.itemView.getTag().toString();
                 final String userUID = mAuth.getCurrentUser().getUid();
 
-                //Delete users from respective flocks
+                // delete users from respective flocks
                 DataManager.removeFromFlock(deleteUid, userUID);
 
                 // showing snack bar with Undo option
@@ -158,7 +158,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                 snackbar.setAction(R.string.content_undo_caps, new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        //undo db change
+                        // undo db change
                         DataManager.addToFlock(deleteUid, userUID);
                     }
                 });
@@ -356,30 +356,6 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         }
     }
 
-    //TODO: see if this is the proper way of doing this
-    /*private static class SetImageTask extends AsyncTask<Void, Void, Void> {
-
-        private WeakReference<Application> weakReference;
-
-        public SetImageTask(Application context) {
-            this.weakReference = new WeakReference<>(context);
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(weakReference.get());
-            String url = sharedPreferences.getString(weakReference.get().getString(R.string.pref_photo_url), null);
-
-            //TODO: Configure GlideApp properly to use center crop and placeholder image.
-            if (url == null || url.isEmpty()) {
-                Glide.with(weakReference.get()).load(R.drawable.default_contact).into(userImage);
-            } else {
-                Glide.with(weakReference.get()).load(url).into(userImage);
-            }
-
-            return null;
-        }
-    }*/
 
     private static class ContactTask extends AsyncTask<Uri, Void, Void> {
 
@@ -459,6 +435,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                 User updatePhoto = new User();
                 updatePhoto.setUid(userUID);
                 updatePhoto.setPhotoUrl(imageUrl);
+
                 DataManager.updateUser(updatePhoto);
                 setUserImage();
             }
