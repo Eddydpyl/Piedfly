@@ -54,6 +54,8 @@ public class DataManager {
             childUpdates.put("/phone", user.getPhone());
         if(user.getEmail() != null)
             childUpdates.put("/email", user.getEmail());
+        if(user.getName() != null)
+            childUpdates.put("/name", user.getName());
         userRef.updateChildren(childUpdates);
     }
 
