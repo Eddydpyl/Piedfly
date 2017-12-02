@@ -240,6 +240,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         } else if (requestCode == REQUEST_PICK_IMAGE && resultCode == RESULT_OK) {
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
+                GlideApp.with(mCircleImageView.getContext()).load(bitmap).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
                 FileManager.uploadProfilePicture(mAuth, bitmap, new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
