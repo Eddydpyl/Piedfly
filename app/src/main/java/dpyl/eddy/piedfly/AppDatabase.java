@@ -1,0 +1,16 @@
+package dpyl.eddy.piedfly;
+
+import android.arch.persistence.room.Database;
+import android.arch.persistence.room.RoomDatabase;
+
+import dpyl.eddy.piedfly.model.room.Contact;
+import dpyl.eddy.piedfly.model.room.dao.ContactDao;
+
+/**
+ * Deals with the Room local database implementation.
+ */
+
+@Database(entities = {Contact.class}, version = 2, exportSchema = false)
+public abstract class AppDatabase extends RoomDatabase {
+    public abstract ContactDao contactDao();
+}

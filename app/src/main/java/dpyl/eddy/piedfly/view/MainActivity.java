@@ -1,6 +1,7 @@
 package dpyl.eddy.piedfly.view;
 
 import android.app.Application;
+import android.arch.persistence.room.Room;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -46,9 +47,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import dpyl.eddy.piedfly.AppDatabase;
 import dpyl.eddy.piedfly.AppPermissions;
 import dpyl.eddy.piedfly.AppState;
 import dpyl.eddy.piedfly.DataManager;
@@ -61,6 +64,7 @@ import dpyl.eddy.piedfly.model.Request;
 import dpyl.eddy.piedfly.model.RequestType;
 import dpyl.eddy.piedfly.model.SimpleLocation;
 import dpyl.eddy.piedfly.model.User;
+import dpyl.eddy.piedfly.model.room.Contact;
 import dpyl.eddy.piedfly.view.adapter.UserAdapter;
 import dpyl.eddy.piedfly.view.recyclerview.BottomOffsetDecoration;
 import dpyl.eddy.piedfly.view.recyclerview.RecyclerItemTouchHelper;
@@ -72,6 +76,8 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
     private static final int REQUEST_PICK_CONTACT = 100;
     private static final int REQUEST_PICK_IMAGE = 101;
 
+    private static AppDatabase mRoomDatabase;
+
     private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
     private SharedPreferences mSharedPreferences;
     private CoordinatorLayout mCoordinatorLayout;
@@ -79,6 +85,10 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
     private RecyclerView mRecyclerView;
     private UserAdapter mUserAdapter;
     private String mPhoneNumber;
+
+
+    private List<Contact> mLocalContacts;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,6 +99,11 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        //create room db
+        if (mRoomDatabase == null)
+            //TODO: remove hardcoded dbname (config xml strings ?)
+            mRoomDatabase = Room.databaseBuilder(MainActivity.this, AppDatabase.class, "piedflyDb").build();
 
         mCoordinatorLayout = findViewById(R.id.content);
         mCircleImageView = (CircleImageView) findViewById(R.id.userImage);
@@ -152,7 +167,8 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                 snackbar.setActionTextColor(Color.YELLOW);
                 snackbar.show();
             }
-        }); new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(mRecyclerView);
+        });
+        new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(mRecyclerView);
 
         // Floating button only appears at the end of the list
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -210,7 +226,8 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                     }
                 }
             }
-        }; mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
+        };
+        mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
     }
 
     @Override
@@ -220,15 +237,18 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
             case AppPermissions.REQUEST_READ_CONTACTS:
                 if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_READ_CONTACTS, grantResults)) {
                     startPickContact();
-                } break;
+                }
+                break;
             case AppPermissions.REQUEST_EXTERNAL_STORAGE:
                 if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_EXTERNAL_STORAGE, grantResults)) {
                     startPickGalleryImage();
-                } break;
+                }
+                break;
             case AppPermissions.REQUEST_CALL_PHONE:
                 if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_CALL_PHONE, grantResults)) {
                     if (mPhoneNumber != null) startPhoneCall(mPhoneNumber);
-                } break;
+                }
+                break;
         }
     }
 
@@ -236,7 +256,8 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_PICK_CONTACT && resultCode == RESULT_OK) {
-            if (mAuth.getCurrentUser() != null) new ContactTask(getApplication(), mAuth.getCurrentUser().getUid()).execute(data.getData());
+            if (mAuth.getCurrentUser() != null)
+                new ContactTask(getApplication(), mAuth.getCurrentUser().getUid()).execute(data.getData());
         } else if (requestCode == REQUEST_PICK_IMAGE && resultCode == RESULT_OK) {
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
@@ -289,7 +310,8 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         if (mUserAdapter != null) {
             mUserAdapter.stopListening();
             mUserAdapter = null;
-        } mSharedPreferences.unregisterOnSharedPreferenceChangeListener(mStateListener);
+        }
+        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(mStateListener);
         mSharedPreferences = null;
     }
 
@@ -298,7 +320,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
             Query keyQuery = DataManager.getDatabase().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("flock");
             DatabaseReference dataQuery = DataManager.getDatabase().getReference().child("users");
             FirebaseRecyclerOptions<User> options = new FirebaseRecyclerOptions.Builder<User>().setIndexedQuery(keyQuery, dataQuery, User.class).build();
-            mUserAdapter = new UserAdapter(options, this);
+            mUserAdapter = new UserAdapter(options, this, mLocalContacts);
             mRecyclerView.setAdapter(mUserAdapter);
         }
     }
@@ -371,7 +393,8 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                                 DataManager.requestJoinFlock(request);
                                 Toast toast = Toast.makeText(weakReference.get(),
                                         weakReference.get().getString(R.string.content_join_flock_request) + " " + name + ".",
-                                        Toast.LENGTH_SHORT); toast.show();
+                                        Toast.LENGTH_SHORT);
+                                toast.show();
                             }
                         } else {
                             // TODO: A User with the provided phone does not exist
