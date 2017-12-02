@@ -31,11 +31,16 @@ public class DataManager {
     private static Map<String, GeoQuery> mGeoQueries;
 
     static {
-        if (mDatabase == null) mDatabase = FirebaseDatabase.getInstance();
-        if (mGeoFire == null) mGeoFire = new GeoFire(mDatabase.getReference("geofire"));
+        if (mDatabase == null){
+            mDatabase = FirebaseDatabase.getInstance();
+            mDatabase.setPersistenceEnabled(true);
+        } if (mGeoFire == null) mGeoFire = new GeoFire(mDatabase.getReference("geofire"));
         if (mGeoQueries == null) mGeoQueries = new HashMap<>();
     }
 
+    public static FirebaseDatabase getDatabase() {
+        return mDatabase;
+    }
 
     public static void createUser(@NonNull User user) {
         if(user.getUid() == null)

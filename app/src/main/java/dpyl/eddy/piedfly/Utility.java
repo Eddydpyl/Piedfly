@@ -1,17 +1,29 @@
 package dpyl.eddy.piedfly;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.telephony.TelephonyManager;
+import android.webkit.URLUtil;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 import java.util.Locale;
 
@@ -84,6 +96,56 @@ public class Utility {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Asynchronously loads an image from an URL into a Bitmap, which can be accessed from the BitMapTaskListener
+     */
+    public static void loadIntoBitmap(Application context, Uri url, BitMapTaskListener listener) {
+        BitMapTask bitMapTask = new BitMapTask(context, listener);
+        bitMapTask.execute(url);
+    }
+
+    private static class BitMapTask extends AsyncTask<Uri, Void, Void> {
+
+        private WeakReference<Application> weakReference;
+        private BitMapTaskListener listener;
+
+        private BitMapTask(Application context, BitMapTaskListener listener) {
+            weakReference = new WeakReference<Application>(context);
+            this.listener = listener;
+        }
+
+        @Override
+        protected Void doInBackground(@NonNull Uri... uris) {
+            for (Uri uri : uris) {
+                if (URLUtil.isValidUrl(uri.toString())) {
+                    try {
+                        URL url = new URL(uri.toString());
+                        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                        connection.setDoInput(true);
+                        connection.connect();
+                        InputStream input = connection.getInputStream();
+                        Bitmap bitmap = BitmapFactory.decodeStream(input);
+                        listener.onSuccess(bitmap);
+                    } catch (IOException e) {
+                        listener.onFailure(e);
+                    }
+                } else {
+                    try {
+                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(weakReference.get().getContentResolver(), uri);
+                        listener.onSuccess(bitmap);
+                    } catch (IOException e) {
+                        listener.onFailure(e);
+                    }
+                }
+            } return null;
+        }
+    }
+
+    public static interface BitMapTaskListener {
+        public void onSuccess(Bitmap bitmap);
+        public void onFailure(Exception e);
     }
 
     /**

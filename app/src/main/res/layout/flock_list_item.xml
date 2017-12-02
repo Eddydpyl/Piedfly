@@ -28,7 +28,7 @@
             android:layout_centerVertical="true"
             android:layout_marginRight="@dimen/default_icon_margin"
             android:layout_toLeftOf="@id/delete_icon"
-            android:text="@string/delete_caps"
+            android:text="@string/content_delete_caps"
             android:textColor="@color/white"
             android:textSize="@dimen/material_typography_body1" />
 

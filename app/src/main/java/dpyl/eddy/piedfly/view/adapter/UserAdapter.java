@@ -1,6 +1,5 @@
 package dpyl.eddy.piedfly.view.adapter;
 
-import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,24 +11,24 @@ import android.widget.TextView;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.database.DatabaseError;
-import com.squareup.picasso.Picasso;
+import com.google.firebase.storage.StorageReference;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import dpyl.eddy.piedfly.FileManager;
+import dpyl.eddy.piedfly.GlideApp;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.model.User;
 
 public class UserAdapter extends FirebaseRecyclerAdapter<User, UserAdapter.UserHolder> {
 
-    private Context context;
     private ListItemClickListener mOnClickListener;
 
     public interface ListItemClickListener {
-        void onListItemClick(int position, View view, String uid);
+        void onListItemClick(int position, View view);
     }
 
-    public UserAdapter(FirebaseRecyclerOptions<User> options, Context context, ListItemClickListener mOnClickListener) {
+    public UserAdapter(FirebaseRecyclerOptions<User> options, ListItemClickListener mOnClickListener) {
         super(options);
-        this.context = context;
         this.mOnClickListener = mOnClickListener;
     }
 
@@ -54,19 +53,15 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserAdapter.UserH
 
     @Override
     protected void onBindViewHolder(UserHolder holder, int position, User model) {
-        holder.uid = model.getUid();
         holder.itemView.setTag(model.getUid());
-
-        Picasso.with(holder.itemView.getContext()).load(model.getPhotoUrl()).fit().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(holder.mContactImage);
-
         holder.mContactName.setText(model.getName());
         holder.mContactCall.setTag(model.getPhone());
         holder.mContactDirections.setTag(model.getLastKnownLocation());
+        StorageReference storageReference = model.getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(model.getPhotoUrl()) : null;
+        GlideApp.with(holder.itemView.getContext()).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(holder.mContactImage);
     }
 
     public class UserHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-
-        private String uid;
 
         private CircleImageView mContactImage;
         private TextView mContactName;
@@ -92,7 +87,7 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserAdapter.UserH
         @Override
         public void onClick(View view) {
             int position = getAdapterPosition();
-            mOnClickListener.onListItemClick(position, view, uid);
+            mOnClickListener.onListItemClick(position, view);
         }
     }
 }

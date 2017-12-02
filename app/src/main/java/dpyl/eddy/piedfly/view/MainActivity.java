@@ -36,18 +36,13 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 import com.ncorti.slidetoact.SlideToActView;
-import com.squareup.picasso.Picasso;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
@@ -57,6 +52,8 @@ import de.hdodenhof.circleimageview.CircleImageView;
 import dpyl.eddy.piedfly.AppPermissions;
 import dpyl.eddy.piedfly.AppState;
 import dpyl.eddy.piedfly.DataManager;
+import dpyl.eddy.piedfly.FileManager;
+import dpyl.eddy.piedfly.GlideApp;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.Utility;
 import dpyl.eddy.piedfly.model.Emergency;
@@ -75,18 +72,13 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
     private static final int REQUEST_PICK_CONTACT = 100;
     private static final int REQUEST_PICK_IMAGE = 101;
 
-    public static CircleImageView userImage;
-
     private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
     private SharedPreferences mSharedPreferences;
+    private CoordinatorLayout mCoordinatorLayout;
+    private CircleImageView mCircleImageView;
     private RecyclerView mRecyclerView;
     private UserAdapter mUserAdapter;
     private String mPhoneNumber;
-
-    //TODO: lo hago aquí en vez de en data manager pk necesita implementar callbacks, ver si cambiar
-    private FirebaseStorage mFirebaseStorage;
-
-    private CoordinatorLayout mCoordinatorLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,12 +90,10 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        if (mFirebaseStorage == null) {
-            mFirebaseStorage = FirebaseStorage.getInstance();
-        }
-        mCoordinatorLayout = findViewById(R.id.mainActivityRootLayout);
-        userImage = (CircleImageView) findViewById(R.id.userImage);
-        setUserImage();
+        mCoordinatorLayout = findViewById(R.id.content);
+        mCircleImageView = (CircleImageView) findViewById(R.id.userImage);
+        StorageReference storageReference = mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
+        GlideApp.with(this).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
 
         final ImageView userDirections = (ImageView) findViewById(R.id.userDirections);
         final SlideToActView slideForAlarm = (SlideToActView) findViewById(R.id.slide_for_alarm);
@@ -116,7 +106,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
             }
         });
 
-        userImage.setOnClickListener(new View.OnClickListener() {
+        mCircleImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startPickGalleryImage();
@@ -146,27 +136,23 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
 
                 final String deleteUid = viewHolder.itemView.getTag().toString();
-                final String userUID = mAuth.getCurrentUser().getUid();
+                final String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
 
-                // delete users from respective flocks
-                DataManager.removeFromFlock(deleteUid, userUID);
+                if (uid != null) DataManager.removeFromFlock(deleteUid, uid);
 
-                // showing snack bar with Undo option
+                // Show snackBar with undo option
                 //TODO: add deleted user name
-                Snackbar snackbar = Snackbar
-                        .make(mCoordinatorLayout, R.string.content_removed, Snackbar.LENGTH_LONG);
+                Snackbar snackbar = Snackbar.make(mCoordinatorLayout, R.string.content_removed, Snackbar.LENGTH_LONG);
                 snackbar.setAction(R.string.content_undo_caps, new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        // undo db change
-                        DataManager.addToFlock(deleteUid, userUID);
+                        if (uid != null) DataManager.addToFlock(deleteUid, uid);
                     }
                 });
                 snackbar.setActionTextColor(Color.YELLOW);
                 snackbar.show();
             }
-        });
-        new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(mRecyclerView);
+        }); new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(mRecyclerView);
 
         // Floating button only appears at the end of the list
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -224,8 +210,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                     }
                 }
             }
-        };
-        mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
+        }; mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
     }
 
     @Override
@@ -235,18 +220,15 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
             case AppPermissions.REQUEST_READ_CONTACTS:
                 if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_READ_CONTACTS, grantResults)) {
                     startPickContact();
-                }
-                break;
+                } break;
             case AppPermissions.REQUEST_EXTERNAL_STORAGE:
                 if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_EXTERNAL_STORAGE, grantResults)) {
                     startPickGalleryImage();
-                }
-                break;
+                } break;
             case AppPermissions.REQUEST_CALL_PHONE:
                 if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_CALL_PHONE, grantResults)) {
                     if (mPhoneNumber != null) startPhoneCall(mPhoneNumber);
-                }
-                break;
+                } break;
         }
     }
 
@@ -254,31 +236,31 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_PICK_CONTACT && resultCode == RESULT_OK) {
-            Uri uriContact = data.getData();
-            new ContactTask(getApplication(), mAuth.getCurrentUser().getUid()).execute(uriContact);
-        }
-        if (requestCode == REQUEST_PICK_IMAGE && resultCode == RESULT_OK) {
-            Uri uriUserImage = data.getData();
-
-            String userUID = mAuth.getCurrentUser().getUid();
-            Bitmap image = null;
-
+            if (mAuth.getCurrentUser() != null) new ContactTask(getApplication(), mAuth.getCurrentUser().getUid()).execute(data.getData());
+        } else if (requestCode == REQUEST_PICK_IMAGE && resultCode == RESULT_OK) {
             try {
-                image = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uriUserImage);
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
+                FileManager.uploadProfilePicture(mAuth, bitmap, new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        StorageReference storageReference = mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
+                        GlideApp.with(mCircleImageView.getContext()).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
+                    }
+                }, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // TODO: Error Handling
+                    }
+                });
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            StorageReference photoRef = mFirebaseStorage.getReference().child(userUID + ".jpg");
-
-            startUpload(userUID, photoRef, image);
-
         }
     }
 
 
     @Override
-    public void onListItemClick(int position, View view, String uid) {
+    public void onListItemClick(int position, View view) {
         switch (view.getId()) {
             case R.id.contact_call:
                 startPhoneCall((String) view.getTag());
@@ -306,30 +288,31 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         if (mUserAdapter != null) {
             mUserAdapter.stopListening();
             mUserAdapter = null;
-        }
-        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(mStateListener);
+        } mSharedPreferences.unregisterOnSharedPreferenceChangeListener(mStateListener);
         mSharedPreferences = null;
     }
 
     private void attachRecyclerViewAdapter() {
         if (mAuth != null && mAuth.getCurrentUser() != null && mUserAdapter == null) {
-            Query keyQuery = FirebaseDatabase.getInstance().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("flock");
-            DatabaseReference dataQuery = FirebaseDatabase.getInstance().getReference().child("users");
+            Query keyQuery = DataManager.getDatabase().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("flock");
+            DatabaseReference dataQuery = DataManager.getDatabase().getReference().child("users");
             FirebaseRecyclerOptions<User> options = new FirebaseRecyclerOptions.Builder<User>().setIndexedQuery(keyQuery, dataQuery, User.class).build();
-            mUserAdapter = new UserAdapter(options, this, this);
+            mUserAdapter = new UserAdapter(options, this);
             mRecyclerView.setAdapter(mUserAdapter);
         }
     }
 
     private void startEmergency() {
-        Emergency emergency = new Emergency();
-        String uid = mAuth.getCurrentUser().getUid();
-        SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(getBaseContext()));
-        emergency.setUid(uid);
-        emergency.setTrigger(uid);
-        emergency.setStart(simpleLocation);
-        String key = DataManager.startEmergency(emergency);
-        AppState.registerEmergencyFlock(getBaseContext(), key);
+        if (mAuth.getCurrentUser() != null) {
+            Emergency emergency = new Emergency();
+            String uid = mAuth.getCurrentUser().getUid();
+            SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(getBaseContext()));
+            emergency.setUid(uid);
+            emergency.setTrigger(uid);
+            emergency.setStart(simpleLocation);
+            String key = DataManager.startEmergency(emergency);
+            AppState.registerEmergencyFlock(getBaseContext(), key);
+        }
     }
 
     private void startPhoneCall(String phoneNumber) {
@@ -345,7 +328,9 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
 
     private void startPickContact() {
         if (AppPermissions.requestReadContactsPermission(this)) {
-            startActivityForResult(new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI), REQUEST_PICK_CONTACT);
+            Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+            intent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE);
+            startActivityForResult(intent, REQUEST_PICK_CONTACT);
         }
     }
 
@@ -369,23 +354,24 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
 
         @Override
         protected Void doInBackground(Uri... uris) {
-            Cursor cursor = weakReference.get().getContentResolver().query(uris[0], new String[]{ContactsContract.Contacts.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER}, null, null, null);
+            Cursor cursor = weakReference.get().getContentResolver().query(uris[0], new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER}, null, null, null);
             if (cursor != null && cursor.moveToFirst()) {
                 final String name = cursor.getString(0);
                 final String phone = cursor.getString(1);
                 cursor.close();
                 // TODO: Format phone so that it matches the ones in the database
-                FirebaseDatabase.getInstance().getReference("users").orderByChild("phone").equalTo(phone).addListenerForSingleValueEvent(new ValueEventListener() {
+                DataManager.getDatabase().getReference("users").orderByChild("phone").equalTo(phone).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (dataSnapshot.exists()) {
-                            User user = dataSnapshot.getValue(User.class);
-                            Request request = new Request(user.getUid(), uid, RequestType.JOIN_FLOCK);
-                            DataManager.requestJoinFlock(request);
-                            Toast toast = new Toast(weakReference.get());
-                            toast.setDuration(Toast.LENGTH_SHORT);
-                            toast.setText(weakReference.get().getString(R.string.content_join_flock_request) + " " + name + ".");
-                            toast.show();
+                            for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
+                                User user = childSnapshot.getValue(User.class);
+                                Request request = new Request(user.getUid(), uid, RequestType.JOIN_FLOCK);
+                                DataManager.requestJoinFlock(request);
+                                Toast toast = Toast.makeText(weakReference.get(),
+                                        weakReference.get().getString(R.string.content_join_flock_request) + " " + name + ".",
+                                        Toast.LENGTH_SHORT); toast.show();
+                            }
                         } else {
                             // TODO: A User with the provided phone does not exist
                         }
@@ -401,8 +387,6 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         }
     }
 
-
-    //other
     private void setUpRecycler() {
         mRecyclerView = (RecyclerView) findViewById(R.id.flock_list);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
@@ -412,48 +396,4 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         mRecyclerView.addItemDecoration(new BottomOffsetDecoration());
         mRecyclerView.addItemDecoration(new DividerItemDecoration(mRecyclerView.getContext(), DividerItemDecoration.VERTICAL));
     }
-
-    //TODO: move these two elsewhere ?
-    private void startUpload(final String userUID, StorageReference photoRef, Bitmap image) {
-
-        if (image == null) return;
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        image.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        byte[] data = baos.toByteArray();
-
-        UploadTask uploadTask = photoRef.putBytes(data);
-        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-
-                String imageUrl = taskSnapshot.getDownloadUrl().toString();
-
-                final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                sharedPreferences.edit().putString(getString(R.string.pref_photo_url), imageUrl).apply();
-
-                User updatePhoto = new User();
-                updatePhoto.setUid(userUID);
-                updatePhoto.setPhotoUrl(imageUrl);
-
-                DataManager.updateUser(updatePhoto);
-                setUserImage();
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                //TODO: handle error properly
-                Toast.makeText(MainActivity.this, R.string.content_upload_error, Toast.LENGTH_SHORT).show();
-            }
-        });
-
-    }
-
-
-    private void setUserImage() {
-        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String url = sharedPreferences.getString(getString(R.string.pref_photo_url), null);
-        Picasso.with(userImage.getContext()).load(url).fit().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(userImage);
-    }
-
 }

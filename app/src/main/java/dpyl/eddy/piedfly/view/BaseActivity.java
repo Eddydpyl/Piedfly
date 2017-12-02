@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -13,17 +14,19 @@ import android.support.v7.app.AppCompatActivity;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.ErrorCodes;
 import com.firebase.ui.auth.IdpResponse;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import dpyl.eddy.piedfly.AppPermissions;
 import dpyl.eddy.piedfly.DataManager;
+import dpyl.eddy.piedfly.FileManager;
+import dpyl.eddy.piedfly.Utility;
 import dpyl.eddy.piedfly.exceptions.ExceptionHandler;
 import dpyl.eddy.piedfly.R;
-import dpyl.eddy.piedfly.hotbeacon.WifiScanService;
 import dpyl.eddy.piedfly.monitor.LocationService;
 import dpyl.eddy.piedfly.model.User;
 import dpyl.eddy.piedfly.monitor.PassiveService;
@@ -64,8 +67,7 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
             IdpResponse response = IdpResponse.fromResultIntent(data);
             if (resultCode == Activity.RESULT_OK && response != null) {
                 // Successfully signed in
-                //TODO: leave it as it was
-                if (false){//response.getPhoneNumber() == null || response.getPhoneNumber().isEmpty()){
+                if (response.getPhoneNumber() == null || response.getPhoneNumber().isEmpty()){
                     // The user doesn't have an associated phone number
                     Intent intent = new Intent(this, PhoneActivity.class);
                     startActivityForResult(intent, PHONE_SIGN_IN);
@@ -110,14 +112,31 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
             user.setEmail(mAuth.getCurrentUser().getEmail());
             user.setName(mAuth.getCurrentUser().getDisplayName());
             DataManager.createUser(user);
+            if (mAuth.getCurrentUser().getPhotoUrl() != null) {
+                Utility.loadIntoBitmap(getApplication(), mAuth.getCurrentUser().getPhotoUrl(), new Utility.BitMapTaskListener() {
+                    @Override
+                    public void onSuccess(Bitmap bitmap) {
+                        FileManager.uploadProfilePicture(mAuth, bitmap, null, new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                // TODO: Error Handling
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        // TODO: Error Handling
+                    }
+                });
+            }
         } else checkState();
     }
 
     private void checkState() {
         if (mAuth.getCurrentUser() != null) {
             // The user is already signed in
-            //TODO: leave it as it was
-            if (false){//mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) {
+            if (mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) {
                 // The user doesn't have an associated phone number
                 if(!(this instanceof PhoneActivity)) {
                     Intent intent = new Intent(this, PhoneActivity.class);
@@ -141,7 +160,7 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
             String uid = sharedPreferences.getString(getString(R.string.pref_uid), "");
             if (uid.isEmpty()) readyUser();
             else {
-                FirebaseDatabase.getInstance().getReference("users").child(uid).child("smallID").addListenerForSingleValueEvent(new ValueEventListener() {
+                DataManager.getDatabase().getReference("users").child(uid).child("smallID").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         String smallID = dataSnapshot.getValue(String.class);
@@ -157,14 +176,12 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
         }
     }
 
-    //TODO: do we need the wifi scan service ?
     private void startServices() {
         Intent passiveService = new Intent(this, PassiveService.class);
         startService(passiveService);
         if (AppPermissions.requestLocationPermission(this)) {
             Intent monitorService = new Intent(this, LocationService.class);
             startService(monitorService);
-        } Intent wifiScanService = new Intent(this, WifiScanService.class);
-        startService(wifiScanService);
+        }
     }
 }
