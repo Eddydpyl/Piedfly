@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- TODO: at some point remove text for tool text or add default text--><!--TODO: check material design guidelines, simplify, use same measures throughout app design-->
+<!-- TODO: Add an image for the current user in the upper RecyclerView-->
+<!-- TODO: The upper RecyclerView disappears when the screen loses focus-->
+
+<!-- TODO: at some point remove text for tool text or add default text-->
+<!-- TODO: check material design guidelines, simplify, use same measures throughout app design-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -30,7 +33,6 @@
 
         </android.support.design.widget.AppBarLayout>
 
-
         <FrameLayout
             android:id="@+id/map_upperDetailBar"
             android:layout_width="match_parent"
@@ -46,7 +48,6 @@
 
         </FrameLayout>
 
-
     </RelativeLayout>
 
     <RelativeLayout
@@ -59,7 +60,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:context="michaelstevan.saveme.activities.MapsActivity" />
-
 
         <android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
             android:id="@+id/map_contact_details"
@@ -82,7 +82,6 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:src="@drawable/default_contact" />
-
 
                 <TextView
                     android:id="@+id/map_contact_details_name"
@@ -123,11 +122,9 @@
 
             </RelativeLayout>
 
-
         </android.support.v7.widget.CardView>
 
     </RelativeLayout>
-
 
 </LinearLayout>
 

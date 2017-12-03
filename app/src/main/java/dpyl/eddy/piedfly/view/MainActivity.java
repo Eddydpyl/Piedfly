@@ -1,9 +1,11 @@
 package dpyl.eddy.piedfly.view;
 
+import android.Manifest;
 import android.app.Application;
 import android.arch.persistence.room.Room;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -17,6 +19,8 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -82,8 +86,10 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
     private UserAdapter mUserAdapter;
     private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
     private SharedPreferences mSharedPreferences;
+
     private CoordinatorLayout mCoordinatorLayout;
     private CircleImageView mCircleImageView;
+
     private RecyclerView mRecyclerView;
     private RecyclerView mSecondRecyclerView;
     //TODO: alomejor hacer algo con el scroll view para que permita overscrollear, y ocultar el fab si no está abajo del scrollview
@@ -134,7 +140,13 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         userDirections.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(getBaseContext(), MapsActivity.class));
+                if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    AppPermissions.requestLocationPermission(MainActivity.this);
+                } else {
+                    Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+                    intent.putExtra(getString(R.string.intent_uid), mAuth.getCurrentUser().getUid());
+                    startActivity(intent);
+                }
             }
         });
 
@@ -152,28 +164,34 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new RecyclerItemTouchHelper(0, ItemTouchHelper.LEFT, new RecyclerItemTouchHelper.RecyclerItemTouchHelperListener() {
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
+                final String uid1 = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+                final String uid2 = viewHolder.itemView.getTag().toString();
+                if (uid1 != null && uid2 != null) {
+                    DataManager.removeFromFlock(uid2, uid1);
+                    // Show snackBar with undo option
+                    DataManager.getDatabase().getReference("users").child(uid2).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            User user = dataSnapshot.getValue(User.class);
+                            Snackbar snackbar = Snackbar.make(mCoordinatorLayout, R.string.content_removed + " " + user.getName(), Snackbar.LENGTH_LONG);
+                            snackbar.setAction(R.string.content_undo_caps, new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    DataManager.addToFlock(uid2, uid1);
+                                }
+                            });
+                            snackbar.setActionTextColor(Color.YELLOW);
+                            snackbar.show();
+                        }
 
-                final String deleteUid = viewHolder.itemView.getTag().toString();
-                final String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
-
-                if (uid != null) DataManager.removeFromFlock(deleteUid, uid);
-
-                // Show snackBar with undo option
-                //TODO: add deleted user name
-                Snackbar snackbar = Snackbar.make(mCoordinatorLayout, R.string.content_removed, Snackbar.LENGTH_LONG);
-                snackbar.setAction(R.string.content_undo_caps, new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if (uid != null) DataManager.addToFlock(deleteUid, uid);
-                    }
-                });
-                snackbar.setActionTextColor(Color.YELLOW);
-                snackbar.show();
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            // TODO: Error Handling
+                        }
+                    });
+                }
             }
-        });
-        new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(mRecyclerView);
-
-        mNestedScrollView = (NestedScrollView) findViewById(R.id.main_nestedScrollView);
+        }); new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(mRecyclerView);mNestedScrollView = (NestedScrollView) findViewById(R.id.main_nestedScrollView);
 
         // Floating button only appears at the end of the list
         mNestedScrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
@@ -200,11 +218,9 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
-        }
-        return super.onOptionsItemSelected(item);
+        } return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -294,10 +310,15 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                 startPhoneCall((String) view.getTag());
                 break;
             case R.id.contact_image:
-                // TODO: ???
                 break;
             case R.id.contact_directions:
-                // TODO: Open MapsActivity and point to the user's lastKnownLocation (View.getTag())
+                if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    AppPermissions.requestLocationPermission(MainActivity.this);
+                } else {
+                    Intent intent = new Intent(this, MapsActivity.class);
+                    intent.putExtra(getString(R.string.intent_uid), view.getTag().toString());
+                    startActivity(intent);
+                } break;
             default:
                 Log.d(TAG, "Item view position: " + position);
                 break;
@@ -341,12 +362,12 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         if (mAuth.getCurrentUser() != null) {
             Emergency emergency = new Emergency();
             String uid = mAuth.getCurrentUser().getUid();
-            SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(getBaseContext()));
+            SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(MainActivity.this));
             emergency.setUid(uid);
             emergency.setTrigger(uid);
             emergency.setStart(simpleLocation);
             String key = DataManager.startEmergency(emergency);
-            AppState.registerEmergencyFlock(getBaseContext(), key);
+            AppState.registerEmergencyFlock(MainActivity.this, key);
         }
     }
 
