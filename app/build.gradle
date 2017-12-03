@@ -73,6 +73,8 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.3.1'
     implementation "android.arch.persistence.room:runtime:${architectureComponents}"
     annotationProcessor "android.arch.persistence.room:compiler:${architectureComponents}"
+    implementation "android.arch.lifecycle:extensions:${architectureComponents}"
+
     testCompile 'junit:junit:4.12'
 }
 

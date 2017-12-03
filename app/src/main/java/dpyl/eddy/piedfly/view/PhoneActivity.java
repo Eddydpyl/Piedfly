@@ -139,6 +139,7 @@ public class PhoneActivity extends BaseActivity {
 
     @SuppressLint("HardwareIds")
     private void writePhoneNumber() {
+        //TODO: make sure the phone number is gotten, use content resolver phone.NUMBER contract
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
             TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
             String phoneNumber = telephonyManager.getLine1Number();

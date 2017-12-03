@@ -17,7 +17,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -47,7 +47,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -65,11 +64,11 @@ import dpyl.eddy.piedfly.model.RequestType;
 import dpyl.eddy.piedfly.model.SimpleLocation;
 import dpyl.eddy.piedfly.model.User;
 import dpyl.eddy.piedfly.model.room.Contact;
+import dpyl.eddy.piedfly.view.adapter.ContactAdapter;
 import dpyl.eddy.piedfly.view.adapter.UserAdapter;
-import dpyl.eddy.piedfly.view.recyclerview.BottomOffsetDecoration;
 import dpyl.eddy.piedfly.view.recyclerview.RecyclerItemTouchHelper;
 
-public class MainActivity extends BaseActivity implements UserAdapter.ListItemClickListener {
+public class MainActivity extends BaseActivity implements UserAdapter.ListItemClickListener, ContactAdapter.ListItemClickListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -77,17 +76,19 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
     private static final int REQUEST_PICK_IMAGE = 101;
 
     private static AppDatabase mRoomDatabase;
+    private static ContactAdapter mContactAdapter;
 
+
+    private UserAdapter mUserAdapter;
     private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
     private SharedPreferences mSharedPreferences;
     private CoordinatorLayout mCoordinatorLayout;
     private CircleImageView mCircleImageView;
     private RecyclerView mRecyclerView;
-    private UserAdapter mUserAdapter;
+    private RecyclerView mSecondRecyclerView;
+    //TODO: alomejor hacer algo con el scroll view para que permita overscrollear, y ocultar el fab si no está abajo del scrollview
+    private NestedScrollView mNestedScrollView;
     private String mPhoneNumber;
-
-
-    private List<Contact> mLocalContacts;
 
 
     @Override
@@ -100,10 +101,12 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        //TODO: probando room luego borrar y hacer en hilo secundario (quitar allow main thread)
         //create room db
         if (mRoomDatabase == null)
             //TODO: remove hardcoded dbname (config xml strings ?)
-            mRoomDatabase = Room.databaseBuilder(MainActivity.this, AppDatabase.class, "piedflyDb").build();
+            mRoomDatabase = Room.databaseBuilder(MainActivity.this, AppDatabase.class, "piedflyDb").allowMainThreadQueries().build();
+
 
         mCoordinatorLayout = findViewById(R.id.content);
         mCircleImageView = (CircleImageView) findViewById(R.id.userImage);
@@ -170,15 +173,18 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         });
         new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(mRecyclerView);
 
+        mNestedScrollView = (NestedScrollView) findViewById(R.id.main_nestedScrollView);
+
         // Floating button only appears at the end of the list
-        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+        mNestedScrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
             @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-                if (!recyclerView.canScrollVertically(1)) faButton.show();
+            public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+
+                if (!v.canScrollVertically(1)) faButton.show();
                 else faButton.hide();
             }
         });
+
     }
 
 
@@ -320,8 +326,14 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
             Query keyQuery = DataManager.getDatabase().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("flock");
             DatabaseReference dataQuery = DataManager.getDatabase().getReference().child("users");
             FirebaseRecyclerOptions<User> options = new FirebaseRecyclerOptions.Builder<User>().setIndexedQuery(keyQuery, dataQuery, User.class).build();
-            mUserAdapter = new UserAdapter(options, this, mLocalContacts);
+            mUserAdapter = new UserAdapter(options, this);
             mRecyclerView.setAdapter(mUserAdapter);
+
+            // Second recycler
+            if (mContactAdapter == null) {
+                mContactAdapter = new ContactAdapter(mRoomDatabase.contactDao().findAll(), this);
+                mSecondRecyclerView.setAdapter(mContactAdapter);
+            }
         }
     }
 
@@ -398,6 +410,13 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                             }
                         } else {
                             // TODO: A User with the provided phone does not exist
+                            Contact localContact = new Contact();
+                            localContact.setName(name);
+                            localContact.setPhone(phone);
+                            //TODO: add to the bd (should be done async just trying it out)
+                            mRoomDatabase.contactDao().insertAll(localContact);
+                            mContactAdapter.setContacts(mRoomDatabase.contactDao().findAll());
+
                         }
                     }
 
@@ -412,12 +431,22 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
     }
 
     private void setUpRecycler() {
+
+
+        // Firebase recycler
         mRecyclerView = (RecyclerView) findViewById(R.id.flock_list);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-        mRecyclerView.setAdapter(mUserAdapter);
         mRecyclerView.setLayoutManager(layoutManager);
-        mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        mRecyclerView.addItemDecoration(new BottomOffsetDecoration());
         mRecyclerView.addItemDecoration(new DividerItemDecoration(mRecyclerView.getContext(), DividerItemDecoration.VERTICAL));
+
+        // Contact recycler
+        mSecondRecyclerView = (RecyclerView) findViewById(R.id.local_contacts_list);
+        RecyclerView.LayoutManager secondLayoutManager = new LinearLayoutManager(this);
+        mSecondRecyclerView.setLayoutManager(secondLayoutManager);
+        mSecondRecyclerView.addItemDecoration(new DividerItemDecoration(mSecondRecyclerView.getContext(), DividerItemDecoration.VERTICAL));
+
+        mRecyclerView.setNestedScrollingEnabled(false);
+        mSecondRecyclerView.setNestedScrollingEnabled(false);
+
     }
 }

@@ -8,67 +8,74 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.storage.StorageReference;
+import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-import dpyl.eddy.piedfly.FileManager;
 import dpyl.eddy.piedfly.GlideApp;
 import dpyl.eddy.piedfly.R;
-import dpyl.eddy.piedfly.model.User;
+import dpyl.eddy.piedfly.model.room.Contact;
 
-public class UserAdapter extends FirebaseRecyclerAdapter<User, UserAdapter.UserHolder> {
+/**
+ * An adapter for local contacts.
+ */
 
+public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactHolder> {
+
+
+    private List<Contact> mContacts;
     private ListItemClickListener mOnClickListener;
+
 
     public interface ListItemClickListener {
         void onListItemClick(int position, View view);
     }
 
-    public UserAdapter(FirebaseRecyclerOptions<User> options, ListItemClickListener mOnClickListener) {
-        super(options);
+
+    public ContactAdapter(List<Contact> mContacts, ListItemClickListener mOnClickListener) {
+        this.mContacts = mContacts;
         this.mOnClickListener = mOnClickListener;
     }
 
-    @Override
-    public void onDataChanged() {
-        super.onDataChanged();
-        // Called when the necessary data has been retrieved (may be of use when using a loading spinner)
-    }
 
     @Override
-    public void onError(DatabaseError error) {
-        super.onError(error);
-        // TODO: Error handling
-        // Couldn't retrieve the data, update UI accordingly
+    public ContactHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.flock_list_item_test, parent, false);
+        return new ContactHolder(itemView);
     }
 
-    @Override
-    public UserHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.flock_list_item, parent, false);
-        return new UserHolder(itemView);
-    }
 
     @Override
-    protected void onBindViewHolder(UserHolder holder, int position, User model) {
-        holder.itemView.setTag(model.getUid());
+    public void onBindViewHolder(ContactHolder holder, int position) {
+        Contact model = mContacts.get(position);
         holder.mContactName.setText(model.getName());
         holder.mContactCall.setTag(model.getPhone());
-        holder.mContactDirections.setTag(model.getLastKnownLocation());
-        StorageReference storageReference = model.getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(model.getPhotoUrl()) : null;
-        GlideApp.with(holder.itemView.getContext()).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(holder.mContactImage);
+        GlideApp.with(holder.itemView.getContext()).load(model.getPhoto()).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(holder.mContactImage);
     }
 
-    public class UserHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+
+    @Override
+    public int getItemCount() {
+        return mContacts == null ? 0 : mContacts.size();
+    }
+
+    public List<Contact> getContacts() {
+        return mContacts;
+    }
+
+    public void setContacts(List<Contact> mContacts) {
+        this.mContacts = mContacts;
+        this.notifyDataSetChanged();
+    }
+
+
+    public class ContactHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private CircleImageView mContactImage;
         private TextView mContactName;
         private ImageView mContactCall, mContactDirections;
         public RelativeLayout mViewForeground, mViewBackground;
 
-        UserHolder(View itemView) {
+        ContactHolder(View itemView) {
             super(itemView);
             mContactImage = (CircleImageView) itemView.findViewById(R.id.contact_image);
             mContactName = (TextView) itemView.findViewById(R.id.contact_name);
@@ -90,4 +97,5 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserAdapter.UserH
             mOnClickListener.onListItemClick(position, view);
         }
     }
+
 }
