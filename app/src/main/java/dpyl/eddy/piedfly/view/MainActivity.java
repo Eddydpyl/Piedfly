@@ -25,7 +25,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -303,9 +302,6 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                     intent.putExtra(getString(R.string.intent_uid), view.getTag().toString());
                     startActivity(intent);
                 } break;
-            default:
-                Log.d(TAG, "Item view position: " + position);
-                break;
         }
     }
 
@@ -350,12 +346,14 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
 
     private void startPhoneCall(String phoneNumber) {
         this.mPhoneNumber = phoneNumber;
-        if (AppPermissions.requestCallPermission(this)) {
-            Intent intent = new Intent(Intent.ACTION_DIAL);
-            intent.setData(Uri.parse("tel:" + phoneNumber));
-            if (intent.resolveActivity(getPackageManager()) != null) {
-                startActivity(intent);
+        if (phoneNumber != null) {
+            if (AppPermissions.requestCallPermission(this)) {
+                Intent intent = new Intent(Intent.ACTION_DIAL);
+                intent.setData(Uri.parse("tel:" + phoneNumber));
+                if (intent.resolveActivity(getPackageManager()) != null) startActivity(intent);
             }
+        } else {
+            // TODO: Error Handling
         }
     }
 
@@ -393,28 +391,32 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                 final String phone = cursor.getString(1);
                 cursor.close();
                 // TODO: Format phone so that it matches the ones in the database
-                DataManager.getDatabase().getReference("users").orderByChild("phone").equalTo(phone).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-                            for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
-                                User user = childSnapshot.getValue(User.class);
-                                Request request = new Request(user.getUid(), uid, RequestType.JOIN_FLOCK);
-                                DataManager.requestJoinFlock(request);
-                                Toast toast = Toast.makeText(weakReference.get(),
-                                        weakReference.get().getString(R.string.content_join_flock_request) + " " + name + ".",
-                                        Toast.LENGTH_SHORT); toast.show();
+                if (name != null && phone != null) {
+                    DataManager.getDatabase().getReference("users").orderByChild("phone").equalTo(phone).limitToFirst(1).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.exists()) {
+                                for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
+                                    User user = childSnapshot.getValue(User.class);
+                                    Request request = new Request(user.getUid(), uid, RequestType.JOIN_FLOCK);
+                                    DataManager.requestJoinFlock(request);
+                                    Toast toast = Toast.makeText(weakReference.get(),
+                                            weakReference.get().getString(R.string.content_join_flock_request) + " " + user.getName() + ".",
+                                            Toast.LENGTH_SHORT); toast.show();
+                                }
+                            } else {
+                                // TODO: A User with the provided phone does not exist
                             }
-                        } else {
-                            // TODO: A User with the provided phone does not exist
                         }
-                    }
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        // TODO: Error Handling
-                    }
-                });
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            // TODO: Error Handling
+                        }
+                    });
+                } else {
+                    // TODO: Error Handling
+                }
             }
             return null;
         }

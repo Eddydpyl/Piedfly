@@ -218,7 +218,8 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Ma
             mMapUserAdapter = null;
         }
         if (mListeners != null) {
-            for (final Map.Entry<String, ValueEventListener> entry : mListeners.entrySet()) {
+            // By iterating over a copy of the Collection, we avoid a potential ConcurrentModificationException
+            for (final Map.Entry<String, ValueEventListener> entry : new HashSet<>(mListeners.entrySet())) {
                 DataManager.getDatabase().getReference("users").child(entry.getKey()).child("lastKnownLocation").removeEventListener(entry.getValue());
                 mListeners.remove(entry.getKey());
             }
@@ -373,12 +374,14 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Ma
 
     private void startPhoneCall(String phoneNumber) {
         this.mPhoneNumber = phoneNumber;
-        if (AppPermissions.requestCallPermission(this)) {
-            Intent intent = new Intent(Intent.ACTION_DIAL);
-            intent.setData(Uri.parse("tel:" + phoneNumber));
-            if (intent.resolveActivity(getPackageManager()) != null) {
-                startActivity(intent);
+        if (phoneNumber != null) {
+            if (AppPermissions.requestCallPermission(this)) {
+                Intent intent = new Intent(Intent.ACTION_DIAL);
+                intent.setData(Uri.parse("tel:" + phoneNumber));
+                if (intent.resolveActivity(getPackageManager()) != null) startActivity(intent);
             }
+        } else {
+            // TODO: Error Handling
         }
     }
 }
