@@ -14,5 +14,19 @@
     <string name="content_delete_caps">BORRAR</string>
     <string name="content_last_seen_place">Visto por última vez en</string>
     <string name="content_only_local_user_warning">Este usuario solo existe localmente.</string>
+    <string name="content_push_emergency_user_title">¡Has activado una emergencia!</string>
+    <string name="content_push_emergency_user_text">Tu Flock ha sido notificado. La ayuda está en camino.</string>
+    <string name="content_push_emergency_flock_title">está en peligro!</string>
+    <string name="content_push_emergency_flock_text">Pulsa en esta notificación para participar en la intervención.</string>
+    <string name="content_push_emergency_nearby_title">¡Alguien cerca tuya está en peligro!</string>
+    <string name="content_push_emergency_nearby_text">Pulsa en esta notificación para participar en la intervención.</string>
+    <string name="content_push_emergency_finish_title">ya no está en peligro.</string>
+    <string name="content_push_emergency_finish_text">¡Muchas gracias por tu ayuda!</string>
+    <string name="content_push_request_title">Quiere formar parte de tu Flock.</string>
+    <string name="content_push_request_text">Acepta su invitación para mejorar vuestra seguridad.</string>
+    <string name="content_push_poke_start_title">quiere saber si estás bien.</string>
+    <string name="content_push_poke_start_text">Indica que es así pulsando esta notificación.</string>
+    <string name="content_push_poke_end_title">parece estar bien.</string>
+    <string name="content_push_poke_end_text">¡No hay de qué preocuparse!</string>
 
 </resources>

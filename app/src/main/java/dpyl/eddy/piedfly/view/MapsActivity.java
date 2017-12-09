@@ -135,7 +135,14 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mStateListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-                if (key.equals(getString(R.string.pref_emergencies_flock))) {
+                if (key.equals(getString(R.string.pref_emergencies_user))) {
+                    String emergency = mSharedPreferences.getString(key, "");
+                    if (emergency.isEmpty()) {
+                        // TODO: The user had an emergency active and now it has been stopped
+                    } else {
+                        // TODO: There user has activated an emergency
+                    }
+                } else if (key.equals(getString(R.string.pref_emergencies_flock))) {
                     Set<String> emergencies = mSharedPreferences.getStringSet(key, new HashSet<String>());
                     if (emergencies.isEmpty()) {
                         // TODO: There was at least an emergency active and now they have all been stopped

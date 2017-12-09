@@ -7,6 +7,7 @@
     <string name="pref_uid">uidFirebase</string>
     <string name="pref_tiny_ID">tinyID</string>
     <string name="pref_token">tokenFirebase</string>
+    <string name="pref_emergencies_user">emergenciesFlock</string>
     <string name="pref_emergencies_flock">emergenciesFlock</string>
     <string name="pref_emergencies_nearby">emergenciesNearby</string>
     <string name="pref_last_hotbeacon">lastHotBeacon</string>
@@ -29,7 +30,20 @@
     <string name="content_delete_caps">DELETE</string>
     <string name="content_last_seen_place">Last seen at</string>
     <string name="content_only_local_user_warning">This user only exists locally.</string>
-
+    <string name="content_push_emergency_user_title">You have triggered an emergency!</string>
+    <string name="content_push_emergency_user_text">Your Flock has been notified. Help is on the way.</string>
+    <string name="content_push_emergency_flock_title">is in danger!</string>
+    <string name="content_push_emergency_flock_text">Click on this notification to help in the intervention.</string>
+    <string name="content_push_emergency_nearby_title">Someone nearby is in danger!</string>
+    <string name="content_push_emergency_nearby_text">Click on this notification to help in the intervention.</string>
+    <string name="content_push_emergency_finish_title">is no longer in danger.</string>
+    <string name="content_push_emergency_finish_text">Thanks for your help!</string>
+    <string name="content_push_request_title">want\'s to join your Flock.</string>
+    <string name="content_push_request_text">Keep each other safe by accepting the request.</string>
+    <string name="content_push_poke_start_title">want\'s to know if you\'re alright.</string>
+    <string name="content_push_poke_start_text">Indicate that you\'re fine by clicking on this notification.</string>
+    <string name="content_push_poke_end_title">seems to be fine.</string>
+    <string name="content_push_poke_end_text">No need to worry!</string>
 
     <string name="action_settings">Settings</string>
 

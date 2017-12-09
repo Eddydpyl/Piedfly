@@ -1,5 +1,13 @@
 package dpyl.eddy.piedfly.messaging;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
+
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -7,14 +15,18 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import dpyl.eddy.piedfly.AppState;
+import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.model.Emergency;
 import dpyl.eddy.piedfly.model.Event;
 import dpyl.eddy.piedfly.model.EventType;
 import dpyl.eddy.piedfly.model.Poke;
 import dpyl.eddy.piedfly.model.Request;
+import dpyl.eddy.piedfly.model.User;
+import dpyl.eddy.piedfly.view.MainActivity;
 
 public class MessagingService extends FirebaseMessagingService {
 
@@ -24,12 +36,16 @@ public class MessagingService extends FirebaseMessagingService {
     private static final String MESSAGE_TYPE_START_POKE = "START_POKE";
     private static final String MESSAGE_TYPE_END_POKE = "END_POKE";
 
-    private static FirebaseDatabase mDatabase;
+    private FirebaseDatabase mDatabase;
+    private int mNotificationID;
+    private Map<String, Integer> emergencies;
 
     @Override
     public void onCreate() {
         super.onCreate();
         mDatabase = FirebaseDatabase.getInstance();
+        mNotificationID = 0;
+        emergencies = new HashMap<>();
     }
 
     @Override
@@ -41,10 +57,9 @@ public class MessagingService extends FirebaseMessagingService {
         }
     }
 
-    private void sendNotification(Map<String, String> data){
+    private void sendNotification(final Map<String, String> data){
         final String type = data.get("type");
         final String key = data.get("key");
-        // TODO: Create a push notification if required
         switch (type) {
             case MESSAGE_TYPE_EVENT:
                 // An Event in an Emergency the user is taking part in has been created
@@ -57,10 +72,36 @@ public class MessagingService extends FirebaseMessagingService {
                             if (event.getEventType().equals(EventType.START)) {
                                 // An Emergency has been triggered by someone in the user's flock
                                 AppState.registerEmergencyFlock(getBaseContext(), emergency);
+                                mDatabase.getReference("users").child(event.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        User user = dataSnapshot.getValue(User.class);
+                                        if (user != null) pushNotification(user.getName() + " " + getString(R.string.content_push_emergency_flock_title), getString(R.string.content_push_emergency_flock_text), MainActivity.class);
+                                        emergencies.put(user.getUid(), mNotificationID);
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+                                        // TODO: Error Handling
+                                    }
+                                });
                             } else if (event.getEventType().equals(EventType.FINISH)) {
                                 // An Emergency has been terminated by some user
                                 AppState.unRegisterEmergencyFlock(getBaseContext(), emergency);
                                 AppState.unRegisterEmergencyNearby(getBaseContext(), emergency);
+                                mDatabase.getReference("users").child(event.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        User user = dataSnapshot.getValue(User.class);
+                                        if (user != null) pushNotification(user.getName() + " " + getString(R.string.content_push_emergency_finish_title), getString(R.string.content_push_emergency_finish_text), MainActivity.class);
+                                        removeNotification(emergencies.remove(user.getUid()));
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+                                        // TODO: Error Handling
+                                    }
+                                });
                             }
                         }
                     }
@@ -81,9 +122,12 @@ public class MessagingService extends FirebaseMessagingService {
                         if (state) {
                             // The user has entered the perimeter
                             AppState.registerEmergencyNearby(getBaseContext(), key);
+                            pushNotification(getString(R.string.content_push_emergency_nearby_title), getString(R.string.content_push_emergency_nearby_text), MainActivity.class);
+                            emergencies.put(emergency.getKey(), mNotificationID);
                         } else {
                             // The user has left the perimeter
                             AppState.unRegisterEmergencyNearby(getBaseContext(), key);
+                            removeNotification(emergencies.remove(emergency.getKey()));
                         }
                     }
 
@@ -99,6 +143,18 @@ public class MessagingService extends FirebaseMessagingService {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Request request = dataSnapshot.getValue(Request.class);
+                        mDatabase.getReference("users").child(request.getTrigger()).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                User user = dataSnapshot.getValue(User.class);
+                                if (user != null) pushNotification(user.getName() + " " + getString(R.string.content_push_request_title), getString(R.string.content_push_request_text), MainActivity.class);
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                // TODO: Error handling
+                            }
+                        });
                     }
 
                     @Override
@@ -113,6 +169,18 @@ public class MessagingService extends FirebaseMessagingService {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Poke poke = dataSnapshot.getValue(Poke.class);
+                        mDatabase.getReference("users").child(poke.getTrigger()).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                User user = dataSnapshot.getValue(User.class);
+                                if (user != null) pushNotification(user.getName() + " " + getString(R.string.content_push_poke_start_title), getString(R.string.content_push_poke_start_text), MainActivity.class);
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                // TODO: Error handling
+                            }
+                        });
                     }
 
                     @Override
@@ -127,6 +195,18 @@ public class MessagingService extends FirebaseMessagingService {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Poke poke = dataSnapshot.getValue(Poke.class);
+                        mDatabase.getReference("users").child(poke.getTrigger()).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                User user = dataSnapshot.getValue(User.class);
+                                if (user != null) pushNotification(user.getName() + " " + getString(R.string.content_push_poke_end_title), getString(R.string.content_push_poke_end_text), MainActivity.class);
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                // TODO: Error handling
+                            }
+                        });
                     }
 
                     @Override
@@ -142,5 +222,33 @@ public class MessagingService extends FirebaseMessagingService {
     public void onDestroy() {
         super.onDestroy();
         mDatabase = null;
+    }
+
+    private void pushNotification(String title, String text, Class<?> target) {
+        final long[] pattern = {250,500,250,500};
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.ic_logo)
+                        .setContentTitle(title)
+                        .setContentText(text)
+                        .setVibrate(pattern)
+                        .setAutoCancel(true)
+                        .setPriority(Notification.PRIORITY_HIGH);
+        Intent intent = new Intent(this, target);
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        if (!target.isAssignableFrom(MainActivity.class))
+            stackBuilder.addParentStack(MainActivity.class);
+        stackBuilder.addNextIntent(intent);
+        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+        mBuilder.setContentIntent(resultPendingIntent);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(mNotificationID++, mBuilder.build());
+    }
+
+    private void removeNotification(Integer id) {
+        if (id != null) {
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancel(id);
+        }
     }
 }
