@@ -4,7 +4,9 @@ ext {
     travisBuild = System.getenv("TRAVIS") == "true"
     preDexEnabled = "true".equals(System.getProperty("pre-dex", "true"))
     supportLibVersion = '26.1.0'
-    playServicesVersion  = '11.4.2'
+    playServicesVersion = '11.4.2'
+    architectureComponents = '1.0.0'
+    daggerVersion = '2.11'
 }
 
 android {
@@ -18,7 +20,7 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         resConfigs "auto"
-        multiDexEnabled  true
+        multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
@@ -30,13 +32,13 @@ android {
     // This enables long timeouts required on slow environments, e.g. Travis CI
     adbOptions {
         timeOutInMs 20 * 60 * 1000  // 20 minutes
-        installOptions "-d","-t"
+        installOptions "-d", "-t"
     }
     dexOptions {
         // Skip pre-dexing when running on Travis CI or when disabled via -Dpre-dex=false.
         preDexLibraries = preDexEnabled && !travisBuild
     }
-    lintOptions{
+    lintOptions {
         disable 'MissingTranslation'
         lintConfig file("lint.xml")
     }
@@ -70,6 +72,16 @@ dependencies {
     compile 'de.hdodenhof:circleimageview:2.1.0'
     compile 'com.github.bumptech.glide:glide:4.3.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.3.1'
+    implementation "android.arch.persistence.room:runtime:${architectureComponents}"
+    annotationProcessor "android.arch.persistence.room:compiler:${architectureComponents}"
+    implementation "android.arch.lifecycle:extensions:${architectureComponents}"
+    compile "com.google.dagger:dagger-android:${daggerVersion}"
+    compile "com.google.dagger:dagger-android-support:${daggerVersion}"
+    annotationProcessor "com.google.dagger:dagger-android-processor:${daggerVersion}"
+    annotationProcessor "com.google.dagger:dagger-compiler:${daggerVersion}"
+
+
+
     testCompile 'junit:junit:4.12'
 }
 
