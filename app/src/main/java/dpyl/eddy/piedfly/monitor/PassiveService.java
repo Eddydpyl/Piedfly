@@ -42,7 +42,7 @@ public class PassiveService extends Service {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
-                if (action.equals(Intent.ACTION_SCREEN_ON) || action.equals(Intent.ACTION_SCREEN_OFF)) {
+                if (action != null && (action.equals(Intent.ACTION_SCREEN_ON) || action.equals(Intent.ACTION_SCREEN_OFF))) {
                     long currentTime = System.currentTimeMillis();
                     if (currentTime - lastReceived < Constants.POWER_INTERVAL) {
                         counter = counter + 1;

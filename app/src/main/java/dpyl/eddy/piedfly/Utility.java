@@ -68,12 +68,11 @@ public class Utility {
         boolean isSignificantlyOlder = timeDelta < -SIGMIN;
         boolean isNewer = timeDelta > 0;
 
-        // If it's been more than two minutes since the current location, use the new location
-        // because the user has likely moved
         if (isSignificantlyNewer) {
+            // If it's been more than two minutes since the current location, use the new location because the user has likely moved
             return true;
-            // If the new location is more than two minutes older, it must be worse
         } else if (isSignificantlyOlder) {
+            // If the new location is more than two minutes older, it must be worse
             return false;
         }
 
@@ -84,8 +83,7 @@ public class Utility {
         boolean isSignificantlyLessAccurate = accuracyDelta > 200;
 
         // Check if the old and new location are from the same provider
-        boolean isFromSameProvider = isSameProvider(location.getProvider(),
-                currentBestLocation.getProvider());
+        boolean isFromSameProvider = isSameProvider(location.getProvider(), currentBestLocation.getProvider());
 
         // Determine location quality using a combination of timeliness and accuracy
         if (isMoreAccurate) {
@@ -94,16 +92,78 @@ public class Utility {
             return true;
         } else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
             return true;
-        }
-        return false;
+        } return false;
     }
 
     /**
-     * Asynchronously loads an image from an URL into a Bitmap, which can be accessed from the BitMapTaskListener
+     * Determines whether one Location reading is better than the current Location fix, giving extra weight to the latter
+     * @param location  The new Location that you want to evaluate
+     * @param currentBestLocation  The current Location fix, to which you want to compare the new one
+     * @param greed Extra (positive) weight that is given to currentBestLocation, the new one must be at least this far away from the former
      */
-    public static void loadIntoBitmap(Application context, Uri url, BitMapTaskListener listener) {
+    public static boolean isBetterLocationGreedy(Location location, Location currentBestLocation, Double greed) {
+        if (currentBestLocation == null) {
+            // A new location is always better than no location
+            return true;
+        } else if (greed == null || greed < 0.0) greed = 0.0;
+
+        // Check whether the new location fix is newer or older
+        long timeDelta = location.getTime() - currentBestLocation.getTime();
+        boolean isSignificantlyNewer = timeDelta > SIGMIN;
+        boolean isSignificantlyOlder = timeDelta < -SIGMIN;
+        boolean isNewer = timeDelta > 0;
+
+        if (isSignificantlyNewer) {
+            // If it's been more than two minutes since the current location, use the new location because the user has likely moved
+            return true;
+        } else if (isSignificantlyOlder) {
+            // If the new location is more than two minutes older, it must be worse
+            return false;
+        }
+
+        // Check whether the new location fix is more or less accurate
+        int accuracyDelta = (int) (location.getAccuracy() - currentBestLocation.getAccuracy());
+        boolean isLessAccurate = accuracyDelta > 0;
+        boolean isMoreAccurate = accuracyDelta < 0;
+        boolean isSignificantlyLessAccurate = accuracyDelta > 200;
+        boolean isSignificantlyMoreAccurate = accuracyDelta < -50 || (isMoreAccurate && greed == 0.0);
+
+        // Check if the old and new location are from the same provider
+        boolean isFromSameProvider = isSameProvider(location.getProvider(), currentBestLocation.getProvider());
+
+        // Check whether the new location is far enough from the current fix
+        double distance = location.distanceTo(currentBestLocation);
+        boolean isFarEnough = distance > greed;
+
+        // Determine location quality using a combination of timeliness, distance and accuracy
+        if (isSignificantlyMoreAccurate) {
+            return true;
+        } else if (isNewer && !isLessAccurate && isFarEnough) {
+            return true;
+        } else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider && isFarEnough) {
+            return true;
+        } return false;
+    }
+
+    /**
+     * Determines the address of a Location
+     * @return Address of the provided Location, or null if it couldn't be retrieved
+     */
+    public static Address getAddress(Context context, Location location) throws IOException {
+        List<Address> addresses = null;
+        Geocoder geocoder = new Geocoder(context);
+        addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(),1);
+        if(addresses != null && addresses.size() > 0 ){
+            return addresses.get(0);
+        } else return null;
+    }
+
+    /**
+     * Asynchronously loads an image from an URI into a Bitmap, which can be accessed from the BitMapTaskListener
+     */
+    public static void loadIntoBitmap(Application context, Uri uri, BitMapTaskListener listener) {
         BitMapTask bitMapTask = new BitMapTask(context, listener);
-        bitMapTask.execute(url);
+        bitMapTask.execute(uri);
     }
 
     private static class BitMapTask extends AsyncTask<Uri, Void, Void> {
@@ -143,9 +203,9 @@ public class Utility {
         }
     }
 
-    public static interface BitMapTaskListener {
-        public void onSuccess(Bitmap bitmap);
-        public void onFailure(Exception e);
+    public interface BitMapTaskListener {
+        void onSuccess(Bitmap bitmap);
+        void onFailure(Exception e);
     }
 
     /**

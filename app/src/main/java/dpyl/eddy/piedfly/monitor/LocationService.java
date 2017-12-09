@@ -25,6 +25,7 @@ public class LocationService extends Service {
 
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
+    protected Location lastKnownLocation;
     private boolean mLocationUpdating;
 
     public LocationService() {}
@@ -40,11 +41,13 @@ public class LocationService extends Service {
                 for (Location location : locationResult.getLocations()) {
                     if (Utility.isBetterLocation(location, bestLocation)) bestLocation = location;
                 }
-                final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-                String uid = sharedPreferences.getString(getBaseContext().getString(R.string.pref_uid), "");
-                if (bestLocation != null && !uid.isEmpty()) {
+                if (bestLocation != null && (lastKnownLocation == null || Utility.isBetterLocationGreedy(bestLocation, lastKnownLocation, 5.0))) {
+                    final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+                    String uid = sharedPreferences.getString(getBaseContext().getString(R.string.pref_uid), "");
+                    if (uid.isEmpty()) stopSelf();
                     SimpleLocation simpleLocation = new SimpleLocation(bestLocation.getTime(), bestLocation.getLatitude(), bestLocation.getLongitude());
                     DataManager.setLastKnownLocation(uid, simpleLocation);
+                    lastKnownLocation = bestLocation;
                 }
             }
         }; mLocationUpdating = false;

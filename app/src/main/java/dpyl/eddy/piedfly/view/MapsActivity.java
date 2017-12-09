@@ -4,12 +4,12 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.location.Address;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -22,11 +22,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -34,6 +29,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
@@ -44,6 +40,7 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.StorageReference;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -51,27 +48,27 @@ import java.util.Set;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import dpyl.eddy.piedfly.AppPermissions;
-import dpyl.eddy.piedfly.Constants;
 import dpyl.eddy.piedfly.DataManager;
 import dpyl.eddy.piedfly.FileManager;
 import dpyl.eddy.piedfly.GlideApp;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.Utility;
+import dpyl.eddy.piedfly.model.SimpleLocation;
 import dpyl.eddy.piedfly.model.User;
 import dpyl.eddy.piedfly.view.adapter.MapUserAdapter;
 
 import static dpyl.eddy.piedfly.Constants.ZOOM_LEVEL;
 
-public class MapsActivity extends BaseActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, MapUserAdapter.ListItemClickListener {
+public class MapsActivity extends BaseActivity implements OnMapReadyCallback, MapUserAdapter.ListItemClickListener {
+
+    private static final String FOCUS = "focus";
 
     private GoogleMap mMap;
-    private GoogleApiClient mGoogleApiClient;
     private Map<String, Marker> mMarkers;
+    private Map<String, ValueEventListener> mListeners;
 
     private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
     private SharedPreferences mSharedPreferences;
-
-    // TODO: Add an ImageView for the current user in the upper RecyclerView
 
     private CircleImageView mContactDetailsImage;
     private TextView mContactDetailsName;
@@ -82,6 +79,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Go
     private MapUserAdapter mMapUserAdapter;
 
     private String mPhoneNumber;
+    private String mFocus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,11 +100,31 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Go
         mContactDetailsName = (TextView) findViewById(R.id.map_contact_details_name);
         mContactDetailsCall =(ImageView) findViewById(R.id.map_contact_details_call);
 
+        CircleImageView userImage = (CircleImageView) findViewById(R.id.map_user_image);
+        StorageReference storageReference = mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
+        GlideApp.with(this).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(userImage);
+        userImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mMap != null && mMarkers != null) {
+                    String uid = mAuth.getCurrentUser().getUid();
+                    CameraPosition cameraAnimation = new CameraPosition.Builder().target(mMarkers.get(uid).getPosition()).zoom(ZOOM_LEVEL)
+                            .tilt(mMap.getCameraPosition().tilt).bearing(mMap.getCameraPosition().bearing).build();
+                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraAnimation));
+                    setDetailsScreen(uid);
+                    mFocus = uid;
+                }
+            }
+        });
+
         mRecyclerView = (RecyclerView) findViewById(R.id.map_recycler);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         mRecyclerView.setAdapter(mMapUserAdapter);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
+
+        if (savedInstanceState != null) mFocus = savedInstanceState.getString(FOCUS);
+        else mFocus = getIntent().getStringExtra(getString(R.string.intent_uid));
     }
 
     @Override
@@ -133,6 +151,9 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Go
                 }
             }
         }; mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
+        // Display the data and set up listeners
+        attachRecyclerViewAdapter();
+        setCameraListener();
     }
 
     @Override
@@ -171,26 +192,43 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Go
                     .tilt(mMap.getCameraPosition().tilt).bearing(mMap.getCameraPosition().bearing).build();
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraAnimation));
             setDetailsScreen(uid);
+            mFocus = uid;
         }
     }
 
     @Override
     public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
         super.onAuthStateChanged(firebaseAuth);
-        attachRecyclerViewAdapter();
+        // For the map to display any data or listeners to work, the user needs to be authenticated
+        if (firebaseAuth.getCurrentUser() != null) {
+            attachRecyclerViewAdapter();
+            setCameraListener();
+        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        // Stop listening to changes in the App state and free up memory, as the Activity is not visible
+        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(mStateListener);
+        mSharedPreferences = null;
+        // Stop listening to changes in the database and free up memory, as the Activity is not visible
         if (mMapUserAdapter != null) {
             mMapUserAdapter.stopListening();
             mMapUserAdapter = null;
-        } mSharedPreferences.unregisterOnSharedPreferenceChangeListener(mStateListener);
-        mSharedPreferences = null;
-        mGoogleApiClient.disconnect();
-        mGoogleApiClient = null;
-        mMap = null;
+        }
+        if (mListeners != null) {
+            for (final Map.Entry<String, ValueEventListener> entry : mListeners.entrySet()) {
+                DataManager.getDatabase().getReference("users").child(entry.getKey()).child("lastKnownLocation").removeEventListener(entry.getValue());
+                mListeners.remove(entry.getKey());
+            }
+        } mMap.setOnCameraChangeListener(null);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString(FOCUS, mFocus);
+        super.onSaveInstanceState(outState);
     }
 
     /**
@@ -205,49 +243,18 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Go
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            createGoogleApiClient();
-            mMap.setMyLocationEnabled(true);
+            mMap.setMyLocationEnabled(false);
             mMap.getUiSettings().setMapToolbarEnabled(false);
             mMap.getUiSettings().setZoomControlsEnabled(false);
+            mMap.setPadding(0,0,0,450); // Hardcoded value is based on Layout dimensions
+            // On first launching the Activity, the calls in onStart() will fail, as the GoogleMap instance is not yet available at that point
             attachRecyclerViewAdapter();
-            if (mMapUserAdapter != null) mMapUserAdapter.startListening();
+            setCameraListener();
         }
     }
 
-    private synchronized void createGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this).addOnConnectionFailedListener(this).addApi(LocationServices.API).build();
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        Marker marker = mMarkers.get(mAuth.getCurrentUser().getUid());
-        marker.setPosition(new LatLng(location.getLatitude(), location.getLongitude()));
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        LocationRequest locationRequest = new LocationRequest();
-        locationRequest.setInterval(Constants.LOCATION_SLOWEST_INTERVAL);
-        locationRequest.setFastestInterval(Constants.LOCATION_FASTEST_INTERVAL);
-        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, locationRequest, this);
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        // TODO: Error Handling
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        // TODO: Error Handling
-    }
-
     private void attachRecyclerViewAdapter() {
-        if (mAuth != null && mAuth.getCurrentUser() != null && mMapUserAdapter == null) {
-
+        if (mAuth != null && mAuth.getCurrentUser() != null && mMapUserAdapter == null && mMap != null) {
             if (mMarkers == null) mMarkers = new HashMap<>();
             Location location = Utility.getLastKnownLocation(this);
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -258,19 +265,59 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Go
             Marker marker = mMap.addMarker(markerOptions);
             mMarkers.put(mAuth.getCurrentUser().getUid(), marker);
 
-            String focus = getIntent().getStringExtra(getString(R.string.intent_uid));
             Query keyQuery = DataManager.getDatabase().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("flock");
             DatabaseReference dataQuery = DataManager.getDatabase().getReference().child("users");
             FirebaseRecyclerOptions<User> options = new FirebaseRecyclerOptions.Builder<User>().setIndexedQuery(keyQuery, dataQuery, User.class).build();
-            mMapUserAdapter = new MapUserAdapter(options, this, mMap, mMarkers, focus);
+            mMapUserAdapter = new MapUserAdapter(options, this, mMap, mMarkers, mFocus);
             mRecyclerView.setAdapter(mMapUserAdapter);
-            setDetailsScreen(focus);
+            mMapUserAdapter.startListening();
+            setDetailsScreen(mFocus);
 
-            if (mAuth.getCurrentUser().getUid().equals(focus)) {
-                CameraPosition cameraAnimation = new CameraPosition.Builder().target(mMarkers.get(focus).getPosition()).zoom(ZOOM_LEVEL)
+            if (mAuth.getCurrentUser().getUid().equals(mFocus)) {
+                CameraPosition cameraAnimation = new CameraPosition.Builder().target(mMarkers.get(mFocus).getPosition()).zoom(ZOOM_LEVEL)
                         .tilt(mMap.getCameraPosition().tilt).bearing(mMap.getCameraPosition().bearing).build();
                 mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraAnimation));
             }
+        }
+    }
+
+    private void setCameraListener() {
+        // Listen to the camera position and add or remove database listeners based on the currently visible Markers
+        if (mAuth != null && mAuth.getCurrentUser() != null && mMarkers != null && mMap != null) {
+            if (mListeners == null) mListeners = new HashMap<>();
+            GoogleMap.OnCameraChangeListener listener = new GoogleMap.OnCameraChangeListener() {
+                @Override
+                public void onCameraChange(CameraPosition cameraPosition) {
+                    LatLngBounds latLngBounds = mMap.getProjection().getVisibleRegion().latLngBounds;
+                    for (final Map.Entry<String, Marker> entry : mMarkers.entrySet()) {
+                        if (latLngBounds.contains(entry.getValue().getPosition())) {
+                            if (!mListeners.containsKey(entry.getKey())) {
+                                ValueEventListener valueEventListener = new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        SimpleLocation simpleLocation = dataSnapshot.getValue(SimpleLocation.class);
+                                        if (simpleLocation != null) {
+                                            Marker marker = mMarkers.get(entry.getKey());
+                                            marker.setPosition(new LatLng(simpleLocation.getLatitude(), simpleLocation.getLongitude()));
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+                                        // TODO: Error Handling
+                                    }
+                                };
+                                DataManager.getDatabase().getReference("users").child(entry.getKey()).child("lastKnownLocation").addValueEventListener(valueEventListener);
+                                mListeners.put(entry.getKey(), valueEventListener);
+                            } else if (mListeners.containsKey(entry.getKey())) {
+                                ValueEventListener valueEventListener = mListeners.get(entry.getKey());
+                                DataManager.getDatabase().getReference("users").child(entry.getKey()).child("lastKnownLocation").removeEventListener(valueEventListener);
+                                mListeners.remove(entry.getKey());
+                            }
+                        }
+                    }
+                }
+            }; mMap.setOnCameraChangeListener(listener);
         }
     }
 
@@ -282,8 +329,33 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Go
                 mContactDetailsName.setText(user.getName());
                 StorageReference storageReference = FileManager.getStorage().getReferenceFromUrl(user.getPhotoUrl());
                 GlideApp.with(mContactDetailsImage.getContext()).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mContactDetailsImage);
-                // TODO: Beautify mContactDetailsLocation text
-                mContactDetailsLocation.setText(user.getLastKnownLocation().toString());
+                final Location location = new Location("");
+                location.setLatitude(user.getLastKnownLocation().getLatitude());
+                location.setLongitude(user.getLastKnownLocation().getLongitude());
+                String lastSeenAt = getString(R.string.content_last_seen_place);
+                try {
+                    Address address = Utility.getAddress(MapsActivity.this, location);
+                    if (address != null) {
+                        lastSeenAt += " " + address.getAddressLine(0);
+                    } else {
+                        lastSeenAt += " lat: " + location.getLatitude() + ", long: " + location.getLongitude();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    lastSeenAt += " lat: " + location.getLatitude() + ", long: " + location.getLongitude();
+                };
+                mContactDetailsLocation.setText(lastSeenAt);
+                mContactDetailsLocation.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Uri gmmIntentUri = Uri.parse("geo:" + location.getLatitude() + "," + location.getLongitude());
+                        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                        mapIntent.setPackage("com.google.android.apps.maps");
+                        if (mapIntent.resolveActivity(getPackageManager()) != null) {
+                            startActivity(mapIntent);
+                        }
+                    }
+                });
                 mContactDetailsCall.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {

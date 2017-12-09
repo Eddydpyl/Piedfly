@@ -179,8 +179,8 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
         Intent passiveService = new Intent(this, PassiveService.class);
         startService(passiveService);
         if (AppPermissions.requestLocationPermission(this)) {
-            Intent monitorService = new Intent(this, LocationService.class);
-            startService(monitorService);
+            Intent locationService = new Intent(this, LocationService.class);
+            startService(locationService);
         }
     }
 }

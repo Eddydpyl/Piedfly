@@ -1,4 +1,5 @@
 <resources>
+
     <string name="app_name">Piedfly</string>
     <string name="title_activity_phone">PhoneActivity</string>
     <string name="title_activity_maps">MapsActivity</string>
@@ -26,6 +27,7 @@
     <string name="content_upload_error">Image upload unsuccessful, please try again.</string>
     <string name="content_slide_for_alarm">Slide for Alarm</string>
     <string name="content_delete_caps">DELETE</string>
+    <string name="content_last_seen_place">Last seen at</string>
 
     <string name="action_settings">Settings</string>
 

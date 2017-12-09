@@ -1,4 +1,5 @@
 <resources>
+
     <string name="content_request_permission_title">Autorización requerida</string>
     <string name="content_request_permission_message">Esta aplicación requiere que se le de permiso para leer y escribir los ajustes del sistema.</string>
     <string name="content_notification_title">Estás Protegid@</string>
@@ -11,4 +12,6 @@
     <string name="content_upload_error">Subida de imagen fallida, por favor inténtalo de nuevo.</string>
     <string name="content_slide_for_alarm">Desliza para Emergencia</string>
     <string name="content_delete_caps">BORRAR</string>
+    <string name="content_last_seen_place">Visto por última vez en</string>
+
 </resources>
