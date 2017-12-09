@@ -4,48 +4,41 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import java.util.List;
 
-import de.hdodenhof.circleimageview.CircleImageView;
 import dpyl.eddy.piedfly.GlideApp;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.model.room.Contact;
+import dpyl.eddy.piedfly.view.viewholders.OnListItemClickListener;
+import dpyl.eddy.piedfly.view.viewholders.UserHolder;
 
 /**
  * An adapter for local contacts.
  */
 
-public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactHolder> {
+public class ContactAdapter extends RecyclerView.Adapter<UserHolder> {
 
 
     private List<Contact> mContacts;
-    private ListItemClickListener mOnClickListener;
+    private OnListItemClickListener mOnListItemClickListener;
 
 
-    public interface ListItemClickListener {
-        void onListItemClick(int position, View view);
-    }
-
-
-    public ContactAdapter(List<Contact> mContacts, ListItemClickListener mOnClickListener) {
+    public ContactAdapter(List<Contact> mContacts, OnListItemClickListener listItemClickListener) {
         this.mContacts = mContacts;
-        this.mOnClickListener = mOnClickListener;
+        this.mOnListItemClickListener = listItemClickListener;
     }
 
 
     @Override
-    public ContactHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public UserHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.contact_list_item, parent, false);
-        return new ContactHolder(itemView);
+        return new UserHolder(itemView, mOnListItemClickListener);
     }
 
 
     @Override
-    public void onBindViewHolder(ContactHolder holder, int position) {
+    public void onBindViewHolder(UserHolder holder, int position) {
         Contact model = mContacts.get(position);
         holder.mContactName.setText(model.getName());
         holder.mContactCall.setTag(model.getPhone());
@@ -67,35 +60,5 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactH
         this.notifyDataSetChanged();
     }
 
-
-    public class ContactHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-
-        private CircleImageView mContactImage;
-        private TextView mContactName;
-        private ImageView mContactCall, mContactDirections;
-        public RelativeLayout mViewForeground, mViewBackground;
-
-        ContactHolder(View itemView) {
-            super(itemView);
-            mContactImage = (CircleImageView) itemView.findViewById(R.id.contact_image);
-            mContactName = (TextView) itemView.findViewById(R.id.contact_name);
-            mContactCall = (ImageView) itemView.findViewById(R.id.contact_call);
-            mContactDirections = (ImageView) itemView.findViewById(R.id.contact_directions);
-            mViewBackground = (RelativeLayout) itemView.findViewById(R.id.item_background);
-            mViewForeground = (RelativeLayout) itemView.findViewById(R.id.item_foreground);
-
-            //Setting listeners
-            mContactImage.setOnClickListener(this);
-            mContactCall.setOnClickListener(this);
-            mContactDirections.setOnClickListener(this);
-            itemView.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View view) {
-            int position = getAdapterPosition();
-            mOnClickListener.onListItemClick(position, view);
-        }
-    }
 
 }

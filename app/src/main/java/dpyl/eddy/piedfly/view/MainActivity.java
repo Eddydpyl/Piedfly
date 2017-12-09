@@ -75,16 +75,19 @@ import dpyl.eddy.piedfly.model.User;
 import dpyl.eddy.piedfly.model.room.Contact;
 import dpyl.eddy.piedfly.view.adapter.ContactAdapter;
 import dpyl.eddy.piedfly.view.adapter.UserAdapter;
-import dpyl.eddy.piedfly.view.recyclerview.RecyclerItemTouchHelper;
+import dpyl.eddy.piedfly.view.recyclerview.UserHolderItemTouchHelper;
+import dpyl.eddy.piedfly.view.viewholders.OnListItemClickListener;
 import dpyl.eddy.piedfly.view.viewmodel.ContactCollectionViewModel;
 
-public class MainActivity extends BaseActivity implements UserAdapter.ListItemClickListener, ContactAdapter.ListItemClickListener {
+public class MainActivity extends BaseActivity implements OnListItemClickListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private static final int REQUEST_PICK_CONTACT = 100;
     private static final int REQUEST_PICK_IMAGE = 101;
 
+    // Used to avoid toast queues
+    private static Toast mToast;
 
     private UserAdapter mUserAdapter;
     private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
@@ -186,7 +189,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
 
 
         // Custom made swipe on recycler view (Used to delete objects)
-        ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new RecyclerItemTouchHelper(0, ItemTouchHelper.LEFT, new RecyclerItemTouchHelper.RecyclerItemTouchHelperListener() {
+        ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new UserHolderItemTouchHelper(0, ItemTouchHelper.LEFT, new UserHolderItemTouchHelper.RecyclerItemTouchHelperListener() {
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
                 final String uid1 = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
@@ -219,15 +222,15 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         });
         new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(mRecyclerView);
 
-        //TODO: fixed second recycler
-        /*ItemTouchHelper.SimpleCallback itemTouchHelperSecondRecycler = new RecyclerItemTouchHelper(0, ItemTouchHelper.LEFT, new RecyclerItemTouchHelper.RecyclerItemTouchHelperListener() {
+        // OnSwipe delete for the second recycler view
+        ItemTouchHelper.SimpleCallback itemTouchHelperSecondRecycler = new UserHolderItemTouchHelper(0, ItemTouchHelper.LEFT, new UserHolderItemTouchHelper.RecyclerItemTouchHelperListener() {
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
                 mContactCollectionViewModel.deleteContact(mContactAdapter.getContacts().get(position));
                 mContactAdapter.notifyItemRemoved(position);
             }
         });
-        new ItemTouchHelper(itemTouchHelperSecondRecycler).attachToRecyclerView(mSecondRecyclerView);*/
+        new ItemTouchHelper(itemTouchHelperSecondRecycler).attachToRecyclerView(mSecondRecyclerView);
 
         mNestedScrollView = (NestedScrollView) findViewById(R.id.main_nestedScrollView);
 
@@ -344,7 +347,8 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
 
 
     @Override
-    public void onListItemClick(int position, View view) {
+    public void OnListItemClick(int position, View view) {
+
         switch (view.getId()) {
             case R.id.contact_call:
                 startPhoneCall((String) view.getTag());
@@ -355,10 +359,17 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                 if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     AppPermissions.requestLocationPermission(MainActivity.this);
                 } else {
+                    if (view.getTag() == null) {
+                        if (mToast != null) mToast.cancel();
+                        mToast = Toast.makeText(this, R.string.content_only_local_user_warning, Toast.LENGTH_SHORT);
+                        mToast.show();
+                        break;
+                    }
                     Intent intent = new Intent(this, MapsActivity.class);
                     intent.putExtra(getString(R.string.intent_uid), view.getTag().toString());
                     startActivity(intent);
-                } break;
+                }
+                break;
         }
     }
 
@@ -458,9 +469,11 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                                     User user = childSnapshot.getValue(User.class);
                                     Request request = new Request(user.getUid(), uid, RequestType.JOIN_FLOCK);
                                     DataManager.requestJoinFlock(request);
-                                    Toast toast = Toast.makeText(weakReference.get(),
+                                    if (mToast != null) mToast.cancel();
+                                    mToast = Toast.makeText(weakReference.get(),
                                             weakReference.get().getString(R.string.content_join_flock_request) + " " + user.getName() + ".",
-                                            Toast.LENGTH_SHORT); toast.show();
+                                            Toast.LENGTH_SHORT);
+                                    mToast.show();
                                 }
                             } else {
                                 // TODO: A User with the provided phone does not exist

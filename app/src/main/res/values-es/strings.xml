@@ -13,5 +13,6 @@
     <string name="content_slide_for_alarm">Desliza para Emergencia</string>
     <string name="content_delete_caps">BORRAR</string>
     <string name="content_last_seen_place">Visto por última vez en</string>
+    <string name="content_only_local_user_warning">Este usuario solo existe localmente.</string>
 
 </resources>

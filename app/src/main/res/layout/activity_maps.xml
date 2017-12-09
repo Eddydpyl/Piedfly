@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- TODO: Add an image for the current user in the upper RecyclerView-->
-<!-- TODO: The upper RecyclerView disappears when the screen loses focus-->
-
-<!-- TODO: at some point remove text for tool text or add default text-->
-<!-- TODO: check material design guidelines, simplify, use same measures throughout app design-->
+<!-- TODO: at some point remove text for tool text or add default text--><!-- TODO: check material design guidelines, simplify, use same measures throughout app design-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -39,8 +35,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/map_AppBarLayout"
             android:background="@color/material_light_white"
-            android:orientation="horizontal"
-            android:elevation="@dimen/frame_elevation">
+            android:elevation="@dimen/frame_elevation"
+            android:orientation="horizontal">
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/map_user_image"
@@ -52,14 +48,14 @@
             <View
                 android:layout_width="1dp"
                 android:layout_height="match_parent"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"
-                android:background="@color/colorAccent" />
+                android:layout_marginBottom="8dp"
+                android:layout_marginTop="8dp"
+                android:background="@color/colorSecondaryAccent" />
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/map_recycler"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content" />
 
         </LinearLayout>
 

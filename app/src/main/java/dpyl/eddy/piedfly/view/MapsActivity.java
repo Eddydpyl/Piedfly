@@ -56,10 +56,11 @@ import dpyl.eddy.piedfly.Utility;
 import dpyl.eddy.piedfly.model.SimpleLocation;
 import dpyl.eddy.piedfly.model.User;
 import dpyl.eddy.piedfly.view.adapter.MapUserAdapter;
+import dpyl.eddy.piedfly.view.viewholders.OnMapListItemClickListener;
 
 import static dpyl.eddy.piedfly.Constants.ZOOM_LEVEL;
 
-public class MapsActivity extends BaseActivity implements OnMapReadyCallback, MapUserAdapter.ListItemClickListener {
+public class MapsActivity extends BaseActivity implements OnMapReadyCallback, OnMapListItemClickListener {
 
     private static final String FOCUS = "focus";
 
@@ -98,7 +99,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Ma
         mContactDetailsImage = (CircleImageView) findViewById(R.id.map_contact_details_image);
         mContactDetailsLocation = (TextView) findViewById(R.id.map_contact_details_location);
         mContactDetailsName = (TextView) findViewById(R.id.map_contact_details_name);
-        mContactDetailsCall =(ImageView) findViewById(R.id.map_contact_details_call);
+        mContactDetailsCall = (ImageView) findViewById(R.id.map_contact_details_call);
 
         CircleImageView userImage = (CircleImageView) findViewById(R.id.map_user_image);
         StorageReference storageReference = mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
@@ -150,7 +151,8 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Ma
                     }
                 }
             }
-        }; mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
+        };
+        mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
         // Display the data and set up listeners
         attachRecyclerViewAdapter();
         setCameraListener();
@@ -171,7 +173,8 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Ma
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
-        } return super.onOptionsItemSelected(item);
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -181,12 +184,14 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Ma
             case AppPermissions.REQUEST_CALL_PHONE:
                 if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_CALL_PHONE, grantResults)) {
                     if (mPhoneNumber != null) startPhoneCall(mPhoneNumber);
-                } break;
+                }
+                break;
         }
     }
 
+
     @Override
-    public void onListItemClick(int position, View view, final String uid) {
+    public void OnListItemClick(int position, View view, String uid) {
         if (mMap != null && mMarkers != null) {
             CameraPosition cameraAnimation = new CameraPosition.Builder().target(mMarkers.get(uid).getPosition()).zoom(ZOOM_LEVEL)
                     .tilt(mMap.getCameraPosition().tilt).bearing(mMap.getCameraPosition().bearing).build();
@@ -195,6 +200,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Ma
             mFocus = uid;
         }
     }
+
 
     @Override
     public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -223,7 +229,8 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Ma
                 DataManager.getDatabase().getReference("users").child(entry.getKey()).child("lastKnownLocation").removeEventListener(entry.getValue());
                 mListeners.remove(entry.getKey());
             }
-        } mMap.setOnCameraChangeListener(null);
+        }
+        mMap.setOnCameraChangeListener(null);
     }
 
     @Override
@@ -247,7 +254,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Ma
             mMap.setMyLocationEnabled(false);
             mMap.getUiSettings().setMapToolbarEnabled(false);
             mMap.getUiSettings().setZoomControlsEnabled(false);
-            mMap.setPadding(0,0,0,450); // Hardcoded value is based on Layout dimensions
+            mMap.setPadding(0, 0, 0, 450); // Hardcoded value is based on Layout dimensions
             // On first launching the Activity, the calls in onStart() will fail, as the GoogleMap instance is not yet available at that point
             attachRecyclerViewAdapter();
             setCameraListener();
@@ -269,7 +276,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Ma
             Query keyQuery = DataManager.getDatabase().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("flock");
             DatabaseReference dataQuery = DataManager.getDatabase().getReference().child("users");
             FirebaseRecyclerOptions<User> options = new FirebaseRecyclerOptions.Builder<User>().setIndexedQuery(keyQuery, dataQuery, User.class).build();
-            mMapUserAdapter = new MapUserAdapter(options, this, mMap, mMarkers, mFocus);
+            mMapUserAdapter = new MapUserAdapter(options, mMap, mMarkers, this, mFocus);
             mRecyclerView.setAdapter(mMapUserAdapter);
             mMapUserAdapter.startListening();
             setDetailsScreen(mFocus);
@@ -318,7 +325,8 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Ma
                         }
                     }
                 }
-            }; mMap.setOnCameraChangeListener(listener);
+            };
+            mMap.setOnCameraChangeListener(listener);
         }
     }
 
@@ -344,7 +352,8 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, Ma
                 } catch (IOException e) {
                     e.printStackTrace();
                     lastSeenAt += " lat: " + location.getLatitude() + ", long: " + location.getLongitude();
-                };
+                }
+                ;
                 mContactDetailsLocation.setText(lastSeenAt);
                 mContactDetailsLocation.setOnClickListener(new View.OnClickListener() {
                     @Override

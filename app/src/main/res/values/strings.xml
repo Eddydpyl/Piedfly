@@ -28,6 +28,8 @@
     <string name="content_slide_for_alarm">Slide for Alarm</string>
     <string name="content_delete_caps">DELETE</string>
     <string name="content_last_seen_place">Last seen at</string>
+    <string name="content_only_local_user_warning">This user only exists locally.</string>
+
 
     <string name="action_settings">Settings</string>
 
