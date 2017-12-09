@@ -7,7 +7,6 @@
     android:layout_height="match_parent">
 
 
-
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
@@ -76,7 +75,8 @@
                 android:layout_marginBottom="@dimen/default_icon_margin"
                 android:elevation="@dimen/slider_elevation"
                 app:slider_height="@dimen/slider_height"
-                app:text="@string/content_slide_for_alarm" />
+                app:text="@string/content_slide_for_alarm"
+                app:text_size="15sp" />
 
         </RelativeLayout>
 
@@ -84,24 +84,25 @@
             android:id="@+id/main_nestedScrollView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:weightSum = "2"
-            android:layout_weight="3">
+            android:layout_weight="3"
+            android:weightSum="2">
 
             <LinearLayout
-                android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
                 <android.support.v7.widget.RecyclerView
                     android:id="@+id/flock_list"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="1"/>
+                    android:layout_weight="1" />
+
                 <android.support.v7.widget.RecyclerView
                     android:id="@+id/local_contacts_list"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="1"/>
+                    android:layout_weight="1" />
 
             </LinearLayout>
 

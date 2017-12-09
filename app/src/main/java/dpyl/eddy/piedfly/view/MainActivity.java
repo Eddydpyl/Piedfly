@@ -2,7 +2,9 @@ package dpyl.eddy.piedfly.view;
 
 import android.Manifest;
 import android.app.Application;
-import android.arch.persistence.room.Room;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProvider;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -16,11 +18,11 @@ import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -50,16 +52,20 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import de.hdodenhof.circleimageview.CircleImageView;
-import dpyl.eddy.piedfly.AppDatabase;
 import dpyl.eddy.piedfly.AppPermissions;
 import dpyl.eddy.piedfly.AppState;
 import dpyl.eddy.piedfly.DataManager;
 import dpyl.eddy.piedfly.FileManager;
 import dpyl.eddy.piedfly.GlideApp;
+import dpyl.eddy.piedfly.MyApplication;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.Utility;
 import dpyl.eddy.piedfly.model.Emergency;
@@ -71,6 +77,7 @@ import dpyl.eddy.piedfly.model.room.Contact;
 import dpyl.eddy.piedfly.view.adapter.ContactAdapter;
 import dpyl.eddy.piedfly.view.adapter.UserAdapter;
 import dpyl.eddy.piedfly.view.recyclerview.RecyclerItemTouchHelper;
+import dpyl.eddy.piedfly.view.viewmodel.ContactCollectionViewModel;
 
 public class MainActivity extends BaseActivity implements UserAdapter.ListItemClickListener, ContactAdapter.ListItemClickListener {
 
@@ -78,9 +85,6 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
 
     private static final int REQUEST_PICK_CONTACT = 100;
     private static final int REQUEST_PICK_IMAGE = 101;
-
-    private static AppDatabase mRoomDatabase;
-    private static ContactAdapter mContactAdapter;
 
 
     private UserAdapter mUserAdapter;
@@ -92,28 +96,31 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
 
     private RecyclerView mRecyclerView;
     private RecyclerView mSecondRecyclerView;
-    //TODO: alomejor hacer algo con el scroll view para que permita overscrollear, y ocultar el fab si no está abajo del scrollview
+    //TODO: alomejor hacer algo con el scroll view para que permita overscrollear
     private NestedScrollView mNestedScrollView;
     private String mPhoneNumber;
 
 
+    private ContactAdapter mContactAdapter;
+
+    @Inject
+    ViewModelProvider.Factory mViewModelFactory;
+    static ContactCollectionViewModel mContactCollectionViewModel;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
         // Once the Activity is ready, swap the splash screen for the actual theme
         setTheme(R.style.AppTheme_NoActionBar);
-        super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        //TODO: probando room luego borrar y hacer en hilo secundario (quitar allow main thread)
-        //create room db
-        if (mRoomDatabase == null)
-            //TODO: remove hardcoded dbname (config xml strings ?)
-            mRoomDatabase = Room.databaseBuilder(MainActivity.this, AppDatabase.class, "piedflyDb").allowMainThreadQueries().build();
-
-
+        // Set up main user UI
         mCoordinatorLayout = findViewById(R.id.content);
         mCircleImageView = (CircleImageView) findViewById(R.id.userImage);
         StorageReference storageReference = mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
@@ -158,7 +165,28 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
             }
         });
 
-        setUpRecycler();
+
+        setUpRecyclers();
+
+        // Second recycler
+        if (mContactAdapter == null) {
+            mContactAdapter = new ContactAdapter(new ArrayList<Contact>(), this);
+            mSecondRecyclerView.setAdapter(mContactAdapter);
+        }
+
+        // Dagger injecting stuff
+        ((MyApplication) getApplication()).getApplicationComponent().inject(this);
+
+        // Getting our ViewModels and data observing
+        mContactCollectionViewModel = ViewModelProviders.of(this, mViewModelFactory).get(ContactCollectionViewModel.class);
+
+        mContactCollectionViewModel.getListOfContactsByName().observe(this, new Observer<List<Contact>>() {
+            @Override
+            public void onChanged(@Nullable List<Contact> contacts) {
+                mContactAdapter.setContacts(contacts);
+            }
+        });
+
 
         // Custom made swipe on recycler view (Used to delete objects)
         ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new RecyclerItemTouchHelper(0, ItemTouchHelper.LEFT, new RecyclerItemTouchHelper.RecyclerItemTouchHelperListener() {
@@ -191,7 +219,20 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                     });
                 }
             }
-        }); new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(mRecyclerView);mNestedScrollView = (NestedScrollView) findViewById(R.id.main_nestedScrollView);
+        });
+        new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(mRecyclerView);
+
+        //TODO: fixed second recycler
+        /*ItemTouchHelper.SimpleCallback itemTouchHelperSecondRecycler = new RecyclerItemTouchHelper(0, ItemTouchHelper.LEFT, new RecyclerItemTouchHelper.RecyclerItemTouchHelperListener() {
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
+                mContactCollectionViewModel.deleteContact(mContactAdapter.getContacts().get(position));
+                mContactAdapter.notifyItemRemoved(position);
+            }
+        });
+        new ItemTouchHelper(itemTouchHelperSecondRecycler).attachToRecyclerView(mSecondRecyclerView);*/
+
+        mNestedScrollView = (NestedScrollView) findViewById(R.id.main_nestedScrollView);
 
         // Floating button only appears at the end of the list
         mNestedScrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
@@ -202,6 +243,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                 else faButton.hide();
             }
         });
+
 
     }
 
@@ -220,13 +262,14 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
-        } return super.onOptionsItemSelected(item);
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        attachRecyclerViewAdapter();
+        attachFirebaseRecyclerViewAdapter();
         if (mUserAdapter != null) mUserAdapter.startListening();
         // Listen to changes to the App state and update the UI accordingly
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -318,7 +361,8 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                     Intent intent = new Intent(this, MapsActivity.class);
                     intent.putExtra(getString(R.string.intent_uid), view.getTag().toString());
                     startActivity(intent);
-                } break;
+                }
+                break;
             default:
                 Log.d(TAG, "Item view position: " + position);
                 break;
@@ -328,7 +372,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
     @Override
     public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
         super.onAuthStateChanged(firebaseAuth);
-        attachRecyclerViewAdapter();
+        attachFirebaseRecyclerViewAdapter();
     }
 
     @Override
@@ -342,19 +386,13 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         mSharedPreferences = null;
     }
 
-    private void attachRecyclerViewAdapter() {
+    private void attachFirebaseRecyclerViewAdapter() {
         if (mAuth != null && mAuth.getCurrentUser() != null && mUserAdapter == null) {
             Query keyQuery = DataManager.getDatabase().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("flock");
             DatabaseReference dataQuery = DataManager.getDatabase().getReference().child("users");
             FirebaseRecyclerOptions<User> options = new FirebaseRecyclerOptions.Builder<User>().setIndexedQuery(keyQuery, dataQuery, User.class).build();
             mUserAdapter = new UserAdapter(options, this);
             mRecyclerView.setAdapter(mUserAdapter);
-
-            // Second recycler
-            if (mContactAdapter == null) {
-                mContactAdapter = new ContactAdapter(mRoomDatabase.contactDao().findAll(), this);
-                mSecondRecyclerView.setAdapter(mContactAdapter);
-            }
         }
     }
 
@@ -425,7 +463,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                                 Request request = new Request(user.getUid(), uid, RequestType.JOIN_FLOCK);
                                 DataManager.requestJoinFlock(request);
                                 Toast toast = Toast.makeText(weakReference.get(),
-                                        weakReference.get().getString(R.string.content_join_flock_request) + " " + name + ".",
+                                        weakReference.get().getString(R.string.content_join_flock_request) + " " + user.getName() + ".",
                                         Toast.LENGTH_SHORT);
                                 toast.show();
                             }
@@ -434,10 +472,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
                             Contact localContact = new Contact();
                             localContact.setName(name);
                             localContact.setPhone(phone);
-                            //TODO: add to the bd (should be done async just trying it out)
-                            mRoomDatabase.contactDao().insertAll(localContact);
-                            mContactAdapter.setContacts(mRoomDatabase.contactDao().findAll());
-
+                            mContactCollectionViewModel.addContact(localContact);
                         }
                     }
 
@@ -451,8 +486,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         }
     }
 
-    private void setUpRecycler() {
-
+    private void setUpRecyclers() {
 
         // Firebase recycler
         mRecyclerView = (RecyclerView) findViewById(R.id.flock_list);
@@ -466,6 +500,7 @@ public class MainActivity extends BaseActivity implements UserAdapter.ListItemCl
         mSecondRecyclerView.setLayoutManager(secondLayoutManager);
         mSecondRecyclerView.addItemDecoration(new DividerItemDecoration(mSecondRecyclerView.getContext(), DividerItemDecoration.VERTICAL));
 
+        // So that it looks just like 1 recycler
         mRecyclerView.setNestedScrollingEnabled(false);
         mSecondRecyclerView.setNestedScrollingEnabled(false);
 

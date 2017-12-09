@@ -75,7 +75,7 @@
             android:clickable="true"
             android:focusable="true"
             android:src="@drawable/ic_gps_fixed_24dp"
-            android:tint="@drawable/main_colored_states" />
+            android:tint="@color/colorSecondaryAccent" />
 
         <ImageView
             android:id="@+id/contact_call"
@@ -88,7 +88,7 @@
             android:clickable="true"
             android:focusable="true"
             android:src="@drawable/ic_call_24dp"
-            android:tint="@drawable/main_colored_states" />
+            android:tint="@color/colorSecondaryAccent" />
 
 
     </RelativeLayout>

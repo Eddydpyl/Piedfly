@@ -11,6 +11,6 @@ import dpyl.eddy.piedfly.model.room.dao.ContactDao;
  */
 
 @Database(entities = {Contact.class}, version = 1, exportSchema = false)
-public abstract class AppDatabase extends RoomDatabase {
+public abstract class ContactDatabase extends RoomDatabase {
     public abstract ContactDao contactDao();
 }

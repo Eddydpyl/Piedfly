@@ -66,7 +66,7 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
             IdpResponse response = IdpResponse.fromResultIntent(data);
             if (resultCode == Activity.RESULT_OK && response != null) {
                 // Successfully signed in
-                if (response.getPhoneNumber() == null || response.getPhoneNumber().isEmpty()){
+                if (false){//response.getPhoneNumber() == null || response.getPhoneNumber().isEmpty()){
                     // The user doesn't have an associated phone number
                     Intent intent = new Intent(this, PhoneActivity.class);
                     startActivityForResult(intent, PHONE_SIGN_IN);
@@ -135,7 +135,7 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
     private void checkState() {
         if (mAuth.getCurrentUser() != null) {
             // The user is already signed in
-            if (mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) {
+            if (false){//mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) {
                 // The user doesn't have an associated phone number
                 if(!(this instanceof PhoneActivity)) {
                     Intent intent = new Intent(this, PhoneActivity.class);

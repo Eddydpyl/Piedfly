@@ -6,6 +6,7 @@ ext {
     supportLibVersion = '26.1.0'
     playServicesVersion = '11.4.2'
     architectureComponents = '1.0.0'
+    daggerVersion = '2.11'
 }
 
 android {
@@ -74,6 +75,12 @@ dependencies {
     implementation "android.arch.persistence.room:runtime:${architectureComponents}"
     annotationProcessor "android.arch.persistence.room:compiler:${architectureComponents}"
     implementation "android.arch.lifecycle:extensions:${architectureComponents}"
+    compile "com.google.dagger:dagger-android:${daggerVersion}"
+    compile "com.google.dagger:dagger-android-support:${daggerVersion}"
+    annotationProcessor "com.google.dagger:dagger-android-processor:${daggerVersion}"
+    annotationProcessor "com.google.dagger:dagger-compiler:${daggerVersion}"
+
+
 
     testCompile 'junit:junit:4.12'
 }
