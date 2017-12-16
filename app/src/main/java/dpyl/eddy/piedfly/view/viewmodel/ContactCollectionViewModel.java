@@ -6,8 +6,8 @@ import android.os.AsyncTask;
 
 import java.util.List;
 
-import dpyl.eddy.piedfly.model.room.Contact;
-import dpyl.eddy.piedfly.model.room.ContactRepository;
+import dpyl.eddy.piedfly.model.room.models.Contact;
+import dpyl.eddy.piedfly.model.room.repositories.ContactRepository;
 
 
 public class ContactCollectionViewModel extends ViewModel {

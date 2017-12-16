@@ -1,8 +1,9 @@
-package dpyl.eddy.piedfly.model.room;
+package dpyl.eddy.piedfly.model.room.models;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
-import android.support.annotation.NonNull;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A phone contact that it's not yet in firebase.
@@ -13,7 +14,7 @@ import android.support.annotation.NonNull;
 public class Contact {
 
     @PrimaryKey
-    @NonNull
+    @NotNull
     private String phone;
     private String name;
     private String photo;
@@ -23,7 +24,7 @@ public class Contact {
         return phone;
     }
 
-    public void setPhone(String phone) {
+    public void setPhone(@NotNull String phone) {
         this.phone = phone;
     }
 

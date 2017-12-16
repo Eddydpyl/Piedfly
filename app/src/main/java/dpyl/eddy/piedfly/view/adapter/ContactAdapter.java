@@ -9,7 +9,7 @@ import java.util.List;
 
 import dpyl.eddy.piedfly.GlideApp;
 import dpyl.eddy.piedfly.R;
-import dpyl.eddy.piedfly.model.room.Contact;
+import dpyl.eddy.piedfly.model.room.models.Contact;
 import dpyl.eddy.piedfly.view.viewholders.OnListItemClickListener;
 import dpyl.eddy.piedfly.view.viewholders.UserHolder;
 
