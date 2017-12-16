@@ -8,9 +8,11 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
-import dpyl.eddy.piedfly.ContactDatabase;
-import dpyl.eddy.piedfly.model.room.ContactRepository;
+import dpyl.eddy.piedfly.AppLocalDatabase;
 import dpyl.eddy.piedfly.model.room.dao.ContactDao;
+import dpyl.eddy.piedfly.model.room.dao.MessageDao;
+import dpyl.eddy.piedfly.model.room.repositories.ContactRepository;
+import dpyl.eddy.piedfly.model.room.repositories.MessageRepository;
 import dpyl.eddy.piedfly.view.viewmodel.CustomViewModelFactory;
 
 /**
@@ -19,12 +21,12 @@ import dpyl.eddy.piedfly.view.viewmodel.CustomViewModelFactory;
 @Module
 public class RoomModule {
 
-    private final ContactDatabase database;
+    private final AppLocalDatabase database;
 
     public RoomModule(Application application) {
         this.database = Room.databaseBuilder(
                 application,
-                ContactDatabase.class,
+                AppLocalDatabase.class,
                 "contact.db"
         ).build();
     }
@@ -37,19 +39,32 @@ public class RoomModule {
 
     @Provides
     @Singleton
-    ContactDao provideContactDao(ContactDatabase database) {
+    ContactDao provideContactDao(AppLocalDatabase database) {
         return database.contactDao();
+    }
+
+
+    @Provides
+    @Singleton
+    MessageRepository provideMessageRepository(MessageDao messageDao) {
+        return new MessageRepository(messageDao);
     }
 
     @Provides
     @Singleton
-    ContactDatabase provideContactDatabase(Application application) {
+    MessageDao provideMessageDao(AppLocalDatabase database) {
+        return database.messageDao();
+    }
+
+    @Provides
+    @Singleton
+    AppLocalDatabase provideAppLocalDatabase(Application application) {
         return database;
     }
 
     @Provides
     @Singleton
-    ViewModelProvider.Factory provideViewModelFactory(ContactRepository repository) {
-        return new CustomViewModelFactory(repository);
+    ViewModelProvider.Factory provideContactViewModelFactory(ContactRepository contactRepository, MessageRepository messageRepository) {
+        return new CustomViewModelFactory(contactRepository, messageRepository);
     }
 }

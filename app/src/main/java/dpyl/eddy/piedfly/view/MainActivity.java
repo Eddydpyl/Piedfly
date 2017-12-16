@@ -29,6 +29,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -72,12 +73,15 @@ import dpyl.eddy.piedfly.model.Request;
 import dpyl.eddy.piedfly.model.RequestType;
 import dpyl.eddy.piedfly.model.SimpleLocation;
 import dpyl.eddy.piedfly.model.User;
-import dpyl.eddy.piedfly.model.room.Contact;
+import dpyl.eddy.piedfly.model.room.models.Contact;
+import dpyl.eddy.piedfly.model.room.models.Message;
+import dpyl.eddy.piedfly.model.room.repositories.MessageRepository;
 import dpyl.eddy.piedfly.view.adapter.ContactAdapter;
 import dpyl.eddy.piedfly.view.adapter.UserAdapter;
 import dpyl.eddy.piedfly.view.recyclerview.UserHolderItemTouchHelper;
 import dpyl.eddy.piedfly.view.viewholders.OnListItemClickListener;
 import dpyl.eddy.piedfly.view.viewmodel.ContactCollectionViewModel;
+import dpyl.eddy.piedfly.view.viewmodel.MessageCollectionViewModel;
 
 public class MainActivity extends BaseActivity implements OnListItemClickListener {
 
@@ -92,22 +96,23 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
     private UserAdapter mUserAdapter;
     private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
     private SharedPreferences mSharedPreferences;
-
     private CoordinatorLayout mCoordinatorLayout;
     private CircleImageView mCircleImageView;
-
     private RecyclerView mRecyclerView;
     private RecyclerView mSecondRecyclerView;
     //TODO: alomejor hacer algo con el scroll view para que permita overscrollear
     private NestedScrollView mNestedScrollView;
     private String mPhoneNumber;
-
-
     private ContactAdapter mContactAdapter;
 
     @Inject
-    ViewModelProvider.Factory mViewModelFactory;
+    ViewModelProvider.Factory mCustomViewModelFactory;
+
+    @Inject
+    MessageRepository mMessageRepository;
+
     static ContactCollectionViewModel mContactCollectionViewModel;
+    static MessageCollectionViewModel mMessageCollectionViewModel;
 
 
     @Override
@@ -178,7 +183,7 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
         ((MyApplication) getApplication()).getApplicationComponent().inject(this);
 
         // Getting our ViewModels and data observing
-        mContactCollectionViewModel = ViewModelProviders.of(this, mViewModelFactory).get(ContactCollectionViewModel.class);
+        mContactCollectionViewModel = ViewModelProviders.of(this, mCustomViewModelFactory).get(ContactCollectionViewModel.class);
 
         mContactCollectionViewModel.getListOfContactsByName().observe(this, new Observer<List<Contact>>() {
             @Override
@@ -187,6 +192,36 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
             }
         });
 
+
+        mMessageCollectionViewModel = ViewModelProviders.of(this, mCustomViewModelFactory).get(MessageCollectionViewModel.class);
+        mMessageCollectionViewModel.getMessagesByTimestamp().observe(this, new Observer<List<Message>>() {
+            @Override
+            public void onChanged(@Nullable List<Message> messages) {
+                //TODO: fill up notifications views here, all stored messages will arrive here ordered by date
+                Log.d(TAG, messages.toString());
+            }
+        });
+
+
+        //TODO: así se podria sacar lo de unread messages, solo que siempre devuelve 0
+        new AsyncTask<Void, Void, Integer>() {
+
+            @Override
+            protected Integer doInBackground(Void... voids) {
+                int unread = mMessageRepository.findUnreadMessages();
+                Log.d(TAG, unread + "");
+                return unread;
+            }
+        }.execute();
+
+
+        //TODO: ejemplo de como añadir un mensaje, eliminar luego
+        Message message = new Message();
+        message.setFirebase_key("gdsagadhadfhaffdfha");
+        message.setRead(false);
+        message.setText("Hola hola hola");
+        message.setType("Un tipo");
+        mMessageCollectionViewModel.addMessage(message);
 
         // Custom made swipe on recycler view (Used to delete objects)
         ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new UserHolderItemTouchHelper(0, ItemTouchHelper.LEFT, new UserHolderItemTouchHelper.RecyclerItemTouchHelperListener() {
