@@ -386,7 +386,7 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
             }
         }
     }
-    
+
     @Override
     public void OnListItemClick(int position, View view) {
 
