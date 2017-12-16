@@ -105,6 +105,7 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
     private String mPhoneNumber;
     private ContactAdapter mContactAdapter;
 
+
     @Inject
     ViewModelProvider.Factory mCustomViewModelFactory;
 
@@ -201,18 +202,6 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
                 Log.d(TAG, messages.toString());
             }
         });
-
-
-        //TODO: así se podria sacar lo de unread messages, solo que siempre devuelve 0
-        new AsyncTask<Void, Void, Integer>() {
-
-            @Override
-            protected Integer doInBackground(Void... voids) {
-                int unread = mMessageRepository.findUnreadMessages();
-                Log.d(TAG, unread + "");
-                return unread;
-            }
-        }.execute();
 
 
         //TODO: ejemplo de como añadir un mensaje, eliminar luego
@@ -557,4 +546,5 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
         mSecondRecyclerView.setNestedScrollingEnabled(false);
 
     }
+
 }

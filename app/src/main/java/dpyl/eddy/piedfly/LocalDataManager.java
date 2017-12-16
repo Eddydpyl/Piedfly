@@ -24,12 +24,12 @@ public class LocalDataManager {
     public LocalDataManager(Context context, LocalDataCallback localDataCallback) {
         this.mContext = context;
         this.mLocalDataCallback = localDataCallback;
-        if (roomDatabase == null) {
+        if (roomDatabase == null)
             roomDatabase = Room.databaseBuilder(mContext, AppLocalDatabase.class, DATABASE_NAME).build();
-        }
+
     }
 
-    interface LocalDataCallback {
+    public interface LocalDataCallback {
 
         void OnGetUnreadMessages(int unreadMessages);
 
@@ -57,7 +57,7 @@ public class LocalDataManager {
         }.execute();
     }
 
-    public void subscribeToGetUnreadMessages(LocalDataCallback localDataCallback) {
+    public void subscribeToGetUnreadMessages() {
         new AsyncTask<Integer, Void, Void>() {
 
             @Override
