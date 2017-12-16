@@ -18,13 +18,13 @@ import com.google.firebase.storage.StorageReference;
 
 import java.util.Map;
 
-import dpyl.eddy.piedfly.FileManager;
-import dpyl.eddy.piedfly.GlideApp;
+import dpyl.eddy.piedfly.firebase.FileManager;
+import dpyl.eddy.piedfly.firebase.GlideApp;
 import dpyl.eddy.piedfly.R;
-import dpyl.eddy.piedfly.model.SimpleLocation;
-import dpyl.eddy.piedfly.model.User;
-import dpyl.eddy.piedfly.view.viewholders.MapHolder;
-import dpyl.eddy.piedfly.view.viewholders.OnMapListItemClickListener;
+import dpyl.eddy.piedfly.firebase.model.SimpleLocation;
+import dpyl.eddy.piedfly.firebase.model.User;
+import dpyl.eddy.piedfly.view.viewholder.MapHolder;
+import dpyl.eddy.piedfly.view.viewholder.OnMapListItemClickListener;
 
 import static dpyl.eddy.piedfly.Constants.ZOOM_LEVEL;
 

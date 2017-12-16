@@ -5,7 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 
-import dpyl.eddy.piedfly.view.viewholders.UserHolder;
+import dpyl.eddy.piedfly.view.viewholder.UserHolder;
 
 public class UserHolderItemTouchHelper extends ItemTouchHelper.SimpleCallback {
 

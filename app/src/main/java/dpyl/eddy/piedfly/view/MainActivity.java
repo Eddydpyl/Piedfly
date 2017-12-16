@@ -14,7 +14,6 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -30,8 +29,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -62,24 +59,24 @@ import javax.inject.Inject;
 import de.hdodenhof.circleimageview.CircleImageView;
 import dpyl.eddy.piedfly.AppPermissions;
 import dpyl.eddy.piedfly.AppState;
-import dpyl.eddy.piedfly.DataManager;
-import dpyl.eddy.piedfly.FileManager;
-import dpyl.eddy.piedfly.GlideApp;
+import dpyl.eddy.piedfly.firebase.DataManager;
+import dpyl.eddy.piedfly.firebase.FileManager;
+import dpyl.eddy.piedfly.firebase.GlideApp;
 import dpyl.eddy.piedfly.MyApplication;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.Utility;
-import dpyl.eddy.piedfly.model.Emergency;
-import dpyl.eddy.piedfly.model.Request;
-import dpyl.eddy.piedfly.model.RequestType;
-import dpyl.eddy.piedfly.model.SimpleLocation;
-import dpyl.eddy.piedfly.model.User;
-import dpyl.eddy.piedfly.model.room.models.Contact;
-import dpyl.eddy.piedfly.model.room.models.Message;
-import dpyl.eddy.piedfly.model.room.repositories.MessageRepository;
+import dpyl.eddy.piedfly.firebase.model.Emergency;
+import dpyl.eddy.piedfly.firebase.model.Request;
+import dpyl.eddy.piedfly.firebase.model.RequestType;
+import dpyl.eddy.piedfly.firebase.model.SimpleLocation;
+import dpyl.eddy.piedfly.firebase.model.User;
+import dpyl.eddy.piedfly.room.models.Contact;
+import dpyl.eddy.piedfly.room.models.Message;
+import dpyl.eddy.piedfly.room.repositories.MessageRepository;
 import dpyl.eddy.piedfly.view.adapter.ContactAdapter;
 import dpyl.eddy.piedfly.view.adapter.UserAdapter;
 import dpyl.eddy.piedfly.view.recyclerview.UserHolderItemTouchHelper;
-import dpyl.eddy.piedfly.view.viewholders.OnListItemClickListener;
+import dpyl.eddy.piedfly.view.viewholder.OnListItemClickListener;
 import dpyl.eddy.piedfly.view.viewmodel.ContactCollectionViewModel;
 import dpyl.eddy.piedfly.view.viewmodel.MessageCollectionViewModel;
 
@@ -94,27 +91,22 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
     private static Toast mToast;
 
     private UserAdapter mUserAdapter;
-    private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
-    private SharedPreferences mSharedPreferences;
+
     private CoordinatorLayout mCoordinatorLayout;
     private CircleImageView mCircleImageView;
+
     private RecyclerView mRecyclerView;
     private RecyclerView mSecondRecyclerView;
     //TODO: alomejor hacer algo con el scroll view para que permita overscrollear
     private NestedScrollView mNestedScrollView;
-    private String mPhoneNumber;
+
     private ContactAdapter mContactAdapter;
 
 
     @Inject
     ViewModelProvider.Factory mCustomViewModelFactory;
 
-    @Inject
-    MessageRepository mMessageRepository;
-
     static ContactCollectionViewModel mContactCollectionViewModel;
-    static MessageCollectionViewModel mMessageCollectionViewModel;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -185,32 +177,12 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
 
         // Getting our ViewModels and data observing
         mContactCollectionViewModel = ViewModelProviders.of(this, mCustomViewModelFactory).get(ContactCollectionViewModel.class);
-
         mContactCollectionViewModel.getListOfContactsByName().observe(this, new Observer<List<Contact>>() {
             @Override
             public void onChanged(@Nullable List<Contact> contacts) {
                 mContactAdapter.setContacts(contacts);
             }
         });
-
-
-        mMessageCollectionViewModel = ViewModelProviders.of(this, mCustomViewModelFactory).get(MessageCollectionViewModel.class);
-        mMessageCollectionViewModel.getMessagesByTimestamp().observe(this, new Observer<List<Message>>() {
-            @Override
-            public void onChanged(@Nullable List<Message> messages) {
-                //TODO: fill up notifications views here, all stored messages will arrive here ordered by date
-                Log.d(TAG, messages.toString());
-            }
-        });
-
-
-        //TODO: ejemplo de como añadir un mensaje, eliminar luego
-        Message message = new Message();
-        message.setFirebase_key("gdsagadhadfhaffdfha");
-        message.setRead(false);
-        message.setText("Hola hola hola");
-        message.setType("Un tipo");
-        mMessageCollectionViewModel.addMessage(message);
 
         // Custom made swipe on recycler view (Used to delete objects)
         ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new UserHolderItemTouchHelper(0, ItemTouchHelper.LEFT, new UserHolderItemTouchHelper.RecyclerItemTouchHelperListener() {
@@ -271,32 +243,12 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
 
     }
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
     @Override
     protected void onStart() {
         super.onStart();
         attachFirebaseRecyclerViewAdapter();
         if (mUserAdapter != null) mUserAdapter.startListening();
         // Listen to changes to the App state and update the UI accordingly
-        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mStateListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
                 if (key.equals(getString(R.string.pref_emergencies_user))) {
@@ -322,8 +274,7 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
                     }
                 }
             }
-        };
-        mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
+        }; mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
     }
 
     @Override
@@ -338,11 +289,6 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
             case AppPermissions.REQUEST_EXTERNAL_STORAGE:
                 if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_EXTERNAL_STORAGE, grantResults)) {
                     startPickGalleryImage();
-                }
-                break;
-            case AppPermissions.REQUEST_CALL_PHONE:
-                if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_CALL_PHONE, grantResults)) {
-                    if (mPhoneNumber != null) startPhoneCall(mPhoneNumber);
                 }
                 break;
         }
@@ -416,8 +362,6 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
             mUserAdapter.stopListening();
             mUserAdapter = null;
         }
-        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(mStateListener);
-        mSharedPreferences = null;
     }
 
     private void attachFirebaseRecyclerViewAdapter() {
@@ -443,19 +387,6 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
         }
     }
 
-    private void startPhoneCall(String phoneNumber) {
-        this.mPhoneNumber = phoneNumber;
-        if (phoneNumber != null) {
-            if (AppPermissions.requestCallPermission(this)) {
-                Intent intent = new Intent(Intent.ACTION_DIAL);
-                intent.setData(Uri.parse("tel:" + phoneNumber));
-                if (intent.resolveActivity(getPackageManager()) != null) startActivity(intent);
-            }
-        } else {
-            // TODO: Error Handling
-        }
-    }
-
     private void startPickContact() {
         if (AppPermissions.requestReadContactsPermission(this)) {
             Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
@@ -470,7 +401,6 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
             startActivityForResult(intent, REQUEST_PICK_IMAGE);
         }
     }
-
 
     private static class ContactTask extends AsyncTask<Uri, Void, Void> {
 

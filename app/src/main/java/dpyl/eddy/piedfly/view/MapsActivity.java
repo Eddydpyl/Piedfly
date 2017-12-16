@@ -8,15 +8,12 @@ import android.location.Address;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -47,16 +44,15 @@ import java.util.Map;
 import java.util.Set;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-import dpyl.eddy.piedfly.AppPermissions;
-import dpyl.eddy.piedfly.DataManager;
-import dpyl.eddy.piedfly.FileManager;
-import dpyl.eddy.piedfly.GlideApp;
+import dpyl.eddy.piedfly.firebase.DataManager;
+import dpyl.eddy.piedfly.firebase.FileManager;
+import dpyl.eddy.piedfly.firebase.GlideApp;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.Utility;
-import dpyl.eddy.piedfly.model.SimpleLocation;
-import dpyl.eddy.piedfly.model.User;
+import dpyl.eddy.piedfly.firebase.model.SimpleLocation;
+import dpyl.eddy.piedfly.firebase.model.User;
 import dpyl.eddy.piedfly.view.adapter.MapUserAdapter;
-import dpyl.eddy.piedfly.view.viewholders.OnMapListItemClickListener;
+import dpyl.eddy.piedfly.view.viewholder.OnMapListItemClickListener;
 
 import static dpyl.eddy.piedfly.Constants.ZOOM_LEVEL;
 
@@ -68,9 +64,6 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     private Map<String, Marker> mMarkers;
     private Map<String, ValueEventListener> mListeners;
 
-    private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
-    private SharedPreferences mSharedPreferences;
-
     private CircleImageView mContactDetailsImage;
     private TextView mContactDetailsName;
     private TextView mContactDetailsLocation;
@@ -79,7 +72,6 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     private RecyclerView mRecyclerView;
     private MapUserAdapter mMapUserAdapter;
 
-    private String mPhoneNumber;
     private String mFocus;
 
     @Override
@@ -132,7 +124,6 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     protected void onStart() {
         super.onStart();
         // Listen to changes to the App state and update the UI accordingly
-        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mStateListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
                 if (key.equals(getString(R.string.pref_emergencies_user))) {
@@ -166,38 +157,6 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_maps, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case AppPermissions.REQUEST_CALL_PHONE:
-                if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_CALL_PHONE, grantResults)) {
-                    if (mPhoneNumber != null) startPhoneCall(mPhoneNumber);
-                }
-                break;
-        }
-    }
-
-
-    @Override
     public void OnListItemClick(int position, View view, String uid) {
         if (mMap != null && mMarkers != null) {
             CameraPosition cameraAnimation = new CameraPosition.Builder().target(mMarkers.get(uid).getPosition()).zoom(ZOOM_LEVEL)
@@ -222,9 +181,6 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     @Override
     protected void onStop() {
         super.onStop();
-        // Stop listening to changes in the App state and free up memory, as the Activity is not visible
-        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(mStateListener);
-        mSharedPreferences = null;
         // Stop listening to changes in the database and free up memory, as the Activity is not visible
         if (mMapUserAdapter != null) {
             mMapUserAdapter.stopListening();
@@ -236,8 +192,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
                 DataManager.getDatabase().getReference("users").child(entry.getKey()).child("lastKnownLocation").removeEventListener(entry.getValue());
                 mListeners.remove(entry.getKey());
             }
-        }
-        mMap.setOnCameraChangeListener(null);
+        } mMap.setOnCameraChangeListener(null);
     }
 
     @Override
@@ -273,12 +228,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
             if (mMarkers == null) mMarkers = new HashMap<>();
             Location location = Utility.getLastKnownLocation(this);
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-            MarkerOptions markerOptions = new MarkerOptions();
-            markerOptions.position(latLng);
-            markerOptions.title(mAuth.getCurrentUser().getDisplayName());
-            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-            Marker marker = mMap.addMarker(markerOptions);
-            mMarkers.put(mAuth.getCurrentUser().getUid(), marker);
+            placeMarker(mAuth.getCurrentUser().getUid(), latLng);
 
             Query keyQuery = DataManager.getDatabase().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("flock");
             DatabaseReference dataQuery = DataManager.getDatabase().getReference().child("users");
@@ -348,20 +298,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
                 final Location location = new Location("");
                 location.setLatitude(user.getLastKnownLocation().getLatitude());
                 location.setLongitude(user.getLastKnownLocation().getLongitude());
-                String lastSeenAt = getString(R.string.content_last_seen_place);
-                try {
-                    Address address = Utility.getAddress(MapsActivity.this, location);
-                    if (address != null) {
-                        lastSeenAt += " " + address.getAddressLine(0);
-                    } else {
-                        lastSeenAt += " lat: " + location.getLatitude() + ", long: " + location.getLongitude();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    lastSeenAt += " lat: " + location.getLatitude() + ", long: " + location.getLongitude();
-                }
-                ;
-                mContactDetailsLocation.setText(lastSeenAt);
+                mContactDetailsLocation.setText(lastSeen(location));
                 mContactDetailsLocation.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -388,16 +325,27 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
         });
     }
 
-    private void startPhoneCall(String phoneNumber) {
-        this.mPhoneNumber = phoneNumber;
-        if (phoneNumber != null) {
-            if (AppPermissions.requestCallPermission(this)) {
-                Intent intent = new Intent(Intent.ACTION_DIAL);
-                intent.setData(Uri.parse("tel:" + phoneNumber));
-                if (intent.resolveActivity(getPackageManager()) != null) startActivity(intent);
+    private void placeMarker(String uid, LatLng latLng) {
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(latLng);
+        markerOptions.title(uid);
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+        Marker marker = mMap.addMarker(markerOptions);
+        mMarkers.put(uid, marker);
+    }
+
+    private String lastSeen(Location location) {
+        String lastSeen = getString(R.string.content_last_seen_place);
+        try {
+            Address address = Utility.getAddress(MapsActivity.this, location);
+            if (address != null) {
+                lastSeen += " " + address.getAddressLine(0);
+            } else {
+                lastSeen += " lat: " + location.getLatitude() + ", long: " + location.getLongitude();
             }
-        } else {
-            // TODO: Error Handling
-        }
+        } catch (IOException e) {
+            e.printStackTrace();
+            lastSeen += " lat: " + location.getLatitude() + ", long: " + location.getLongitude();
+        } return lastSeen;
     }
 }

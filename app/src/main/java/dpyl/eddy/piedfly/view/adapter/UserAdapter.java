@@ -9,12 +9,12 @@ import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.storage.StorageReference;
 
-import dpyl.eddy.piedfly.FileManager;
-import dpyl.eddy.piedfly.GlideApp;
+import dpyl.eddy.piedfly.firebase.FileManager;
+import dpyl.eddy.piedfly.firebase.GlideApp;
 import dpyl.eddy.piedfly.R;
-import dpyl.eddy.piedfly.model.User;
-import dpyl.eddy.piedfly.view.viewholders.OnListItemClickListener;
-import dpyl.eddy.piedfly.view.viewholders.UserHolder;
+import dpyl.eddy.piedfly.firebase.model.User;
+import dpyl.eddy.piedfly.view.viewholder.OnListItemClickListener;
+import dpyl.eddy.piedfly.view.viewholder.UserHolder;
 
 public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
 

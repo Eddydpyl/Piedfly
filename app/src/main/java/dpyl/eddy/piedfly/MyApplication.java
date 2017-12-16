@@ -2,10 +2,10 @@ package dpyl.eddy.piedfly;
 
 import android.app.Application;
 
-import dpyl.eddy.piedfly.dependencyinjection.ApplicationComponent;
-import dpyl.eddy.piedfly.dependencyinjection.ApplicationModule;
-import dpyl.eddy.piedfly.dependencyinjection.DaggerApplicationComponent;
-import dpyl.eddy.piedfly.dependencyinjection.RoomModule;
+import dpyl.eddy.piedfly.room.injection.ApplicationComponent;
+import dpyl.eddy.piedfly.room.injection.ApplicationModule;
+import dpyl.eddy.piedfly.room.injection.DaggerApplicationComponent;
+import dpyl.eddy.piedfly.room.injection.RoomModule;
 
 /**
  * Top level of our app.

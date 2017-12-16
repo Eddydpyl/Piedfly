@@ -6,8 +6,8 @@ import android.os.AsyncTask;
 
 import java.util.List;
 
-import dpyl.eddy.piedfly.model.room.models.Message;
-import dpyl.eddy.piedfly.model.room.repositories.MessageRepository;
+import dpyl.eddy.piedfly.room.models.Message;
+import dpyl.eddy.piedfly.room.repositories.MessageRepository;
 
 
 public class MessageCollectionViewModel extends ViewModel {

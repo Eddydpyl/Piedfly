@@ -13,10 +13,10 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
 
-import dpyl.eddy.piedfly.DataManager;
+import dpyl.eddy.piedfly.firebase.DataManager;
 import dpyl.eddy.piedfly.Utility;
-import dpyl.eddy.piedfly.model.Beacon;
-import dpyl.eddy.piedfly.model.Emergency;
+import dpyl.eddy.piedfly.firebase.model.Beacon;
+import dpyl.eddy.piedfly.firebase.model.Emergency;
 
 public class WifiScanReceiver extends BroadcastReceiver {
 

@@ -6,8 +6,8 @@ import android.arch.lifecycle.ViewModelProvider;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import dpyl.eddy.piedfly.model.room.repositories.ContactRepository;
-import dpyl.eddy.piedfly.model.room.repositories.MessageRepository;
+import dpyl.eddy.piedfly.room.repositories.ContactRepository;
+import dpyl.eddy.piedfly.room.repositories.MessageRepository;
 
 
 @Singleton

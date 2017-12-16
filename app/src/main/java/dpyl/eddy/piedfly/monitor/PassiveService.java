@@ -16,11 +16,11 @@ import android.support.v4.app.TaskStackBuilder;
 
 import dpyl.eddy.piedfly.AppState;
 import dpyl.eddy.piedfly.Constants;
-import dpyl.eddy.piedfly.DataManager;
+import dpyl.eddy.piedfly.firebase.DataManager;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.Utility;
-import dpyl.eddy.piedfly.model.Emergency;
-import dpyl.eddy.piedfly.model.SimpleLocation;
+import dpyl.eddy.piedfly.firebase.model.Emergency;
+import dpyl.eddy.piedfly.firebase.model.SimpleLocation;
 import dpyl.eddy.piedfly.view.MainActivity;
 
 // TODO: Passive Monitoring

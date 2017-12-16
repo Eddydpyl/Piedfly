@@ -27,12 +27,12 @@
 
         <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyDVLsl1xp7KciZ-RualbgpGx2fOYWyS8d8"/>
 
-        <service android:name=".messaging.InstantiationService">
+        <service android:name=".firebase.messaging.InstantiationService">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
-        <service android:name=".messaging.MessagingService">
+        <service android:name=".firebase.messaging.MessagingService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>

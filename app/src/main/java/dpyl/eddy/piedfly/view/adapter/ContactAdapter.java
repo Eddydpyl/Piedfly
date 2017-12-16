@@ -7,11 +7,11 @@ import android.view.ViewGroup;
 
 import java.util.List;
 
-import dpyl.eddy.piedfly.GlideApp;
+import dpyl.eddy.piedfly.firebase.GlideApp;
 import dpyl.eddy.piedfly.R;
-import dpyl.eddy.piedfly.model.room.models.Contact;
-import dpyl.eddy.piedfly.view.viewholders.OnListItemClickListener;
-import dpyl.eddy.piedfly.view.viewholders.UserHolder;
+import dpyl.eddy.piedfly.room.models.Contact;
+import dpyl.eddy.piedfly.view.viewholder.OnListItemClickListener;
+import dpyl.eddy.piedfly.view.viewholder.UserHolder;
 
 /**
  * An adapter for local contacts.

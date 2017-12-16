@@ -18,8 +18,8 @@ import com.google.android.gms.location.LocationServices;
 import dpyl.eddy.piedfly.Constants;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.Utility;
-import dpyl.eddy.piedfly.DataManager;
-import dpyl.eddy.piedfly.model.SimpleLocation;
+import dpyl.eddy.piedfly.firebase.DataManager;
+import dpyl.eddy.piedfly.firebase.model.SimpleLocation;
 
 public class LocationService extends Service {
 

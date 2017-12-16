@@ -14,8 +14,8 @@ import dpyl.eddy.piedfly.Constants;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.Utility;
 import dpyl.eddy.piedfly.hotbeacon.hotspotmanager.WifiApManager;
-import dpyl.eddy.piedfly.model.Beacon;
-import dpyl.eddy.piedfly.model.SimpleLocation;
+import dpyl.eddy.piedfly.firebase.model.Beacon;
+import dpyl.eddy.piedfly.firebase.model.SimpleLocation;
 
 public class BeaconManager {
 
