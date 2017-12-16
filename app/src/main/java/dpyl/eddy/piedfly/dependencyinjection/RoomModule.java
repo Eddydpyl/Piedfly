@@ -27,7 +27,7 @@ public class RoomModule {
         this.database = Room.databaseBuilder(
                 application,
                 AppLocalDatabase.class,
-                "contact.db"
+                "LOCAL_DB"
         ).build();
     }
 
