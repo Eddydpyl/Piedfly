@@ -9,6 +9,7 @@ import javax.inject.Singleton;
 import dagger.Module;
 import dagger.Provides;
 import dpyl.eddy.piedfly.AppLocalDatabase;
+import dpyl.eddy.piedfly.Constants;
 import dpyl.eddy.piedfly.model.room.dao.ContactDao;
 import dpyl.eddy.piedfly.model.room.dao.MessageDao;
 import dpyl.eddy.piedfly.model.room.repositories.ContactRepository;
@@ -27,7 +28,7 @@ public class RoomModule {
         this.database = Room.databaseBuilder(
                 application,
                 AppLocalDatabase.class,
-                "LOCAL_DB"
+                Constants.DATABASE_NAME
         ).build();
     }
 

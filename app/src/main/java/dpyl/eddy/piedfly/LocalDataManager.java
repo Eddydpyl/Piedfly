@@ -14,8 +14,6 @@ import dpyl.eddy.piedfly.model.room.models.Message;
 public class LocalDataManager {
 
 
-    private static final String DATABASE_NAME = "LOCAL_DB";
-
     private static AppLocalDatabase roomDatabase;
 
     private LocalDataCallback mLocalDataCallback;
@@ -25,7 +23,7 @@ public class LocalDataManager {
         this.mContext = context;
         this.mLocalDataCallback = localDataCallback;
         if (roomDatabase == null)
-            roomDatabase = Room.databaseBuilder(mContext, AppLocalDatabase.class, DATABASE_NAME).build();
+            roomDatabase = Room.databaseBuilder(mContext, AppLocalDatabase.class, Constants.DATABASE_NAME).build();
 
     }
 
