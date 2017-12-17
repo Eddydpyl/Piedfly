@@ -6,7 +6,7 @@ import android.support.annotation.NonNull;
 
 import java.util.concurrent.Executor;
 
-import dpyl.eddy.piedfly.room.models.Message;
+import dpyl.eddy.piedfly.room.model.Message;
 
 /**
  * A class to deal with the room database directly.

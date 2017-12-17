@@ -13,6 +13,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
+import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,6 +23,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.FirebaseTooManyRequestsException;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
@@ -53,8 +55,78 @@ public class PhoneActivity extends BaseActivity {
         setSupportActionBar(toolbar);
 
         mVerifying = savedInstanceState != null && savedInstanceState.getBoolean(VERIFYING_KEY);
+        mCallbacks = createPhoneCallbacks();
 
-        mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+        mPhoneEditText = (EditText) findViewById(R.id.editText_phone);
+        mCodeEditText = (EditText) findViewById(R.id.editText_code);
+        Button sendInButton = (Button) findViewById(R.id.button_send);
+        sendInButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                PhoneAuthProvider.getInstance().verifyPhoneNumber(mPhoneEditText.getText().toString(), 60L, TimeUnit.SECONDS, PhoneActivity.this, mCallbacks);
+                mVerifying = true;
+            }
+        });
+        Button verifyButton = (Button) findViewById(R.id.button_verify);
+        verifyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String code = mCodeEditText.getText().toString();
+                if(mVerificationId != null && !code.isEmpty()){
+                    PhoneAuthCredential credential = PhoneAuthProvider.getCredential(mVerificationId, code);
+                    if(!mVerifying) linkAccounts(credential);
+                } else {
+                    // TODO: The verification process hasn't been started
+                }
+            }
+        });
+        if (AppPermissions.requestReadPhoneStatePermission(this)) writePhoneNumber();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) { return false; }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(mVerifying) PhoneAuthProvider.getInstance().verifyPhoneNumber(mPhoneEditText.getText().toString(), 60L, TimeUnit.SECONDS, this, mCallbacks);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean(VERIFYING_KEY, mVerifying);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_READ_PHONE_STATE) {
+            if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_READ_PHONE_STATE, grantResults)) writePhoneNumber();
+        }
+    }
+
+    @Override
+    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+        // TODO: If the user were to sign out having yet to validate the phone number
+    }
+
+    @Override
+    SharedPreferences.OnSharedPreferenceChangeListener buildStateListener() { return null; }
+
+    @SuppressLint("HardwareIds")
+    private void writePhoneNumber() {
+        //TODO: Make sure the phone number is always successfully retrieved (Use content resolver phone.NUMBER contract?)
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+            TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+            String phoneNumber = telephonyManager.getLine1Number();
+            if (phoneNumber != null && !phoneNumber.isEmpty() && !phoneNumber.contains("?"))
+                mPhoneEditText.setText(phoneNumber);
+        }
+    }
+
+    private PhoneAuthProvider.OnVerificationStateChangedCallbacks createPhoneCallbacks() {
+
+        return new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
             @Override
             public void onVerificationCompleted(final PhoneAuthCredential credential) {
@@ -91,61 +163,6 @@ public class PhoneActivity extends BaseActivity {
                 super.onCodeAutoRetrievalTimeOut(s);
             }
         };
-
-        mPhoneEditText = (EditText) findViewById(R.id.editText_phone);
-        mCodeEditText = (EditText) findViewById(R.id.editText_code);
-        Button sendInButton = (Button) findViewById(R.id.button_send);
-        sendInButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                PhoneAuthProvider.getInstance().verifyPhoneNumber(mPhoneEditText.getText().toString(), 60L, TimeUnit.SECONDS, PhoneActivity.this, mCallbacks);
-                mVerifying = true;
-            }
-        });
-        Button verifyButton = (Button) findViewById(R.id.button_verify);
-        verifyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String code = mCodeEditText.getText().toString();
-                if(mVerificationId != null && !code.isEmpty()){
-                    PhoneAuthCredential credential = PhoneAuthProvider.getCredential(mVerificationId, code);
-                    if(!mVerifying) linkAccounts(credential);
-                } else {
-                    // TODO: The verification process hasn't been started
-                }
-            }
-        });
-        if (AppPermissions.requestReadPhoneStatePermission(this)) writePhoneNumber();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if(mVerifying) PhoneAuthProvider.getInstance().verifyPhoneNumber(mPhoneEditText.getText().toString(), 60L, TimeUnit.SECONDS, this, mCallbacks);
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean(VERIFYING_KEY, mVerifying);
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_READ_PHONE_STATE) {
-            if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_READ_PHONE_STATE, grantResults)) writePhoneNumber();
-        }
-    }
-
-    @SuppressLint("HardwareIds")
-    private void writePhoneNumber() {
-        //TODO: make sure the phone number is gotten, use content resolver phone.NUMBER contract
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-            TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-            String phoneNumber = telephonyManager.getLine1Number();
-            if (phoneNumber != null && !phoneNumber.isEmpty() && !phoneNumber.contains("?"))
-                mPhoneEditText.setText(phoneNumber);
-        }
     }
 
     private void linkAccounts(final PhoneAuthCredential credential) {
@@ -194,5 +211,4 @@ public class PhoneActivity extends BaseActivity {
         setResult(Activity.RESULT_OK, intent);
         finish();
     }
-
 }

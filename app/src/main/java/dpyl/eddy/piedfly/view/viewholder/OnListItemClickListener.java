@@ -2,11 +2,8 @@ package dpyl.eddy.piedfly.view.viewholder;
 
 import android.view.View;
 
-/**
- * A simple interface to account for clicks in a recycler view item.
- */
+import javax.annotation.Nullable;
 
 public interface OnListItemClickListener {
-
-     void OnListItemClick(int position, View view);
+     void OnListItemClick(int position, View view, @Nullable String Key);
 }

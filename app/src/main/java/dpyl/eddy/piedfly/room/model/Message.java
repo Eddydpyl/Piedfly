@@ -1,4 +1,4 @@
-package dpyl.eddy.piedfly.room.models;
+package dpyl.eddy.piedfly.room.model;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;

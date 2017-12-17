@@ -9,6 +9,7 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -16,11 +17,13 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.ErrorCodes;
@@ -30,7 +33,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
+import com.mikepenz.actionitembadge.library.ActionItemBadge;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -45,57 +50,42 @@ import dpyl.eddy.piedfly.firebase.FileManager;
 import dpyl.eddy.piedfly.firebase.model.User;
 import dpyl.eddy.piedfly.monitor.LocationService;
 import dpyl.eddy.piedfly.monitor.PassiveService;
-import dpyl.eddy.piedfly.room.models.Message;
+import dpyl.eddy.piedfly.room.model.Message;
+import dpyl.eddy.piedfly.view.adapter.MessageAdapter;
+import dpyl.eddy.piedfly.view.viewholder.OnListItemClickListener;
 import dpyl.eddy.piedfly.view.viewmodel.MessageCollectionViewModel;
 
 @SuppressLint("Registered")
-public class BaseActivity extends AppCompatActivity implements FirebaseAuth.AuthStateListener {
+public abstract class BaseActivity extends AppCompatActivity implements FirebaseAuth.AuthStateListener {
 
     static final int EMAIL_SIGN_IN = 42;
     static final int PHONE_SIGN_IN = 43;
 
-    SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
-    SharedPreferences mSharedPreferences;
-    FirebaseAuth mAuth;
-    String mPhoneNumber;
+    static Toast mToast;
+    static MessageCollectionViewModel mMessageCollectionViewModel;
 
     @Inject
     ViewModelProvider.Factory mCustomViewModelFactory;
 
-    private MenuItem mMenuItem;
+    SharedPreferences mSharedPreferences;
+    FirebaseAuth mAuth;
+    String mPhoneNumber;
+
+    private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
     private Dialog mDialog;
-
-
-    static MessageCollectionViewModel mMessageCollectionViewModel;
-
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
-        //TODO: con esta linea lo conseguí arreglar, tengo que estudiarme bien dagger para ver cual es la mejor forma de organizar todo
-        //TODO: esto me dió la idea: https://stackoverflow.com/questions/42687686/dagger-2-injection-not-working
         ((MyApplication) getApplication()).getApplicationComponent().inject(this);
-
         mAuth = FirebaseAuth.getInstance();
-        readyDialog();
     }
-
-    // TODO: Update ActionItemBadge
-    /*
-         if (true) {
-             ActionItemBadge.update(this, menu.findItem(R.id.action_badge), getDrawable(R.drawable.ic_action_notifications), ActionItemBadge.BadgeStyles.DARK_GREY, 0);
-             mMenuItem.setVisible(false);
-         } else {
-             ActionItemBadge.hide(menu.findItem(R.id.action_badge));
-             mMenuItem.setVisible(true);
-         }
-     */
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        mMenuItem = menu.findItem(R.id.action_bell);
+        notificationsMenuItem(menu.findItem(R.id.action_badge), menu.findItem(R.id.action_bell));
         return true;
     }
 
@@ -105,83 +95,97 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_bell || id == R.id.action_badge) {
-            // TODO: Display notifications
+        if (id == R.id.action_badge) {
+            mDialog.show();
             return true;
         } else if (id == R.id.action_settings) {
             return true;
-        }
-        return super.onOptionsItemSelected(item);
+        } return super.onOptionsItemSelected(item);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mStateListener = buildStateListener();
+        mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
         checkState();
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == AppPermissions.REQUEST_LOCATION) {
-            if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_LOCATION, grantResults))
-                startServices();
-        } else if (requestCode == AppPermissions.REQUEST_CALL_PHONE) {
-            if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_CALL_PHONE, grantResults)) {
-                if (mPhoneNumber != null) startPhoneCall(mPhoneNumber);
-            }
+        switch (requestCode) {
+            case AppPermissions.REQUEST_LOCATION: {
+                if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_LOCATION, grantResults)) startServices();
+            } break;
+            case AppPermissions.REQUEST_CALL_PHONE: {
+                if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_CALL_PHONE, grantResults)) {
+                    if (mPhoneNumber != null) startPhoneCall(mPhoneNumber);
+                }
+            } break;
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == EMAIL_SIGN_IN && mAuth.getCurrentUser() == null) {
-            IdpResponse response = IdpResponse.fromResultIntent(data);
-            if (resultCode == Activity.RESULT_OK && response != null) {
-                // Successfully signed in
-                if (false) {//response.getPhoneNumber() == null || response.getPhoneNumber().isEmpty()){
-                    // The user doesn't have an associated phone number
-                    Intent intent = new Intent(this, PhoneActivity.class);
-                    startActivityForResult(intent, PHONE_SIGN_IN);
+        switch (requestCode) {
+            case EMAIL_SIGN_IN: {
+                if (mAuth.getCurrentUser() == null) {
+                    IdpResponse response = IdpResponse.fromResultIntent(data);
+                    if (resultCode == Activity.RESULT_OK && response != null) {
+                        // Successfully signed in
+                        if (response.getPhoneNumber() == null || response.getPhoneNumber().isEmpty()){
+                            // The user doesn't have an associated phone number
+                            Intent intent = new Intent(this, PhoneActivity.class);
+                            startActivityForResult(intent, PHONE_SIGN_IN);
+                        }
+                    } else {
+                        // Sign in failed
+                        if (response == null) {
+                            // The user has pressed the back button
+                            checkState();
+                        } else if (response.getErrorCode() == ErrorCodes.NO_NETWORK) {
+                            // TODO: Error handling
+                            // We should check if there's a uid saved in SharedPreferences
+                        } else if (response.getErrorCode() == ErrorCodes.UNKNOWN_ERROR) {
+                            // TODO: Error handling
+                            // This error triggers when the user needs to update Google Play Services
+                        }
+                    }
                 }
-            } else {
-                // Sign in failed
-                if (response == null) {
-                    // The user has pressed the back button
+            } break;
+            case PHONE_SIGN_IN: {
+                if (resultCode == Activity.RESULT_OK) {
+                    // The user is signed in and has a verified phone number
+                    readyUser();
+                } else if (resultCode == Activity.RESULT_CANCELED || data == null) {
+                    // The user has pressed the back button or isn't signed in
                     checkState();
-                } else if (response.getErrorCode() == ErrorCodes.NO_NETWORK) {
-                    // TODO: Error handling
-                    // We should check if there's a uid saved in SharedPreferences
-                } else if (response.getErrorCode() == ErrorCodes.UNKNOWN_ERROR) {
-                    // TODO: Error handling
-                    // This error triggers when the user needs to update Google Play Services
                 }
-            }
-        } else if (requestCode == PHONE_SIGN_IN) {
-            if (resultCode == Activity.RESULT_OK) {
-                // The user is signed in and has a verified phone number
-                readyUser();
-            } else if (resultCode == Activity.RESULT_CANCELED || data == null) {
-                // The user has pressed the back button or isn't signed in
-                checkState();
-            }
+            } break;
         }
-    }
-
-    @Override
-    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         // Stop listening to changes in the App state and free up memory, as the Activity is not visible
-        if (mStateListener != null)
+        if (mStateListener != null) {
             mSharedPreferences.unregisterOnSharedPreferenceChangeListener(mStateListener);
-        mSharedPreferences = null;
+            mStateListener = null;
+        } mSharedPreferences = null;
+    }
+
+    // Listen to changes to the App state and update the UI accordingly
+    abstract SharedPreferences.OnSharedPreferenceChangeListener buildStateListener();
+
+    // Avoid Toast queues within the application
+    static void showToast(Toast toast) {
+        if (mToast != null) mToast.cancel();
+        mToast = toast;
+        mToast.show();
     }
 
     private void readyUser() {
@@ -217,7 +221,7 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
     private void checkState() {
         if (mAuth.getCurrentUser() != null) {
             // The user is already signed in
-            if (false) {//mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) {
+            if (mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) {
                 // The user doesn't have an associated phone number
                 if (!(this instanceof PhoneActivity)) {
                     Intent intent = new Intent(this, PhoneActivity.class);
@@ -278,27 +282,43 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
         }
     }
 
-    private void readyDialog() {
+    private void notificationsMenuItem(final MenuItem menuCounter, final MenuItem menuEmpty) {
         mDialog = new Dialog(this, R.style.Theme_AppCompat_Dialog);
-        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+        mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
         mDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         mDialog.setContentView(R.layout.dialog_layout);
         mDialog.setCanceledOnTouchOutside(true);
         mDialog.setCancelable(true);
-        mDialog.show();
 
-        ListView listView = (ListView) mDialog.findViewById(R.id.list_messages);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new String[]{"asasa"});
-        listView.setAdapter(adapter);
-
+        RecyclerView recyclerView = (RecyclerView) mDialog.findViewById(R.id.list_messages);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        final MessageAdapter messageAdapter = new MessageAdapter(new ArrayList<Message>(), new OnListItemClickListener() {
+            @Override
+            public void OnListItemClick(int position, View view, String key) {
+                // TODO: Custom Actions dependant on the MessageType
+            }
+        });
+        recyclerView.setAdapter(messageAdapter);
 
         mMessageCollectionViewModel = ViewModelProviders.of(this, mCustomViewModelFactory).get(MessageCollectionViewModel.class);
         mMessageCollectionViewModel.getMessagesByTimestamp().observe(this, new Observer<List<Message>>() {
             @Override
             public void onChanged(@Nullable List<Message> messages) {
-                //TODO: fill up notifications views here, all stored messages will arrive here ordered by date
+                // Stored messages arrive ordered by date
+                if (messages != null && messages.size() > 0) {
+                    for (Message message : messages) {
+                        messageAdapter.addMessage(message);
+                    }
+                    if (messageAdapter.getItemCount() > 0) {
+                        ActionItemBadge.update(BaseActivity.this, menuCounter, getDrawable(R.drawable.ic_action_notifications), ActionItemBadge.BadgeStyles.DARK_GREY, messageAdapter.getItemCount());
+                        menuEmpty.setVisible(false);
+                    } else {
+                        ActionItemBadge.hide(menuCounter);
+                        menuEmpty.setVisible(true);
+                    }
+                }
             }
         });
-
     }
 }

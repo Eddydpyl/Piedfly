@@ -24,7 +24,7 @@ import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.firebase.model.SimpleLocation;
 import dpyl.eddy.piedfly.firebase.model.User;
 import dpyl.eddy.piedfly.view.viewholder.MapHolder;
-import dpyl.eddy.piedfly.view.viewholder.OnMapListItemClickListener;
+import dpyl.eddy.piedfly.view.viewholder.OnListItemClickListener;
 
 import static dpyl.eddy.piedfly.Constants.ZOOM_LEVEL;
 
@@ -35,15 +35,14 @@ public class MapUserAdapter extends FirebaseRecyclerAdapter<User, MapHolder> {
     final private String mFocus;
 
     private boolean focused;
-    private OnMapListItemClickListener mOnMapListItemClickListener;
+    private OnListItemClickListener mOnListItemClickListener;
 
-
-    public MapUserAdapter(FirebaseRecyclerOptions<User> options, GoogleMap map, Map<String, Marker> markers, OnMapListItemClickListener onMapListItemClickListener, String focus) {
+    public MapUserAdapter(FirebaseRecyclerOptions<User> options, GoogleMap map, Map<String, Marker> markers, OnListItemClickListener onMapListItemClickListener, String focus) {
         super(options);
         this.mMap = map;
         this.mMarkers = markers;
         this.mFocus = focus;
-        this.mOnMapListItemClickListener = onMapListItemClickListener;
+        this.mOnListItemClickListener = onMapListItemClickListener;
         focused = false;
     }
 
@@ -63,7 +62,7 @@ public class MapUserAdapter extends FirebaseRecyclerAdapter<User, MapHolder> {
     @Override
     public MapHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.map_list_item, parent, false);
-        return new MapHolder(itemView, mOnMapListItemClickListener);
+        return new MapHolder(itemView, mOnListItemClickListener);
     }
 
     @Override

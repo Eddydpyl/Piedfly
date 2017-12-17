@@ -6,14 +6,12 @@ import android.os.AsyncTask;
 
 import java.util.List;
 
-import dpyl.eddy.piedfly.room.models.Contact;
-import dpyl.eddy.piedfly.room.repositories.ContactRepository;
-
+import dpyl.eddy.piedfly.room.model.Contact;
+import dpyl.eddy.piedfly.room.repository.ContactRepository;
 
 public class ContactCollectionViewModel extends ViewModel {
 
     private ContactRepository mRepository;
-
 
     public ContactCollectionViewModel(ContactRepository mRepository) {
         this.mRepository = mRepository;
@@ -32,7 +30,6 @@ public class ContactCollectionViewModel extends ViewModel {
     }
 
     public class DeleteContactTask extends AsyncTask<Contact, Void, Void> {
-
         @Override
         protected Void doInBackground(Contact... contacts) {
             mRepository.deleteAllContacts(contacts);

@@ -1,4 +1,4 @@
-package dpyl.eddy.piedfly.room.repositories;
+package dpyl.eddy.piedfly.room.repository;
 
 import android.arch.lifecycle.LiveData;
 
@@ -7,7 +7,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import dpyl.eddy.piedfly.room.dao.ContactDao;
-import dpyl.eddy.piedfly.room.models.Contact;
+import dpyl.eddy.piedfly.room.model.Contact;
 
 /**
  * Repository for dealing with our contacts.

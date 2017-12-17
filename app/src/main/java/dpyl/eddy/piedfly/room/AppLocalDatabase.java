@@ -5,8 +5,8 @@ import android.arch.persistence.room.RoomDatabase;
 
 import dpyl.eddy.piedfly.room.dao.ContactDao;
 import dpyl.eddy.piedfly.room.dao.MessageDao;
-import dpyl.eddy.piedfly.room.models.Contact;
-import dpyl.eddy.piedfly.room.models.Message;
+import dpyl.eddy.piedfly.room.model.Contact;
+import dpyl.eddy.piedfly.room.model.Message;
 
 /**
  * Deals with the Room local database implementation.

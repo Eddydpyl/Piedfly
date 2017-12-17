@@ -52,11 +52,11 @@ import dpyl.eddy.piedfly.Utility;
 import dpyl.eddy.piedfly.firebase.model.SimpleLocation;
 import dpyl.eddy.piedfly.firebase.model.User;
 import dpyl.eddy.piedfly.view.adapter.MapUserAdapter;
-import dpyl.eddy.piedfly.view.viewholder.OnMapListItemClickListener;
+import dpyl.eddy.piedfly.view.viewholder.OnListItemClickListener;
 
 import static dpyl.eddy.piedfly.Constants.ZOOM_LEVEL;
 
-public class MapsActivity extends BaseActivity implements OnMapReadyCallback, OnMapListItemClickListener {
+public class MapsActivity extends BaseActivity implements OnMapReadyCallback, OnListItemClickListener {
 
     private static final String FOCUS = "focus";
 
@@ -98,16 +98,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
         GlideApp.with(this).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(userImage);
         userImage.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                if (mMap != null && mMarkers != null) {
-                    String uid = mAuth.getCurrentUser().getUid();
-                    CameraPosition cameraAnimation = new CameraPosition.Builder().target(mMarkers.get(uid).getPosition()).zoom(ZOOM_LEVEL)
-                            .tilt(mMap.getCameraPosition().tilt).bearing(mMap.getCameraPosition().bearing).build();
-                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraAnimation));
-                    setDetailsScreen(uid);
-                    mFocus = uid;
-                }
-            }
+            public void onClick(View view) { focusCamera(mAuth.getCurrentUser().getUid()); }
         });
 
         mRecyclerView = (RecyclerView) findViewById(R.id.map_recycler);
@@ -123,54 +114,16 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     @Override
     protected void onStart() {
         super.onStart();
-        // Listen to changes to the App state and update the UI accordingly
-        mStateListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-            public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-                if (key.equals(getString(R.string.pref_emergencies_user))) {
-                    String emergency = mSharedPreferences.getString(key, "");
-                    if (emergency.isEmpty()) {
-                        // TODO: The user had an emergency active and now it has been stopped
-                    } else {
-                        // TODO: There user has activated an emergency
-                    }
-                } else if (key.equals(getString(R.string.pref_emergencies_flock))) {
-                    Set<String> emergencies = mSharedPreferences.getStringSet(key, new HashSet<String>());
-                    if (emergencies.isEmpty()) {
-                        // TODO: There was at least an emergency active and now they have all been stopped
-                    } else {
-                        // TODO: There is at least one emergency active
-                    }
-                } else if (key.equals(getString(R.string.pref_emergencies_nearby))) {
-                    Set<String> emergencies = mSharedPreferences.getStringSet(key, new HashSet<String>());
-                    if (emergencies.isEmpty()) {
-                        // TODO: There was at least an emergency active and now they have all been stopped
-                    } else {
-                        // TODO: There is at least one emergency active
-                    }
-                }
-            }
-        };
-        mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
-        // Display the data and set up listeners
         attachRecyclerViewAdapter();
         setCameraListener();
     }
 
     @Override
-    public void OnListItemClick(int position, View view, String uid) {
-        if (mMap != null && mMarkers != null) {
-            CameraPosition cameraAnimation = new CameraPosition.Builder().target(mMarkers.get(uid).getPosition()).zoom(ZOOM_LEVEL)
-                    .tilt(mMap.getCameraPosition().tilt).bearing(mMap.getCameraPosition().bearing).build();
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraAnimation));
-            setDetailsScreen(uid);
-            mFocus = uid;
-        }
-    }
+    public void OnListItemClick(int position, View view, String key) { focusCamera(key); }
 
 
     @Override
     public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-        super.onAuthStateChanged(firebaseAuth);
         // For the map to display any data or listeners to work, the user needs to be authenticated
         if (firebaseAuth.getCurrentUser() != null) {
             attachRecyclerViewAdapter();
@@ -221,6 +174,36 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
             attachRecyclerViewAdapter();
             setCameraListener();
         }
+    }
+
+    @Override
+    SharedPreferences.OnSharedPreferenceChangeListener buildStateListener() {
+        return new SharedPreferences.OnSharedPreferenceChangeListener() {
+            public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+                if (key.equals(getString(R.string.pref_emergencies_user))) {
+                    String emergency = mSharedPreferences.getString(key, "");
+                    if (emergency.isEmpty()) {
+                        // TODO: The user had an emergency active and now it has been stopped
+                    } else {
+                        // TODO: There user has activated an emergency
+                    }
+                } else if (key.equals(getString(R.string.pref_emergencies_flock))) {
+                    Set<String> emergencies = mSharedPreferences.getStringSet(key, new HashSet<String>());
+                    if (emergencies.isEmpty()) {
+                        // TODO: There was at least an emergency active and now they have all been stopped
+                    } else {
+                        // TODO: There is at least one emergency active
+                    }
+                } else if (key.equals(getString(R.string.pref_emergencies_nearby))) {
+                    Set<String> emergencies = mSharedPreferences.getStringSet(key, new HashSet<String>());
+                    if (emergencies.isEmpty()) {
+                        // TODO: There was at least an emergency active and now they have all been stopped
+                    } else {
+                        // TODO: There is at least one emergency active
+                    }
+                }
+            }
+        };
     }
 
     private void attachRecyclerViewAdapter() {
@@ -284,6 +267,16 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
                 }
             };
             mMap.setOnCameraChangeListener(listener);
+        }
+    }
+
+    private void focusCamera(String uid) {
+        if (mMap != null && mMarkers != null) {
+            CameraPosition cameraAnimation = new CameraPosition.Builder().target(mMarkers.get(uid).getPosition()).zoom(ZOOM_LEVEL)
+                    .tilt(mMap.getCameraPosition().tilt).bearing(mMap.getCameraPosition().bearing).build();
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraAnimation));
+            setDetailsScreen(uid);
+            mFocus = uid;
         }
     }
 

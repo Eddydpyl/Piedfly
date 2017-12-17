@@ -1,4 +1,4 @@
-package dpyl.eddy.piedfly.room.models;
+package dpyl.eddy.piedfly.room.model;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A phone contact that it's not yet in firebase.
  */
-
 
 @Entity(tableName = "contacts")
 public class Contact {

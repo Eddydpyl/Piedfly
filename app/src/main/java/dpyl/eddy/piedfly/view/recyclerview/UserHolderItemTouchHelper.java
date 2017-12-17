@@ -25,7 +25,6 @@ public class UserHolderItemTouchHelper extends ItemTouchHelper.SimpleCallback {
         return true;
     }
 
-
     //called when the viewholder swiped or dragged by the ItemTouchHelper is changed
     @Override
     public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
@@ -71,6 +70,5 @@ public class UserHolderItemTouchHelper extends ItemTouchHelper.SimpleCallback {
     public int convertToAbsoluteDirection(int flags, int layoutDirection) {
         return super.convertToAbsoluteDirection(flags, layoutDirection);
     }
-
 
 }

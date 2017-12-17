@@ -12,8 +12,8 @@ import dpyl.eddy.piedfly.room.AppLocalDatabase;
 import dpyl.eddy.piedfly.Constants;
 import dpyl.eddy.piedfly.room.dao.ContactDao;
 import dpyl.eddy.piedfly.room.dao.MessageDao;
-import dpyl.eddy.piedfly.room.repositories.ContactRepository;
-import dpyl.eddy.piedfly.room.repositories.MessageRepository;
+import dpyl.eddy.piedfly.room.repository.ContactRepository;
+import dpyl.eddy.piedfly.room.repository.MessageRepository;
 import dpyl.eddy.piedfly.view.viewmodel.CustomViewModelFactory;
 
 /**

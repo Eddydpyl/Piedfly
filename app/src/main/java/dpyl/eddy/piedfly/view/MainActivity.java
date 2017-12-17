@@ -1,6 +1,7 @@
 package dpyl.eddy.piedfly.view;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
@@ -55,7 +56,6 @@ import java.util.Set;
 import de.hdodenhof.circleimageview.CircleImageView;
 import dpyl.eddy.piedfly.AppPermissions;
 import dpyl.eddy.piedfly.AppState;
-import dpyl.eddy.piedfly.MyApplication;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.Utility;
 import dpyl.eddy.piedfly.firebase.DataManager;
@@ -66,11 +66,12 @@ import dpyl.eddy.piedfly.firebase.model.Request;
 import dpyl.eddy.piedfly.firebase.model.RequestType;
 import dpyl.eddy.piedfly.firebase.model.SimpleLocation;
 import dpyl.eddy.piedfly.firebase.model.User;
-import dpyl.eddy.piedfly.room.models.Contact;
+import dpyl.eddy.piedfly.room.model.Contact;
 import dpyl.eddy.piedfly.view.adapter.ContactAdapter;
 import dpyl.eddy.piedfly.view.adapter.UserAdapter;
 import dpyl.eddy.piedfly.view.recyclerview.UserHolderItemTouchHelper;
 import dpyl.eddy.piedfly.view.viewholder.OnListItemClickListener;
+import dpyl.eddy.piedfly.view.viewholder.UserHolder;
 import dpyl.eddy.piedfly.view.viewmodel.ContactCollectionViewModel;
 
 public class MainActivity extends BaseActivity implements OnListItemClickListener {
@@ -80,21 +81,17 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
     private static final int REQUEST_PICK_CONTACT = 100;
     private static final int REQUEST_PICK_IMAGE = 101;
 
-    // Used to avoid toast queues
-    private static Toast mToast;
-
-    private UserAdapter mUserAdapter;
-
     private CoordinatorLayout mCoordinatorLayout;
     private CircleImageView mCircleImageView;
-
+    private SlideToActView slideForAlarm;
+    private FloatingActionButton faButton;
     private RecyclerView mRecyclerView;
     private RecyclerView mSecondRecyclerView;
     //TODO: alomejor hacer algo con el scroll view para que permita overscrollear
     private NestedScrollView mNestedScrollView;
 
+    private UserAdapter mUserAdapter;
     private ContactAdapter mContactAdapter;
-
     static ContactCollectionViewModel mContactCollectionViewModel;
 
     @Override
@@ -107,15 +104,12 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // Set up main user UI
         mCoordinatorLayout = findViewById(R.id.content);
+        faButton = (FloatingActionButton) findViewById(R.id.fab);
         mCircleImageView = (CircleImageView) findViewById(R.id.userImage);
-        StorageReference storageReference = mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
-        GlideApp.with(this).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
-
+        slideForAlarm = (SlideToActView) findViewById(R.id.slide_for_alarm);
+        mNestedScrollView = (NestedScrollView) findViewById(R.id.main_nestedScrollView);
         final ImageView userDirections = (ImageView) findViewById(R.id.userDirections);
-        final SlideToActView slideForAlarm = (SlideToActView) findViewById(R.id.slide_for_alarm);
-        final FloatingActionButton faButton = (FloatingActionButton) findViewById(R.id.fab);
 
         faButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -123,90 +117,47 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
                 startPickContact();
             }
         });
-
         mCircleImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startPickGalleryImage();
             }
         });
-
         userDirections.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    AppPermissions.requestLocationPermission(MainActivity.this);
-                } else {
-                    Intent intent = new Intent(MainActivity.this, MapsActivity.class);
-                    intent.putExtra(getString(R.string.intent_uid), mAuth.getCurrentUser().getUid());
-                    startActivity(intent);
-                }
-            }
+            public void onClick(View view) { startShowInMap(mAuth.getCurrentUser().getUid()); }
         });
-
         slideForAlarm.setOnSlideCompleteListener(new SlideToActView.OnSlideCompleteListener() {
             @Override
-            public void onSlideComplete(@NotNull final SlideToActView slideToActView) {
-                startEmergency();
-                slideForAlarm.resetSlider();
+            public void onSlideComplete(@NotNull final SlideToActView slideToActView) { startEmergency();
+            }
+        });
+        mNestedScrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
+            @Override
+            public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+                // Floating button only appears at the end of the list
+                if (!v.canScrollVertically(1)) faButton.show();
+                else faButton.hide();
             }
         });
 
-
-        setUpRecyclers();
-
-        // Second recycler
-        if (mContactAdapter == null) {
-            mContactAdapter = new ContactAdapter(new ArrayList<Contact>(), this);
-            mSecondRecyclerView.setAdapter(mContactAdapter);
-        }
-
-        // Dagger injecting stuff
-        ((MyApplication) getApplication()).getApplicationComponent().inject(this);
+        setProfilePicture();
+        setUpRecyclerViews();
 
         // Getting our ViewModels and data observing
         mContactCollectionViewModel = ViewModelProviders.of(this, mCustomViewModelFactory).get(ContactCollectionViewModel.class);
         mContactCollectionViewModel.getListOfContactsByName().observe(this, new Observer<List<Contact>>() {
             @Override
-            public void onChanged(@Nullable List<Contact> contacts) {
-                mContactAdapter.setContacts(contacts);
-            }
+            public void onChanged(@Nullable List<Contact> contacts) { mContactAdapter.setContacts(contacts); }
         });
-
 
         // Custom made swipe on recycler view (Used to delete objects)
         ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new UserHolderItemTouchHelper(0, ItemTouchHelper.LEFT, new UserHolderItemTouchHelper.RecyclerItemTouchHelperListener() {
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
-                final String uid1 = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
-                final String uid2 = viewHolder.itemView.getTag().toString();
-                if (uid1 != null && uid2 != null) {
-                    DataManager.removeFromFlock(uid2, uid1);
-                    // Show snackBar with undo option
-                    DataManager.getDatabase().getReference("users").child(uid2).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            User user = dataSnapshot.getValue(User.class);
-                            Snackbar snackbar = Snackbar.make(mCoordinatorLayout, R.string.content_removed + " " + user.getName(), Snackbar.LENGTH_LONG);
-                            snackbar.setAction(R.string.content_undo_caps, new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    DataManager.addToFlock(uid2, uid1);
-                                }
-                            });
-                            snackbar.setActionTextColor(Color.YELLOW);
-                            snackbar.show();
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            // TODO: Error Handling
-                        }
-                    });
-                }
+                showUndoMessage(viewHolder);
             }
-        });
-        new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(mRecyclerView);
+        }); new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(mRecyclerView);
 
         // OnSwipe delete for the second recycler view
         ItemTouchHelper.SimpleCallback itemTouchHelperSecondRecycler = new UserHolderItemTouchHelper(0, ItemTouchHelper.LEFT, new UserHolderItemTouchHelper.RecyclerItemTouchHelperListener() {
@@ -215,22 +166,7 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
                 mContactCollectionViewModel.deleteContact(mContactAdapter.getContacts().get(position));
                 mContactAdapter.notifyItemRemoved(position);
             }
-        });
-        new ItemTouchHelper(itemTouchHelperSecondRecycler).attachToRecyclerView(mSecondRecyclerView);
-
-        mNestedScrollView = (NestedScrollView) findViewById(R.id.main_nestedScrollView);
-
-        // Floating button only appears at the end of the list
-        mNestedScrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
-            @Override
-            public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-
-                if (!v.canScrollVertically(1)) faButton.show();
-                else faButton.hide();
-            }
-        });
-
-
+        }); new ItemTouchHelper(itemTouchHelperSecondRecycler).attachToRecyclerView(mSecondRecyclerView);
     }
 
     @Override
@@ -238,8 +174,74 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
         super.onStart();
         attachFirebaseRecyclerViewAdapter();
         if (mUserAdapter != null) mUserAdapter.startListening();
-        // Listen to changes to the App state and update the UI accordingly
-        mStateListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case AppPermissions.REQUEST_READ_CONTACTS: {
+                if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_READ_CONTACTS, grantResults)) {
+                    startPickContact();
+                }
+            } break;
+            case AppPermissions.REQUEST_EXTERNAL_STORAGE: {
+                if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_EXTERNAL_STORAGE, grantResults)) {
+                    startPickGalleryImage();
+                }
+            } break;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_PICK_CONTACT && resultCode == RESULT_OK) {
+            if (mAuth.getCurrentUser() != null)
+                new ContactTask(getApplication(), mAuth.getCurrentUser().getUid()).execute(data.getData());
+        } else if (requestCode == REQUEST_PICK_IMAGE && resultCode == RESULT_OK) {
+            try {
+                updateProfilePicture(data.getData());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    @SuppressLint("ShowToast")
+    public void OnListItemClick(int position, View view, String key) {
+        switch (view.getId()) {
+            case R.id.contact_call: {
+                startPhoneCall(key);
+            } break;
+            case R.id.contact_image: {
+                // TODO
+            } break;
+            case R.id.contact_directions: {
+                startShowInMap(key);
+            } break;
+        }
+    }
+
+    @Override
+    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+        attachFirebaseRecyclerViewAdapter();
+        setProfilePicture();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mUserAdapter != null) {
+            mUserAdapter.stopListening();
+            mUserAdapter = null;
+        }
+    }
+
+    @Override
+    SharedPreferences.OnSharedPreferenceChangeListener buildStateListener() {
+        return new SharedPreferences.OnSharedPreferenceChangeListener() {
             public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
                 if (key.equals(getString(R.string.pref_emergencies_user))) {
                     String emergency = mSharedPreferences.getString(key, "");
@@ -265,94 +267,6 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
                 }
             }
         };
-        mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case AppPermissions.REQUEST_READ_CONTACTS:
-                if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_READ_CONTACTS, grantResults)) {
-                    startPickContact();
-                }
-                break;
-            case AppPermissions.REQUEST_EXTERNAL_STORAGE:
-                if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_EXTERNAL_STORAGE, grantResults)) {
-                    startPickGalleryImage();
-                }
-                break;
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_PICK_CONTACT && resultCode == RESULT_OK) {
-            if (mAuth.getCurrentUser() != null)
-                new ContactTask(getApplication(), mAuth.getCurrentUser().getUid()).execute(data.getData());
-        } else if (requestCode == REQUEST_PICK_IMAGE && resultCode == RESULT_OK) {
-            try {
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData());
-                GlideApp.with(mCircleImageView.getContext()).load(bitmap).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
-                FileManager.uploadProfilePicture(mAuth, bitmap, new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        StorageReference storageReference = mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
-                        GlideApp.with(mCircleImageView.getContext()).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
-                    }
-                }, new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        // TODO: Error Handling
-                    }
-                });
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    @Override
-    public void OnListItemClick(int position, View view) {
-
-        switch (view.getId()) {
-            case R.id.contact_call:
-                startPhoneCall((String) view.getTag());
-                break;
-            case R.id.contact_image:
-                break;
-            case R.id.contact_directions:
-                if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    AppPermissions.requestLocationPermission(MainActivity.this);
-                } else {
-                    if (view.getTag() == null) {
-                        if (mToast != null) mToast.cancel();
-                        mToast = Toast.makeText(this, R.string.content_only_local_user_warning, Toast.LENGTH_SHORT);
-                        mToast.show();
-                        break;
-                    }
-                    Intent intent = new Intent(this, MapsActivity.class);
-                    intent.putExtra(getString(R.string.intent_uid), view.getTag().toString());
-                    startActivity(intent);
-                }
-                break;
-        }
-    }
-
-    @Override
-    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-        super.onAuthStateChanged(firebaseAuth);
-        attachFirebaseRecyclerViewAdapter();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mUserAdapter != null) {
-            mUserAdapter.stopListening();
-            mUserAdapter = null;
-        }
     }
 
     private void attachFirebaseRecyclerViewAdapter() {
@@ -369,13 +283,13 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
         if (mAuth.getCurrentUser() != null) {
             Emergency emergency = new Emergency();
             String uid = mAuth.getCurrentUser().getUid();
-            SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(MainActivity.this));
+            SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
             emergency.setUid(uid);
             emergency.setTrigger(uid);
             emergency.setStart(simpleLocation);
             String key = DataManager.startEmergency(emergency);
-            AppState.registerEmergencyUser(MainActivity.this, key);
-        }
+            AppState.registerEmergencyUser(this, key);
+        } slideForAlarm.resetSlider();
     }
 
     private void startPickContact() {
@@ -390,6 +304,19 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
         if (AppPermissions.requestExternalStoragePermission(this)) {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             startActivityForResult(intent, REQUEST_PICK_IMAGE);
+        }
+    }
+
+    @SuppressLint("ShowToast")
+    private void startShowInMap(String key) {
+        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            AppPermissions.requestLocationPermission(MainActivity.this);
+        } else {
+            if (key != null) {
+                Intent intent = new Intent(this, MapsActivity.class);
+                intent.putExtra(getString(R.string.intent_uid), key);
+                startActivity(intent);
+            } else showToast(Toast.makeText(this, R.string.content_only_local_user_warning, Toast.LENGTH_SHORT));
         }
     }
 
@@ -413,18 +340,16 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
                 // TODO: Format phone so that it matches the ones in the database
                 if (name != null && phone != null) {
                     DataManager.getDatabase().getReference("users").orderByChild("phone").equalTo(phone).limitToFirst(1).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
+                        @Override @SuppressLint("ShowToast")
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
                                 for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
                                     User user = childSnapshot.getValue(User.class);
-                                    Request request = new Request(user.getUid(), uid, RequestType.JOIN_FLOCK);
-                                    DataManager.requestJoinFlock(request);
-                                    if (mToast != null) mToast.cancel();
-                                    mToast = Toast.makeText(weakReference.get(),
-                                            weakReference.get().getString(R.string.content_join_flock_request) + " " + user.getName() + ".",
-                                            Toast.LENGTH_SHORT);
-                                    mToast.show();
+                                    if (user != null) {
+                                        Request request = new Request(user.getUid(), uid, RequestType.JOIN_FLOCK);
+                                        DataManager.requestJoinFlock(request);
+                                        showToast(Toast.makeText(weakReference.get(),weakReference.get().getString(R.string.content_join_flock_request) + " " + user.getName() + ".", Toast.LENGTH_SHORT));
+                                    }
                                 }
                             } else {
                                 // TODO: A User with the provided phone does not exist
@@ -448,24 +373,74 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
         }
     }
 
-    private void setUpRecyclers() {
-
-        // Firebase recycler
+    private void setUpRecyclerViews() {
+        // Firebase RecyclerView
         mRecyclerView = (RecyclerView) findViewById(R.id.flock_list);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(mRecyclerView.getContext(), DividerItemDecoration.VERTICAL));
 
-        // Contact recycler
+        // Contact RecyclerView
         mSecondRecyclerView = (RecyclerView) findViewById(R.id.local_contacts_list);
         RecyclerView.LayoutManager secondLayoutManager = new LinearLayoutManager(this);
         mSecondRecyclerView.setLayoutManager(secondLayoutManager);
         mSecondRecyclerView.addItemDecoration(new DividerItemDecoration(mSecondRecyclerView.getContext(), DividerItemDecoration.VERTICAL));
+        mContactAdapter = new ContactAdapter(new ArrayList<Contact>(), this);
+        mSecondRecyclerView.setAdapter(mContactAdapter);
 
-        // So that it looks just like 1 recycler
+        // Makes it look like there's a single RecyclerView
         mRecyclerView.setNestedScrollingEnabled(false);
         mSecondRecyclerView.setNestedScrollingEnabled(false);
+    }
 
+    private void setProfilePicture() {
+        StorageReference storageReference = mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
+        GlideApp.with(this).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
+    }
+
+    private void updateProfilePicture(Uri uri) throws IOException {
+        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+        GlideApp.with(mCircleImageView.getContext()).load(bitmap).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
+        FileManager.uploadProfilePicture(mAuth, bitmap, new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                StorageReference storageReference = mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
+                GlideApp.with(mCircleImageView.getContext()).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
+            }
+        }, new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                // TODO: Error Handling
+            }
+        });
+    }
+
+    private void showUndoMessage(RecyclerView.ViewHolder viewHolder) {
+        final String uid1 = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+        final String uid2 = ((UserHolder)viewHolder).uid;
+        if (uid1 != null && uid2 != null) {
+            DataManager.removeFromFlock(uid2, uid1);
+            // Show snackBar with undo option
+            DataManager.getDatabase().getReference("users").child(uid2).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    User user = dataSnapshot.getValue(User.class);
+                    Snackbar snackbar = Snackbar.make(mCoordinatorLayout, R.string.content_removed + " " + user.getName(), Snackbar.LENGTH_LONG);
+                    snackbar.setAction(R.string.content_undo_caps, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            DataManager.addToFlock(uid2, uid1);
+                        }
+                    }); snackbar.setActionTextColor(Color.YELLOW);
+                    snackbar.show();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    // TODO: Error Handling
+                }
+            });
+        }
     }
 
 }

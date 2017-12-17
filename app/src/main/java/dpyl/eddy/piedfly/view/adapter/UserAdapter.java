@@ -46,13 +46,10 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
 
     @Override
     protected void onBindViewHolder(UserHolder holder, int position, User model) {
-        holder.itemView.setTag(model.getUid());
+        holder.uid = model.getUid();
         holder.mContactName.setText(model.getName());
-        holder.mContactCall.setTag(model.getPhone());
-        holder.mContactDirections.setTag(model.getUid());
         StorageReference storageReference = model.getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(model.getPhotoUrl()) : null;
         GlideApp.with(holder.itemView.getContext()).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(holder.mContactImage);
     }
-
 
 }

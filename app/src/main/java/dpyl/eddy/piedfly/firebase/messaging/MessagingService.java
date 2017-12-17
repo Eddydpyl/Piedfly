@@ -27,8 +27,8 @@ import dpyl.eddy.piedfly.firebase.model.EventType;
 import dpyl.eddy.piedfly.firebase.model.Poke;
 import dpyl.eddy.piedfly.firebase.model.Request;
 import dpyl.eddy.piedfly.firebase.model.User;
-import dpyl.eddy.piedfly.room.models.Message;
-import dpyl.eddy.piedfly.room.models.MessageType;
+import dpyl.eddy.piedfly.room.model.Message;
+import dpyl.eddy.piedfly.room.model.MessageType;
 import dpyl.eddy.piedfly.view.MainActivity;
 
 public class MessagingService extends FirebaseMessagingService {

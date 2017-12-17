@@ -5,7 +5,6 @@
     <item
         android:id="@+id/action_bell"
         app:showAsAction="always"
-        android:visible="true"
         android:title="notifications"
         android:icon="@drawable/ic_action_notifications"
         tools:ignore="AlwaysShowAction,HardcodedText" />
@@ -13,7 +12,6 @@
         android:id="@+id/action_badge"
         app:actionLayout="@layout/menu_action_item_badge"
         app:showAsAction="always"
-        android:visible="false"
         android:title="notifications"
         tools:ignore="AlwaysShowAction,HardcodedText" />
     <item

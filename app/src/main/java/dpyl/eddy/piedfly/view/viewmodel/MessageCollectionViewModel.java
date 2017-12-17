@@ -6,15 +6,12 @@ import android.os.AsyncTask;
 
 import java.util.List;
 
-import dpyl.eddy.piedfly.room.models.Message;
-import dpyl.eddy.piedfly.room.repositories.MessageRepository;
-
+import dpyl.eddy.piedfly.room.model.Message;
+import dpyl.eddy.piedfly.room.repository.MessageRepository;
 
 public class MessageCollectionViewModel extends ViewModel {
 
-
     private MessageRepository mRepository;
-
 
     public MessageCollectionViewModel(MessageRepository mRepository) {
         this.mRepository = mRepository;
@@ -33,7 +30,6 @@ public class MessageCollectionViewModel extends ViewModel {
     }
 
     public class DeleteMessageTask extends AsyncTask<Message, Void, Void> {
-
         @Override
         protected Void doInBackground(Message... messages) {
             mRepository.deleteAllMessages(messages);

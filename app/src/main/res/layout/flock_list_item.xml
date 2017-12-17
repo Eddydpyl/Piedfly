@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -61,7 +60,6 @@
             android:textSize="@dimen/material_typography_body2"
             tools:text="Random-Random Random (Random)" />
 
-
         <!--TODO: fix tint, it changes color badly, ask company-->
 
         <ImageView
@@ -90,9 +88,7 @@
             android:src="@drawable/ic_call_24dp"
             android:tint="@color/colorSecondaryAccent" />
 
-
     </RelativeLayout>
-
 
 </FrameLayout>
 

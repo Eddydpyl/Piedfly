@@ -1,6 +1,5 @@
 package dpyl.eddy.piedfly.room.injection;
 
-
 import android.app.Application;
 
 import javax.inject.Singleton;

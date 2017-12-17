@@ -7,10 +7,6 @@ import dpyl.eddy.piedfly.room.injection.ApplicationModule;
 import dpyl.eddy.piedfly.room.injection.DaggerApplicationComponent;
 import dpyl.eddy.piedfly.room.injection.RoomModule;
 
-/**
- * Top level of our app.
- */
-
 public class MyApplication extends Application {
 
     private ApplicationComponent applicationComponent;
@@ -27,9 +23,8 @@ public class MyApplication extends Application {
 
     }
 
-
-
     public ApplicationComponent getApplicationComponent() {
         return applicationComponent;
     }
+
 }
