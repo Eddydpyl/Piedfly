@@ -3,7 +3,6 @@ package dpyl.eddy.piedfly.view;
 import android.Manifest;
 import android.app.Application;
 import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -28,7 +27,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -54,31 +52,26 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.inject.Inject;
-
 import de.hdodenhof.circleimageview.CircleImageView;
 import dpyl.eddy.piedfly.AppPermissions;
 import dpyl.eddy.piedfly.AppState;
-import dpyl.eddy.piedfly.firebase.DataManager;
-import dpyl.eddy.piedfly.firebase.FileManager;
-import dpyl.eddy.piedfly.firebase.GlideApp;
 import dpyl.eddy.piedfly.MyApplication;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.Utility;
+import dpyl.eddy.piedfly.firebase.DataManager;
+import dpyl.eddy.piedfly.firebase.FileManager;
+import dpyl.eddy.piedfly.firebase.GlideApp;
 import dpyl.eddy.piedfly.firebase.model.Emergency;
 import dpyl.eddy.piedfly.firebase.model.Request;
 import dpyl.eddy.piedfly.firebase.model.RequestType;
 import dpyl.eddy.piedfly.firebase.model.SimpleLocation;
 import dpyl.eddy.piedfly.firebase.model.User;
 import dpyl.eddy.piedfly.room.models.Contact;
-import dpyl.eddy.piedfly.room.models.Message;
-import dpyl.eddy.piedfly.room.repositories.MessageRepository;
 import dpyl.eddy.piedfly.view.adapter.ContactAdapter;
 import dpyl.eddy.piedfly.view.adapter.UserAdapter;
 import dpyl.eddy.piedfly.view.recyclerview.UserHolderItemTouchHelper;
 import dpyl.eddy.piedfly.view.viewholder.OnListItemClickListener;
 import dpyl.eddy.piedfly.view.viewmodel.ContactCollectionViewModel;
-import dpyl.eddy.piedfly.view.viewmodel.MessageCollectionViewModel;
 
 public class MainActivity extends BaseActivity implements OnListItemClickListener {
 
@@ -101,10 +94,6 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
     private NestedScrollView mNestedScrollView;
 
     private ContactAdapter mContactAdapter;
-
-
-    @Inject
-    ViewModelProvider.Factory mCustomViewModelFactory;
 
     static ContactCollectionViewModel mContactCollectionViewModel;
 
@@ -183,6 +172,7 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
                 mContactAdapter.setContacts(contacts);
             }
         });
+
 
         // Custom made swipe on recycler view (Used to delete objects)
         ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new UserHolderItemTouchHelper(0, ItemTouchHelper.LEFT, new UserHolderItemTouchHelper.RecyclerItemTouchHelperListener() {
@@ -274,7 +264,8 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
                     }
                 }
             }
-        }; mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
+        };
+        mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
     }
 
     @Override

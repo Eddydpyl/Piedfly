@@ -66,7 +66,7 @@ public class RoomModule {
 
     @Provides
     @Singleton
-    ViewModelProvider.Factory provideContactViewModelFactory(ContactRepository contactRepository, MessageRepository messageRepository) {
+    ViewModelProvider.Factory provideCustomViewModelFactory(ContactRepository contactRepository, MessageRepository messageRepository) {
         return new CustomViewModelFactory(contactRepository, messageRepository);
     }
 }

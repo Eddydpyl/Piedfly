@@ -16,7 +16,6 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
@@ -31,18 +30,18 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
-import com.mikepenz.actionitembadge.library.ActionItemBadge;
 
 import java.util.List;
 
 import javax.inject.Inject;
 
 import dpyl.eddy.piedfly.AppPermissions;
-import dpyl.eddy.piedfly.firebase.DataManager;
-import dpyl.eddy.piedfly.firebase.FileManager;
+import dpyl.eddy.piedfly.MyApplication;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.Utility;
 import dpyl.eddy.piedfly.exceptions.ExceptionHandler;
+import dpyl.eddy.piedfly.firebase.DataManager;
+import dpyl.eddy.piedfly.firebase.FileManager;
 import dpyl.eddy.piedfly.firebase.model.User;
 import dpyl.eddy.piedfly.monitor.LocationService;
 import dpyl.eddy.piedfly.monitor.PassiveService;
@@ -50,7 +49,7 @@ import dpyl.eddy.piedfly.room.models.Message;
 import dpyl.eddy.piedfly.view.viewmodel.MessageCollectionViewModel;
 
 @SuppressLint("Registered")
-public class BaseActivity extends AppCompatActivity implements FirebaseAuth.AuthStateListener{
+public class BaseActivity extends AppCompatActivity implements FirebaseAuth.AuthStateListener {
 
     static final int EMAIL_SIGN_IN = 42;
     static final int PHONE_SIGN_IN = 43;
@@ -60,13 +59,24 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
     FirebaseAuth mAuth;
     String mPhoneNumber;
 
+    @Inject
+    ViewModelProvider.Factory mCustomViewModelFactory;
+
     private MenuItem mMenuItem;
     private Dialog mDialog;
+
+
+    static MessageCollectionViewModel mMessageCollectionViewModel;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
+        //TODO: con esta linea lo conseguí arreglar, tengo que estudiarme bien dagger para ver cual es la mejor forma de organizar todo
+        //TODO: esto me dió la idea: https://stackoverflow.com/questions/42687686/dagger-2-injection-not-working
+        ((MyApplication) getApplication()).getApplicationComponent().inject(this);
+
         mAuth = FirebaseAuth.getInstance();
         readyDialog();
     }
@@ -100,7 +110,8 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
             return true;
         } else if (id == R.id.action_settings) {
             return true;
-        } return super.onOptionsItemSelected(item);
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -114,7 +125,8 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == AppPermissions.REQUEST_LOCATION) {
-            if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_LOCATION, grantResults)) startServices();
+            if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_LOCATION, grantResults))
+                startServices();
         } else if (requestCode == AppPermissions.REQUEST_CALL_PHONE) {
             if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_CALL_PHONE, grantResults)) {
                 if (mPhoneNumber != null) startPhoneCall(mPhoneNumber);
@@ -129,7 +141,7 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
             IdpResponse response = IdpResponse.fromResultIntent(data);
             if (resultCode == Activity.RESULT_OK && response != null) {
                 // Successfully signed in
-                if (false){//response.getPhoneNumber() == null || response.getPhoneNumber().isEmpty()){
+                if (false) {//response.getPhoneNumber() == null || response.getPhoneNumber().isEmpty()){
                     // The user doesn't have an associated phone number
                     Intent intent = new Intent(this, PhoneActivity.class);
                     startActivityForResult(intent, PHONE_SIGN_IN);
@@ -148,11 +160,10 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
                 }
             }
         } else if (requestCode == PHONE_SIGN_IN) {
-            if(resultCode == Activity.RESULT_OK) {
+            if (resultCode == Activity.RESULT_OK) {
                 // The user is signed in and has a verified phone number
                 readyUser();
-            }
-            else if (resultCode == Activity.RESULT_CANCELED || data == null) {
+            } else if (resultCode == Activity.RESULT_CANCELED || data == null) {
                 // The user has pressed the back button or isn't signed in
                 checkState();
             }
@@ -168,7 +179,8 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
     protected void onStop() {
         super.onStop();
         // Stop listening to changes in the App state and free up memory, as the Activity is not visible
-        if (mStateListener != null) mSharedPreferences.unregisterOnSharedPreferenceChangeListener(mStateListener);
+        if (mStateListener != null)
+            mSharedPreferences.unregisterOnSharedPreferenceChangeListener(mStateListener);
         mSharedPreferences = null;
     }
 
@@ -205,9 +217,9 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
     private void checkState() {
         if (mAuth.getCurrentUser() != null) {
             // The user is already signed in
-            if (false){//mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) {
+            if (false) {//mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) {
                 // The user doesn't have an associated phone number
-                if(!(this instanceof PhoneActivity)) {
+                if (!(this instanceof PhoneActivity)) {
                     Intent intent = new Intent(this, PhoneActivity.class);
                     startActivityForResult(intent, PHONE_SIGN_IN);
                 }
@@ -276,10 +288,10 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
         mDialog.show();
 
         ListView listView = (ListView) mDialog.findViewById(R.id.list_messages);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new String[] {"asasa"});
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new String[]{"asasa"});
         listView.setAdapter(adapter);
 
-        /*
+
         mMessageCollectionViewModel = ViewModelProviders.of(this, mCustomViewModelFactory).get(MessageCollectionViewModel.class);
         mMessageCollectionViewModel.getMessagesByTimestamp().observe(this, new Observer<List<Message>>() {
             @Override
@@ -287,6 +299,6 @@ public class BaseActivity extends AppCompatActivity implements FirebaseAuth.Auth
                 //TODO: fill up notifications views here, all stored messages will arrive here ordered by date
             }
         });
-        */
+
     }
 }
