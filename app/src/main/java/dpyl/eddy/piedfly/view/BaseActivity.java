@@ -108,7 +108,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
     protected void onStart() {
         super.onStart();
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        AppState.registerAppStateListener(this, mSharedPreferences, buildAppStateListener());
+        mStateListener = AppState.registerAppStateListener(this, mSharedPreferences, buildAppStateListener());
         checkState();
     }
 

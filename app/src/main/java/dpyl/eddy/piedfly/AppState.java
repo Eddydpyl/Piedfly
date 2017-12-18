@@ -52,8 +52,8 @@ public class AppState {
         return !emergencies.isEmpty();
     }
 
-    public static void registerAppStateListener(final Context context, final SharedPreferences sharedPreferences, final AppStateListener appStateListener) {
-        if (appStateListener == null) return;
+    public static SharedPreferences.OnSharedPreferenceChangeListener registerAppStateListener(final Context context, final SharedPreferences sharedPreferences, final AppStateListener appStateListener) {
+        if (appStateListener == null) return null;
         SharedPreferences.OnSharedPreferenceChangeListener listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
                 if (key.equals(context.getString(R.string.pref_emergencies_user))) {
@@ -80,6 +80,7 @@ public class AppState {
                 }
             }
         }; sharedPreferences.registerOnSharedPreferenceChangeListener(listener);
+        return listener;
     }
 
     public interface AppStateListener {
