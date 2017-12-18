@@ -2,7 +2,6 @@ package dpyl.eddy.piedfly.view;
 
 import android.Manifest;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Location;
@@ -41,9 +40,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import dpyl.eddy.piedfly.AppState;
 import dpyl.eddy.piedfly.firebase.DataManager;
 import dpyl.eddy.piedfly.firebase.FileManager;
 import dpyl.eddy.piedfly.firebase.GlideApp;
@@ -177,31 +176,38 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     }
 
     @Override
-    SharedPreferences.OnSharedPreferenceChangeListener buildStateListener() {
-        return new SharedPreferences.OnSharedPreferenceChangeListener() {
-            public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
-                if (key.equals(getString(R.string.pref_emergencies_user))) {
-                    String emergency = mSharedPreferences.getString(key, "");
-                    if (emergency.isEmpty()) {
-                        // TODO: The user had an emergency active and now it has been stopped
-                    } else {
-                        // TODO: There user has activated an emergency
-                    }
-                } else if (key.equals(getString(R.string.pref_emergencies_flock))) {
-                    Set<String> emergencies = mSharedPreferences.getStringSet(key, new HashSet<String>());
-                    if (emergencies.isEmpty()) {
-                        // TODO: There was at least an emergency active and now they have all been stopped
-                    } else {
-                        // TODO: There is at least one emergency active
-                    }
-                } else if (key.equals(getString(R.string.pref_emergencies_nearby))) {
-                    Set<String> emergencies = mSharedPreferences.getStringSet(key, new HashSet<String>());
-                    if (emergencies.isEmpty()) {
-                        // TODO: There was at least an emergency active and now they have all been stopped
-                    } else {
-                        // TODO: There is at least one emergency active
-                    }
-                }
+    protected AppState.AppStateListener buildAppStateListener() {
+
+        return new AppState.AppStateListener() {
+
+            @Override
+            public void onUserEmergencyStart() {
+                // TODO: There user has activated an emergency
+            }
+
+            @Override
+            public void onUserEmergencyStop() {
+                // TODO: The user had an emergency active and now it has been stopped
+            }
+
+            @Override
+            public void onFlockEmergencyStart() {
+                // TODO: There is at least one emergency active
+            }
+
+            @Override
+            public void onFlockEmergencyStop() {
+                // TODO: There was at least an emergency active and now they have all been stopped
+            }
+
+            @Override
+            public void onNearbyEmergencyStart() {
+                // TODO: There is at least one emergency active
+            }
+
+            @Override
+            public void onNearbyEmergencyStop() {
+                // TODO: There was at least an emergency active and now they have all been stopped
             }
         };
     }

@@ -32,6 +32,7 @@ import com.google.firebase.auth.PhoneAuthProvider;
 import java.util.concurrent.TimeUnit;
 
 import dpyl.eddy.piedfly.AppPermissions;
+import dpyl.eddy.piedfly.AppState;
 import dpyl.eddy.piedfly.R;
 
 import static dpyl.eddy.piedfly.AppPermissions.REQUEST_READ_PHONE_STATE;
@@ -111,7 +112,7 @@ public class PhoneActivity extends BaseActivity {
     }
 
     @Override
-    SharedPreferences.OnSharedPreferenceChangeListener buildStateListener() { return null; }
+    protected AppState.AppStateListener buildAppStateListener() { return null; }
 
     @SuppressLint("HardwareIds")
     private void writePhoneNumber() {

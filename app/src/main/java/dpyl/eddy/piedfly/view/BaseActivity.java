@@ -41,6 +41,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import dpyl.eddy.piedfly.AppPermissions;
+import dpyl.eddy.piedfly.AppState;
 import dpyl.eddy.piedfly.MyApplication;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.Utility;
@@ -107,8 +108,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
     protected void onStart() {
         super.onStart();
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        mStateListener = buildStateListener();
-        mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
+        AppState.registerAppStateListener(this, mSharedPreferences, buildAppStateListener());
         checkState();
     }
 
@@ -179,7 +179,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
     }
 
     // Listen to changes to the App state and update the UI accordingly
-    abstract SharedPreferences.OnSharedPreferenceChangeListener buildStateListener();
+    abstract protected AppState.AppStateListener buildAppStateListener();
 
     // Avoid Toast queues within the application
     static void showToast(Toast toast) {

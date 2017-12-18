@@ -52,6 +52,45 @@ public class AppState {
         return !emergencies.isEmpty();
     }
 
+    public static void registerAppStateListener(final Context context, final SharedPreferences sharedPreferences, final AppStateListener appStateListener) {
+        if (appStateListener == null) return;
+        SharedPreferences.OnSharedPreferenceChangeListener listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+                if (key.equals(context.getString(R.string.pref_emergencies_user))) {
+                    String emergency = sharedPreferences.getString(key, "");
+                    if (emergency.isEmpty()) {
+                        appStateListener.onUserEmergencyStop();
+                    } else {
+                        appStateListener.onUserEmergencyStart();
+                    }
+                } else if (key.equals(context.getString(R.string.pref_emergencies_flock))) {
+                    Set<String> emergencies = sharedPreferences.getStringSet(key, new HashSet<String>());
+                    if (emergencies.isEmpty()) {
+                        appStateListener.onFlockEmergencyStop();
+                    } else {
+                        appStateListener.onFlockEmergencyStart();
+                    }
+                } else if (key.equals(context.getString(R.string.pref_emergencies_nearby))) {
+                    Set<String> emergencies = sharedPreferences.getStringSet(key, new HashSet<String>());
+                    if (emergencies.isEmpty()) {
+                        appStateListener.onNearbyEmergencyStop();
+                    } else {
+                        appStateListener.onNearbyEmergencyStart();
+                    }
+                }
+            }
+        }; sharedPreferences.registerOnSharedPreferenceChangeListener(listener);
+    }
+
+    public interface AppStateListener {
+        void onUserEmergencyStart();
+        void onUserEmergencyStop();
+        void onFlockEmergencyStart();
+        void onFlockEmergencyStop();
+        void onNearbyEmergencyStart();
+        void onNearbyEmergencyStop();
+    }
+
     private static void registerEmergency(Context context, String emergencyKey, String type) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         Set<String> emergencies = sharedPreferences.getStringSet(type, new HashSet<String>());
