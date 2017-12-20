@@ -121,8 +121,7 @@ public class MessagingService extends FirebaseMessagingService {
                     public void onCancelled(DatabaseError databaseError) {
                         // TODO: Error handling
                     }
-                });
-                break;
+                }); break;
             case MESSAGE_TYPE_EMERGENCY_NEARBY:
                 // The user has either entered or left the perimeter of an Emergency
                 final Boolean state = Boolean.valueOf(data.get("state"));
@@ -150,8 +149,7 @@ public class MessagingService extends FirebaseMessagingService {
                     public void onCancelled(DatabaseError databaseError) {
                         // TODO: Error handling
                     }
-                });
-                break;
+                }); break;
             case MESSAGE_TYPE_REQUEST:
                 // A Request has been sent to the user
                 mDatabase.getReference("requests").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -182,8 +180,7 @@ public class MessagingService extends FirebaseMessagingService {
                     public void onCancelled(DatabaseError databaseError) {
                         // TODO: Error handling
                     }
-                });
-                break;
+                }); break;
             case MESSAGE_TYPE_START_POKE:
                 // A Poke has been sent to the user
                 mDatabase.getReference("pokes").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -214,8 +211,7 @@ public class MessagingService extends FirebaseMessagingService {
                     public void onCancelled(DatabaseError databaseError) {
                         // TODO: Error handling
                     }
-                });
-                break;
+                }); break;
             case MESSAGE_TYPE_END_POKE:
                 // A Poke involving the user has been checked
                 mDatabase.getReference("pokes").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -246,8 +242,7 @@ public class MessagingService extends FirebaseMessagingService {
                     public void onCancelled(DatabaseError databaseError) {
                         // TODO: Error handling
                     }
-                });
-                break;
+                }); break;
         }
     }
 

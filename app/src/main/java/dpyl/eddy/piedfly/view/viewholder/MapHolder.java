@@ -10,14 +10,15 @@ public class MapHolder extends RecyclerView.ViewHolder implements View.OnClickLi
 
     public String uid;
 
-    public CircleImageView MapContactImage;
+    public CircleImageView mMapContactImage;
 
     private OnListItemClickListener mOnListItemClickListener;
 
     public MapHolder(View itemView, OnListItemClickListener onMapListItemClickListener) {
         super(itemView);
         mOnListItemClickListener = onMapListItemClickListener;
-        MapContactImage = (CircleImageView) itemView.findViewById(R.id.map_contact_image);
+        mMapContactImage = (CircleImageView) itemView.findViewById(R.id.map_contact_image);
+        mMapContactImage.setOnClickListener(this);
         itemView.setOnClickListener(this);
     }
 

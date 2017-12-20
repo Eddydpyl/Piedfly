@@ -17,8 +17,10 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -52,12 +54,14 @@ import dpyl.eddy.piedfly.firebase.model.User;
 import dpyl.eddy.piedfly.monitor.LocationService;
 import dpyl.eddy.piedfly.monitor.PassiveService;
 import dpyl.eddy.piedfly.room.model.Message;
+import dpyl.eddy.piedfly.room.model.MessageType;
 import dpyl.eddy.piedfly.view.adapter.MessageAdapter;
+import dpyl.eddy.piedfly.view.recyclerview.CustomItemTouchHelper;
 import dpyl.eddy.piedfly.view.viewholder.OnListItemClickListener;
 import dpyl.eddy.piedfly.view.viewmodel.MessageCollectionViewModel;
 
 @SuppressLint("Registered")
-public abstract class BaseActivity extends AppCompatActivity implements FirebaseAuth.AuthStateListener {
+public abstract class BaseActivity extends AppCompatActivity implements FirebaseAuth.AuthStateListener, OnListItemClickListener {
 
     static final int EMAIL_SIGN_IN = 42;
     static final int PHONE_SIGN_IN = 43;
@@ -73,6 +77,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
     String mPhoneNumber;
 
     private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
+    private MessageAdapter mMessageAdapter;
     private Dialog mDialog;
 
     @Override
@@ -81,12 +86,13 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
         ((MyApplication) getApplication()).getApplicationComponent().inject(this);
         mAuth = FirebaseAuth.getInstance();
+        setUpNotificationsView();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        notificationsMenuItem(menu.findItem(R.id.action_badge), menu.findItem(R.id.action_bell));
+        setUpNotificationsMenuItem(menu.findItem(R.id.action_badge), menu.findItem(R.id.action_bell));
         return true;
     }
 
@@ -108,7 +114,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
     protected void onStart() {
         super.onStart();
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        mStateListener = AppState.registerAppStateListener(this, mSharedPreferences, buildAppStateListener());
+        mStateListener = AppState.onSharedPreferenceChangeListener(this, mSharedPreferences, buildAppStateListener());
+        mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
         checkState();
     }
 
@@ -169,16 +176,25 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
     }
 
     @Override
+    public void OnListItemClick(int position, View view, @Nullable String Key) {
+        if (view.getId() == R.id.message_item) {
+            Message message = mMessageAdapter.getMessages().get(position);
+            MessageType messageType = MessageType.valueOf(message.getType());
+            // TODO: Actions dependant on MessageType
+        }
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
-        // Stop listening to changes in the App state and free up memory, as the Activity is not visible
+        // Stop listening to changes in the app state and free up memory, as the Activity is not visible
         if (mStateListener != null) {
             mSharedPreferences.unregisterOnSharedPreferenceChangeListener(mStateListener);
             mStateListener = null;
         } mSharedPreferences = null;
     }
 
-    // Listen to changes to the App state and update the UI accordingly
+    // Listen to changes to the app state and update the UI accordingly
     abstract protected AppState.AppStateListener buildAppStateListener();
 
     // Avoid Toast queues within the application
@@ -186,6 +202,19 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         if (mToast != null) mToast.cancel();
         mToast = toast;
         mToast.show();
+    }
+
+    void startPhoneCall(String phoneNumber) {
+        this.mPhoneNumber = phoneNumber;
+        if (phoneNumber != null) {
+            if (AppPermissions.requestCallPermission(this)) {
+                Intent intent = new Intent(Intent.ACTION_DIAL);
+                intent.setData(Uri.parse("tel:" + phoneNumber));
+                if (intent.resolveActivity(getPackageManager()) != null) startActivity(intent);
+            }
+        } else {
+            // TODO: Error Handling
+        }
     }
 
     private void readyUser() {
@@ -269,20 +298,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         }
     }
 
-    void startPhoneCall(String phoneNumber) {
-        this.mPhoneNumber = phoneNumber;
-        if (phoneNumber != null) {
-            if (AppPermissions.requestCallPermission(this)) {
-                Intent intent = new Intent(Intent.ACTION_DIAL);
-                intent.setData(Uri.parse("tel:" + phoneNumber));
-                if (intent.resolveActivity(getPackageManager()) != null) startActivity(intent);
-            }
-        } else {
-            // TODO: Error Handling
-        }
-    }
-
-    private void notificationsMenuItem(final MenuItem menuCounter, final MenuItem menuEmpty) {
+    private void setUpNotificationsView() {
         mDialog = new Dialog(this, R.style.Theme_AppCompat_Dialog);
         mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
         mDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -293,30 +309,35 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         RecyclerView recyclerView = (RecyclerView) mDialog.findViewById(R.id.list_messages);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
-        final MessageAdapter messageAdapter = new MessageAdapter(new ArrayList<Message>(), new OnListItemClickListener() {
-            @Override
-            public void OnListItemClick(int position, View view, String key) {
-                // TODO: Custom Actions dependant on the MessageType
-            }
-        });
-        recyclerView.setAdapter(messageAdapter);
+        recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL));
+        mMessageAdapter = new MessageAdapter(new ArrayList<Message>(), this);
+        recyclerView.setAdapter(mMessageAdapter);
 
+        // Custom made swipe on recycler view (Used to delete objects)
+        ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new CustomItemTouchHelper(0, ItemTouchHelper.LEFT, new CustomItemTouchHelper.RecyclerItemTouchHelperListener() {
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
+                mMessageCollectionViewModel.deleteMessage(mMessageAdapter.getMessages().get(position));
+                mMessageAdapter.notifyItemRemoved(position);
+            }
+        }); new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView);
+    }
+
+    private void setUpNotificationsMenuItem(final MenuItem menuCounter, final MenuItem menuEmpty) {
+        ActionItemBadge.hide(menuCounter);
         mMessageCollectionViewModel = ViewModelProviders.of(this, mCustomViewModelFactory).get(MessageCollectionViewModel.class);
         mMessageCollectionViewModel.getMessagesByTimestamp().observe(this, new Observer<List<Message>>() {
             @Override
             public void onChanged(@Nullable List<Message> messages) {
                 // Stored messages arrive ordered by date
-                if (messages != null && messages.size() > 0) {
-                    for (Message message : messages) {
-                        messageAdapter.addMessage(message);
-                    }
-                    if (messageAdapter.getItemCount() > 0) {
-                        ActionItemBadge.update(BaseActivity.this, menuCounter, getDrawable(R.drawable.ic_action_notifications), ActionItemBadge.BadgeStyles.DARK_GREY, messageAdapter.getItemCount());
-                        menuEmpty.setVisible(false);
-                    } else {
-                        ActionItemBadge.hide(menuCounter);
-                        menuEmpty.setVisible(true);
-                    }
+                mMessageAdapter.setMessages(messages);
+                if (mMessageAdapter.getItemCount() > 0) {
+                    ActionItemBadge.update(BaseActivity.this, menuCounter, getDrawable(R.drawable.ic_action_notifications), ActionItemBadge.BadgeStyles.DARK_GREY, mMessageAdapter.getItemCount());
+                    menuEmpty.setVisible(false);
+                } else {
+                    ActionItemBadge.hide(menuCounter);
+                    menuEmpty.setVisible(true);
+                    if (mDialog.isShowing()) mDialog.dismiss();
                 }
             }
         });

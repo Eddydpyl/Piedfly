@@ -52,7 +52,7 @@ public class AppState {
         return !emergencies.isEmpty();
     }
 
-    public static SharedPreferences.OnSharedPreferenceChangeListener registerAppStateListener(final Context context, final SharedPreferences sharedPreferences, final AppStateListener appStateListener) {
+    public static SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener(final Context context, final SharedPreferences sharedPreferences, final AppStateListener appStateListener) {
         if (appStateListener == null) return null;
         SharedPreferences.OnSharedPreferenceChangeListener listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
@@ -79,8 +79,7 @@ public class AppState {
                     }
                 }
             }
-        }; sharedPreferences.registerOnSharedPreferenceChangeListener(listener);
-        return listener;
+        }; return listener;
     }
 
     public interface AppStateListener {

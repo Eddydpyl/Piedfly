@@ -118,8 +118,10 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     }
 
     @Override
-    public void OnListItemClick(int position, View view, String key) { focusCamera(key); }
-
+    public void OnListItemClick(int position, View view, String key) {
+        super.OnListItemClick(position, view, key);
+        if (view.getId() == R.id.map_contact_image || view.getId() == R.id.map_user_image) focusCamera(key);
+    }
 
     @Override
     public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {

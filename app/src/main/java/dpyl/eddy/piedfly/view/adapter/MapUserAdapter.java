@@ -68,7 +68,7 @@ public class MapUserAdapter extends FirebaseRecyclerAdapter<User, MapHolder> {
     @Override
     protected void onBindViewHolder(MapHolder holder, int position, User model) {
         StorageReference storageReference = model.getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(model.getPhotoUrl()) : null;
-        GlideApp.with(holder.itemView.getContext()).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(holder.MapContactImage);
+        GlideApp.with(holder.itemView.getContext()).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(holder.mMapContactImage);
         holder.uid = model.getUid();
 
         SimpleLocation simpleLocation = model.getLastKnownLocation();

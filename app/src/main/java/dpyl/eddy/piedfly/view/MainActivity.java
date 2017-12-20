@@ -66,12 +66,11 @@ import dpyl.eddy.piedfly.firebase.model.User;
 import dpyl.eddy.piedfly.room.model.Contact;
 import dpyl.eddy.piedfly.view.adapter.ContactAdapter;
 import dpyl.eddy.piedfly.view.adapter.UserAdapter;
-import dpyl.eddy.piedfly.view.recyclerview.UserHolderItemTouchHelper;
-import dpyl.eddy.piedfly.view.viewholder.OnListItemClickListener;
+import dpyl.eddy.piedfly.view.recyclerview.CustomItemTouchHelper;
 import dpyl.eddy.piedfly.view.viewholder.UserHolder;
 import dpyl.eddy.piedfly.view.viewmodel.ContactCollectionViewModel;
 
-public class MainActivity extends BaseActivity implements OnListItemClickListener {
+public class MainActivity extends BaseActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -149,7 +148,7 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
         });
 
         // Custom made swipe on recycler view (Used to delete objects)
-        ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new UserHolderItemTouchHelper(0, ItemTouchHelper.LEFT, new UserHolderItemTouchHelper.RecyclerItemTouchHelperListener() {
+        ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new CustomItemTouchHelper(0, ItemTouchHelper.LEFT, new CustomItemTouchHelper.RecyclerItemTouchHelperListener() {
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
                 showUndoMessage(viewHolder);
@@ -157,7 +156,7 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
         }); new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(mRecyclerView);
 
         // OnSwipe delete for the second recycler view
-        ItemTouchHelper.SimpleCallback itemTouchHelperSecondRecycler = new UserHolderItemTouchHelper(0, ItemTouchHelper.LEFT, new UserHolderItemTouchHelper.RecyclerItemTouchHelperListener() {
+        ItemTouchHelper.SimpleCallback itemTouchHelperSecondRecycler = new CustomItemTouchHelper(0, ItemTouchHelper.LEFT, new CustomItemTouchHelper.RecyclerItemTouchHelperListener() {
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
                 mContactCollectionViewModel.deleteContact(mContactAdapter.getContacts().get(position));
@@ -208,6 +207,7 @@ public class MainActivity extends BaseActivity implements OnListItemClickListene
     @Override
     @SuppressLint("ShowToast")
     public void OnListItemClick(int position, View view, String key) {
+        super.OnListItemClick(position, view, key);
         switch (view.getId()) {
             case R.id.contact_call: {
                 startPhoneCall(key);

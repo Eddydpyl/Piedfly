@@ -32,6 +32,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageHolder>{
     public void onBindViewHolder(MessageHolder holder, int position) {
         Message model = mMessages.get(position);
         holder.mMessageText.setText(model.getText());
+        // TODO: Set icon according to MessageType
     }
 
     @Override
