@@ -13,7 +13,7 @@ public class UserHolder extends ItemTouchHolder implements View.OnClickListener 
 
     public CircleImageView mContactImage;
     public TextView mContactName;
-    public ImageView mContactCall, mContactDirections;
+    public ImageView mContactCall, mContactDirections, mContactPoke;
 
     public OnListItemClickListener mOnListItemClickListener;
 
@@ -24,9 +24,11 @@ public class UserHolder extends ItemTouchHolder implements View.OnClickListener 
         mContactName = (TextView) itemView.findViewById(R.id.contact_name);
         mContactCall = (ImageView) itemView.findViewById(R.id.contact_call);
         mContactDirections = (ImageView) itemView.findViewById(R.id.contact_directions);
+        mContactPoke = (ImageView) itemView.findViewById(R.id.contact_poke);
         mContactImage.setOnClickListener(this);
         mContactCall.setOnClickListener(this);
         mContactDirections.setOnClickListener(this);
+        if (mContactPoke != null) mContactPoke.setOnClickListener(this);
         itemView.setOnClickListener(this);
     }
 

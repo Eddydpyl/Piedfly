@@ -49,16 +49,19 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import dpyl.eddy.piedfly.AppPermissions;
 import dpyl.eddy.piedfly.AppState;
+import dpyl.eddy.piedfly.Constants;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.Utility;
 import dpyl.eddy.piedfly.firebase.DataManager;
 import dpyl.eddy.piedfly.firebase.FileManager;
 import dpyl.eddy.piedfly.firebase.GlideApp;
 import dpyl.eddy.piedfly.firebase.model.Emergency;
+import dpyl.eddy.piedfly.firebase.model.Poke;
 import dpyl.eddy.piedfly.firebase.model.Request;
 import dpyl.eddy.piedfly.firebase.model.RequestType;
 import dpyl.eddy.piedfly.firebase.model.SimpleLocation;
@@ -83,8 +86,10 @@ public class MainActivity extends BaseActivity {
     private FloatingActionButton faButton;
     private RecyclerView mRecyclerView;
     private RecyclerView mSecondRecyclerView;
-    //TODO: alomejor hacer algo con el scroll view para que permita overscrollear
     private NestedScrollView mNestedScrollView;
+
+    private DatabaseReference mPokeReference;
+    private ValueEventListener mPokeListener;
 
     private UserAdapter mUserAdapter;
     private ContactAdapter mContactAdapter;
@@ -169,7 +174,10 @@ public class MainActivity extends BaseActivity {
     protected void onStart() {
         super.onStart();
         attachFirebaseRecyclerViewAdapter();
-        if (mUserAdapter != null) mUserAdapter.startListening();
+        if (mUserAdapter != null) {
+            mUserAdapter.startListening();
+            setUpPokeListener();
+        }
     }
 
     @Override
@@ -210,7 +218,10 @@ public class MainActivity extends BaseActivity {
         super.OnListItemClick(position, view, key);
         switch (view.getId()) {
             case R.id.contact_call: {
-                startPhoneCall(key);
+                startPhoneCall((String) view.getTag());
+            } break;
+            case R.id.contact_poke: {
+                pokeAction(key, (String) view.getTag());
             } break;
             case R.id.contact_image: {
                 // TODO
@@ -224,6 +235,7 @@ public class MainActivity extends BaseActivity {
     @Override
     public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
         attachFirebaseRecyclerViewAdapter();
+        if (mUserAdapter != null) setUpPokeListener();
         setProfilePicture();
     }
 
@@ -233,7 +245,7 @@ public class MainActivity extends BaseActivity {
         if (mUserAdapter != null) {
             mUserAdapter.stopListening();
             mUserAdapter = null;
-        }
+        } removePokeListener();
     }
 
     @Override
@@ -243,7 +255,8 @@ public class MainActivity extends BaseActivity {
 
             @Override
             public void onUserEmergencyStart() {
-                // TODO: There user has activated an emergency
+                // TODO: The user has activated an emergency
+                mUserAdapter.setEmergency(true);
             }
 
             @Override
@@ -254,11 +267,12 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onFlockEmergencyStart() {
                 // TODO: There is at least one emergency active
+                mUserAdapter.setEmergency(true);
             }
 
             @Override
             public void onFlockEmergencyStop() {
-                // TODO: There was at least an emergency active and now they have all been stopped
+                // TODO: There was at least a flock emergency active and now they have all been stopped
             }
 
             @Override
@@ -268,19 +282,15 @@ public class MainActivity extends BaseActivity {
 
             @Override
             public void onNearbyEmergencyStop() {
+                // TODO: There was at least a nearby emergency active and now they have all been stopped
+            }
+
+            @Override
+            public void onAllEmergencyStop() {
                 // TODO: There was at least an emergency active and now they have all been stopped
+                mUserAdapter.setEmergency(false);
             }
         };
-    }
-
-    private void attachFirebaseRecyclerViewAdapter() {
-        if (mAuth != null && mAuth.getCurrentUser() != null && mUserAdapter == null) {
-            Query keyQuery = DataManager.getDatabase().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("flock");
-            DatabaseReference dataQuery = DataManager.getDatabase().getReference().child("users");
-            FirebaseRecyclerOptions<User> options = new FirebaseRecyclerOptions.Builder<User>().setIndexedQuery(keyQuery, dataQuery, User.class).build();
-            mUserAdapter = new UserAdapter(options, this);
-            mRecyclerView.setAdapter(mUserAdapter);
-        }
     }
 
     private void startEmergency() {
@@ -397,6 +407,43 @@ public class MainActivity extends BaseActivity {
         mSecondRecyclerView.setNestedScrollingEnabled(false);
     }
 
+    private void attachFirebaseRecyclerViewAdapter() {
+        if (mAuth != null && mAuth.getCurrentUser() != null && mUserAdapter == null) {
+            Query keyQuery = DataManager.getDatabase().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("flock");
+            DatabaseReference dataQuery = DataManager.getDatabase().getReference().child("users");
+            FirebaseRecyclerOptions<User> options = new FirebaseRecyclerOptions.Builder<User>().setIndexedQuery(keyQuery, dataQuery, User.class).build();
+            mUserAdapter = new UserAdapter( options, this, AppState.emergencyUser(this));
+            mRecyclerView.setAdapter(mUserAdapter);
+        }
+    }
+
+    private void setUpPokeListener() {
+        if (mAuth != null && mAuth.getCurrentUser() != null) {
+            mPokeReference = DataManager.getDatabase().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("flock");
+            mPokeListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Map<String, String> pokes = (Map<String, String>) dataSnapshot.getValue();
+                    if (pokes != null)  mUserAdapter.setPokes(pokes);
+                    mUserAdapter.notifyDataSetChanged();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    // TODO: Error handling
+                }
+            }; mPokeReference.addValueEventListener(mPokeListener);
+        }
+    }
+
+    private void removePokeListener() {
+        if (mPokeReference != null && mPokeListener != null) {
+            mPokeReference.removeEventListener(mPokeListener);
+            mPokeReference = null;
+            mPokeListener = null;
+        }
+    }
+
     private void setProfilePicture() {
         StorageReference storageReference = mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
         GlideApp.with(this).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
@@ -429,14 +476,15 @@ public class MainActivity extends BaseActivity {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     User user = dataSnapshot.getValue(User.class);
-                    Snackbar snackbar = Snackbar.make(mCoordinatorLayout, R.string.content_removed + " " + user.getName(), Snackbar.LENGTH_LONG);
-                    snackbar.setAction(R.string.content_undo_caps, new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            DataManager.addToFlock(uid2, uid1);
-                        }
-                    }); snackbar.setActionTextColor(Color.YELLOW);
-                    snackbar.show();
+                    if (user != null) {
+                        Snackbar snackbar = Snackbar.make(mCoordinatorLayout, R.string.content_removed + " " + user.getName(), Snackbar.LENGTH_LONG);
+                        snackbar.setAction(R.string.content_undo_caps, new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) { DataManager.addToFlock(uid2, uid1); }
+                        });
+                        snackbar.setActionTextColor(Color.YELLOW);
+                        snackbar.show();
+                    }
                 }
 
                 @Override
@@ -444,6 +492,40 @@ public class MainActivity extends BaseActivity {
                     // TODO: Error Handling
                 }
             });
+        }
+    }
+
+    @SuppressLint("ShowToast")
+    private void pokeAction(String key, String type) {
+        SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
+        String uid = mAuth.getCurrentUser().getUid();
+        switch (type) {
+            case Constants.POKE_NONE: {
+                Poke poke = new Poke();
+                poke.setUid(key);
+                poke.setTrigger(uid);
+                poke.setStart(simpleLocation);
+                DataManager.startPoke(poke);
+                showToast(Toast.makeText(this, R.string.content_poke_none, Toast.LENGTH_SHORT));
+            } break;
+            case Constants.POKE_FLOCK: {
+                Poke poke = new Poke(mUserAdapter.getPokes().get(key));
+                poke.setUid(uid);
+                poke.setTrigger(key);
+                poke.setChecker(uid);
+                poke.setFinish(simpleLocation);
+                DataManager.stopPoke(poke);
+                showToast(Toast.makeText(this, R.string.content_poke_flock, Toast.LENGTH_SHORT));
+            } break;
+            case Constants.POKE_USER: {
+                Poke poke = new Poke(mUserAdapter.getPokes().get(key));
+                poke.setUid(key);
+                poke.setTrigger(uid);
+                poke.setChecker(uid);
+                poke.setFinish(simpleLocation);
+                DataManager.stopPoke(poke);
+                showToast(Toast.makeText(this, R.string.content_poke_user, Toast.LENGTH_SHORT));
+            } break;
         }
     }
 

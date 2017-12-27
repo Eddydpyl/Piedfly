@@ -28,5 +28,8 @@
     <string name="content_push_poke_start_text">Indica que es así pulsando esta notificación.</string>
     <string name="content_push_poke_end_title">parece estar bien.</string>
     <string name="content_push_poke_end_text">¡No hay de qué preocuparse!</string>
+    <string name="content_poke_none">Se ha enviado un Toque y estamos esperando respuesta.</string>
+    <string name="content_poke_flock">¡Estás bien! No hay de qué preocuparse.</string>
+    <string name="content_poke_user">Has cancelado el Toque.</string>
 
 </resources>

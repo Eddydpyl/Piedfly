@@ -200,7 +200,7 @@ public class DataManager {
         return pokeRef.getKey();
     }
 
-    public static void finishPoke(@NonNull Poke poke) {
+    public static void stopPoke(@NonNull Poke poke) {
         if(poke.getKey() == null)
             throw new RuntimeException("Poke has no key");
         if(poke.getUid() == null)
@@ -217,8 +217,8 @@ public class DataManager {
         if (poke.getFinish() != null)
             childUpdates.put("/finish", poke.getFinish());
         pokeRef.updateChildren(childUpdates);
-        userRef.setValue(true);
-        triggerRef.setValue(true);
+        userRef.setValue(Constants.PLACEHOLDER);
+        triggerRef.setValue(Constants.PLACEHOLDER);
     }
 
     private static void readyGeoQuery(@NonNull final Emergency emergency) {

@@ -184,7 +184,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
 
             @Override
             public void onUserEmergencyStart() {
-                // TODO: There user has activated an emergency
+                // TODO: The user has activated an emergency
             }
 
             @Override
@@ -199,7 +199,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
 
             @Override
             public void onFlockEmergencyStop() {
-                // TODO: There was at least an emergency active and now they have all been stopped
+                // TODO: There was at least a flock emergency active and now they have all been stopped
             }
 
             @Override
@@ -209,6 +209,11 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
 
             @Override
             public void onNearbyEmergencyStop() {
+                // TODO: There was at least a nearby emergency active and now they have all been stopped
+            }
+
+            @Override
+            public void onAllEmergencyStop() {
                 // TODO: There was at least an emergency active and now they have all been stopped
             }
         };

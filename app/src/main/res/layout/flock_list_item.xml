@@ -88,6 +88,19 @@
             android:src="@drawable/ic_call_24dp"
             android:tint="@color/colorSecondaryAccent" />
 
+        <ImageView
+            android:id="@+id/contact_poke"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="@dimen/flock_item_marginRight"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/ic_poke_empty"
+            android:tint="@color/colorSecondaryAccent" />
+
     </RelativeLayout>
 
 </FrameLayout>
