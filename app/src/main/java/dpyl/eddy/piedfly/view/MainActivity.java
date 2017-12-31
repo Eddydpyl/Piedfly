@@ -485,7 +485,7 @@ public class MainActivity extends BaseActivity {
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     User user = dataSnapshot.getValue(User.class);
                     if (user != null) {
-                        Snackbar snackbar = Snackbar.make(mCoordinatorLayout, R.string.content_removed + " " + user.getName(), Snackbar.LENGTH_LONG);
+                        Snackbar snackbar = Snackbar.make(mCoordinatorLayout, getString(R.string.content_removed) + " " + user.getName(), Snackbar.LENGTH_LONG);
                         snackbar.setAction(R.string.content_undo_caps, new View.OnClickListener() {
                             @Override
                             public void onClick(View view) { DataManager.addToFlock(uid2, uid1); }

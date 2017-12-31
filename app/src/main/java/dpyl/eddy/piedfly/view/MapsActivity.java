@@ -224,7 +224,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
             if (mMarkers == null) mMarkers = new HashMap<>();
             Location location = Utility.getLastKnownLocation(this);
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-            placeMarker(mAuth.getCurrentUser().getUid(), latLng);
+            placeMarker(mAuth.getCurrentUser().getUid(), mAuth.getCurrentUser().getDisplayName(), latLng);
 
             Query keyQuery = DataManager.getDatabase().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("flock");
             DatabaseReference dataQuery = DataManager.getDatabase().getReference().child("users");
@@ -298,30 +298,32 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 final User user = dataSnapshot.getValue(User.class);
-                mContactDetailsName.setText(user.getName());
-                StorageReference storageReference = FileManager.getStorage().getReferenceFromUrl(user.getPhotoUrl());
-                GlideApp.with(mContactDetailsImage.getContext()).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mContactDetailsImage);
-                final Location location = new Location("");
-                location.setLatitude(user.getLastKnownLocation().getLatitude());
-                location.setLongitude(user.getLastKnownLocation().getLongitude());
-                mContactDetailsLocation.setText(lastSeen(location));
-                mContactDetailsLocation.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Uri gmmIntentUri = Uri.parse("geo:" + location.getLatitude() + "," + location.getLongitude());
-                        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                        mapIntent.setPackage("com.google.android.apps.maps");
-                        if (mapIntent.resolveActivity(getPackageManager()) != null) {
-                            startActivity(mapIntent);
+                if (user != null) {
+                    mContactDetailsName.setText(user.getName());
+                    StorageReference storageReference = user.getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(user.getPhotoUrl()) : null;
+                    GlideApp.with(mContactDetailsImage.getContext()).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mContactDetailsImage);
+                    final Location location = new Location("");
+                    location.setLatitude(user.getLastKnownLocation().getLatitude());
+                    location.setLongitude(user.getLastKnownLocation().getLongitude());
+                    mContactDetailsLocation.setText(lastSeen(location));
+                    mContactDetailsLocation.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Uri gmmIntentUri = Uri.parse("geo:" + location.getLatitude() + "," + location.getLongitude());
+                            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                            mapIntent.setPackage("com.google.android.apps.maps");
+                            if (mapIntent.resolveActivity(getPackageManager()) != null) {
+                                startActivity(mapIntent);
+                            }
                         }
-                    }
-                });
-                mContactDetailsCall.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        startPhoneCall(user.getPhone());
-                    }
-                });
+                    });
+                    mContactDetailsCall.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            startPhoneCall(user.getPhone());
+                        }
+                    });
+                }
             }
 
             @Override
@@ -331,10 +333,10 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
         });
     }
 
-    private void placeMarker(String uid, LatLng latLng) {
+    private void placeMarker(String uid, String name, LatLng latLng) {
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng);
-        markerOptions.title(uid);
+        markerOptions.title(name);
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
         Marker marker = mMap.addMarker(markerOptions);
         mMarkers.put(uid, marker);

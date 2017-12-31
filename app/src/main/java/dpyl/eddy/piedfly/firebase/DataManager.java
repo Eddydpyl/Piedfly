@@ -144,6 +144,7 @@ public class DataManager {
         Event event = new Event(System.currentTimeMillis(), emergency.getStart(), emergency.getTrigger(), null, EventType.START);
         eventRef.setValue(event);
         if (emergency.getStart() != null) readyGeoQuery(emergency);
+        stopAllPokes(emergency.getUid());
         return emergencyRef.getKey();
     }
 
@@ -221,6 +222,45 @@ public class DataManager {
         triggerRef.setValue(Constants.PLACEHOLDER);
     }
 
+    /**
+     * Stops all active Pokes that target the User with the provided uid
+     */
+    private static void stopAllPokes(final String uid) {
+        mDatabase.getReference("users").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                User user = dataSnapshot.getValue(User.class);
+                if (user != null) {
+                    Map<String, String> flock = user.getFlock();
+                    for (String key : flock.keySet()) {
+                        if (flock.get(key) != null && !flock.get(key).equals(Constants.PLACEHOLDER)){
+                            mDatabase.getReference("pokes").child(flock.get(key)).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    Poke poke = dataSnapshot.getValue(Poke.class);
+                                    if (poke != null && poke.getUid().equals(uid)) {
+                                        poke.setChecker(uid);
+                                        stopPoke(poke);
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+                                    // TODO: Error handling
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // TODO: Error handling
+            }
+        });
+    }
+
     private static void readyGeoQuery(@NonNull final Emergency emergency) {
         dropGeoQuery(emergency);
         SimpleLocation location = emergency.getStart();
@@ -266,7 +306,6 @@ public class DataManager {
             }
         }); mGeoQueries.put(emergency.getKey(), geoQuery);
     }
-
 
     private static void dropGeoQuery(@NonNull final Emergency emergency) {
         if (mGeoQueries.containsKey(emergency.getKey())) {

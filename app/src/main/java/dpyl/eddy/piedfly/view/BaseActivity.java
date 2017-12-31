@@ -118,7 +118,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mStateListener = AppState.onSharedPreferenceChangeListener(this, mSharedPreferences, buildAppStateListener());
         mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
-        checkState();
+        checkAuthState();
     }
 
     @Override
@@ -154,7 +154,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                         // Sign in failed
                         if (response == null) {
                             // The user has pressed the back button
-                            checkState();
+                            checkAuthState();
                         } else if (response.getErrorCode() == ErrorCodes.NO_NETWORK) {
                             // TODO: Error handling
                             // We should check if there's a uid saved in SharedPreferences
@@ -171,7 +171,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                     readyUser();
                 } else if (resultCode == Activity.RESULT_CANCELED || data == null) {
                     // The user has pressed the back button or isn't signed in
-                    checkState();
+                    checkAuthState();
                 }
             } break;
         }
@@ -250,11 +250,46 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                         // TODO: Error Handling
                     }
                 });
-            }
-        } else checkState();
+            } readyAppState();
+        } else checkAuthState();
     }
 
-    private void checkState() {
+    private void readyAppState() {
+        DataManager.getDatabase().getReference("users").child(mAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                User user = dataSnapshot.getValue(User.class);
+                if (user != null) {
+                    String emergency = user.getEmergency();
+                    if (emergency != null) AppState.registerEmergencyUser(BaseActivity.this, mSharedPreferences, emergency);
+                    for (String uid : user.getFlock().keySet()) {
+                        DataManager.getDatabase().getReference("users").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                User user = dataSnapshot.getValue(User.class);
+                                if (user != null) {
+                                    String emergency = user.getEmergency();
+                                    if (emergency != null) AppState.registerEmergencyFlock(BaseActivity.this, mSharedPreferences, emergency);
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                // TODO: Error Handling
+                            }
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // TODO: Error Handling
+            }
+        });
+    }
+
+    private void checkAuthState() {
         if (mAuth.getCurrentUser() != null) {
             // The user is already signed in
             if (mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) {

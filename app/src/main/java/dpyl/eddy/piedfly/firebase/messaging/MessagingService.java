@@ -194,8 +194,6 @@ public class MessagingService extends FirebaseMessagingService {
                                     User user = dataSnapshot.getValue(User.class);
                                     if (user != null) {
                                         pushNotification(user.getName() + " " + getString(R.string.content_push_poke_start_title), getString(R.string.content_push_poke_start_text), MainActivity.class);
-                                        Message message = buildMessage(user.getUid(), user.getName() + " " + getString(R.string.content_push_poke_start_title), MessageType.POKE_START,null);
-                                        storeMessage(message, null);
                                     }
                                 }
 
@@ -225,8 +223,6 @@ public class MessagingService extends FirebaseMessagingService {
                                     User user = dataSnapshot.getValue(User.class);
                                     if (user != null) {
                                         pushNotification(user.getName() + " " + getString(R.string.content_push_poke_end_title), getString(R.string.content_push_poke_end_text), MainActivity.class);
-                                        Message message = buildMessage(user.getUid(), user.getName() + " " + getString(R.string.content_push_poke_end_title), MessageType.POKE_END,null);
-                                        storeMessage(message, null);
                                     }
                                 }
 
