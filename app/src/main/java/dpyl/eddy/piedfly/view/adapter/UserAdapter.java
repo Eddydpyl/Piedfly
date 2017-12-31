@@ -75,7 +75,7 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
         final Context context = holder.itemView.getContext();
         StorageReference storageReference = model.getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(model.getPhotoUrl()) : null;
         GlideApp.with(context).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(holder.mContactImage);
-        if (emergency) {
+        if (emergency || model.getEmergency() != null) {
             holder.mContactPoke.setVisibility(View.INVISIBLE);
             holder.mContactCall.setVisibility(View.VISIBLE);
         } else {

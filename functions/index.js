@@ -127,7 +127,7 @@ exports.eventNotification = functions.database.ref(`/events/{emergency}/{pushId}
 });
 
 // Sends a notification to the User that is the target of the Request
-exports.requestNotification = functions.database.ref(`/requests/{pushId}/uid`).onCreate(event => {
+exports.requestNotification = functions.database.ref(`/requests/{pushId}/uid`).onWrite(event => {
 
     const requestKey = event.params.pushId;
     const uid = event.data.val();
@@ -162,7 +162,7 @@ exports.requestNotification = functions.database.ref(`/requests/{pushId}/uid`).o
 });
 
 // Sends a notification to the User that is the target of the Poke
-exports.pokeStartNotification = functions.database.ref(`/pokes/{pushId}/uid`).onCreate(event => {
+exports.pokeStartNotification = functions.database.ref(`/pokes/{pushId}/uid`).onWrite(event => {
 
     const pokeKey = event.params.pushId;
     const uid = event.data.val();
@@ -197,7 +197,7 @@ exports.pokeStartNotification = functions.database.ref(`/pokes/{pushId}/uid`).on
 });
 
 // Sends a notification to the Users involved in the Poke that are not the checker
-exports.pokeEndNotification = functions.database.ref(`/pokes/{pushId}/checker`).onCreate(event => {
+exports.pokeEndNotification = functions.database.ref(`/pokes/{pushId}/checker`).onWrite(event => {
 
     const pokeKey = event.params.pushId;
     const checker = event.data.val();

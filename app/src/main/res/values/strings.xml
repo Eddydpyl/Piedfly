@@ -38,15 +38,16 @@
     <string name="content_push_emergency_nearby_text">Click on this notification to help in the intervention.</string>
     <string name="content_push_emergency_finish_title">is no longer in danger.</string>
     <string name="content_push_emergency_finish_text">Thanks for your help!</string>
-    <string name="content_push_request_title">want\'s to join your Flock.</string>
+    <string name="content_push_request_title">wants to join your Flock.</string>
     <string name="content_push_request_text">Keep each other safe by accepting the request.</string>
-    <string name="content_push_poke_start_title">want\'s to know if you\'re alright.</string>
+    <string name="content_push_poke_start_title">wants to know if you\'re alright.</string>
     <string name="content_push_poke_start_text">Indicate that you\'re fine by clicking on this notification.</string>
     <string name="content_push_poke_end_title">seems to be fine.</string>
     <string name="content_push_poke_end_text">No need to worry!</string>
     <string name="content_poke_none">A Poke has been sent and we\'re waiting for an answer.</string>
     <string name="content_poke_flock">¡You\'re fine! No need to worry.</string>
     <string name="content_poke_user">You have cancelled the Poke.</string>
+    <string name="content_dialog_flock">Do you want to add this User to your Flock?</string>
 
     <string name="action_settings">Settings</string>
 

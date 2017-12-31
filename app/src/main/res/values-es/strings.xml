@@ -31,5 +31,6 @@
     <string name="content_poke_none">Se ha enviado un Toque y estamos esperando respuesta.</string>
     <string name="content_poke_flock">¡Estás bien! No hay de qué preocuparse.</string>
     <string name="content_poke_user">Has cancelado el Toque.</string>
+    <string name="content_dialog_flock">¿Quieres añadir a este Usuario a tu Flock?</string>
 
 </resources>

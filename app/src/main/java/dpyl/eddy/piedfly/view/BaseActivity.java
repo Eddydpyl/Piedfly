@@ -2,10 +2,12 @@ package dpyl.eddy.piedfly.view;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -72,9 +74,9 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
     @Inject
     ViewModelProvider.Factory mCustomViewModelFactory;
 
+    String mPhoneNumber; // Used for replicating a user action after they grant an Android permission
     SharedPreferences mSharedPreferences;
     FirebaseAuth mAuth;
-    String mPhoneNumber;
 
     private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
     private MessageAdapter mMessageAdapter;
@@ -180,6 +182,11 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         if (view.getId() == R.id.message_item) {
             Message message = mMessageAdapter.getMessages().get(position);
             MessageType messageType = MessageType.valueOf(message.getType());
+            switch (messageType) {
+                case REQUEST_FLOCK: {
+                    showFlockDialog(message);
+                } break;
+            }
             // TODO: Actions dependant on MessageType
         }
     }
@@ -341,5 +348,23 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                 }
             }
         });
+    }
+
+    private void showFlockDialog(final Message message) {
+        if (mAuth != null && mAuth.getCurrentUser() != null) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage(getString(R.string.content_dialog_flock));
+            builder.setPositiveButton(getString(R.string.content_yes), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    DataManager.addToFlock(mAuth.getCurrentUser().getUid(), message.getFirebaseKey());
+                    mMessageCollectionViewModel.deleteMessage(message);
+                    dialogInterface.dismiss();
+                }
+            }).setNegativeButton(getString(R.string.content_no), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) { dialogInterface.dismiss(); }
+            }).show();
+        }
     }
 }

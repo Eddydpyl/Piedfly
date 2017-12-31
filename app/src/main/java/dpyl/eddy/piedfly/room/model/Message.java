@@ -18,7 +18,7 @@ public class Message {
     @NotNull
     private String type;
     @NotNull
-    private String firebase_key;
+    private String firebaseKey;
     private String text;
     private String aux;
 
@@ -49,12 +49,12 @@ public class Message {
         this.timestamp = timestamp;
     }
 
-    public String getFirebase_key() {
-        return firebase_key;
+    public String getFirebaseKey() {
+        return firebaseKey;
     }
 
-    public void setFirebase_key(@NotNull String firebase_key) {
-        this.firebase_key = firebase_key;
+    public void setFirebaseKey(@NotNull String firebase_key) {
+        this.firebaseKey = firebase_key;
     }
 
     public String getType() {

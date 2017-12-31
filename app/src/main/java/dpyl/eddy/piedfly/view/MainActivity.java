@@ -1,12 +1,10 @@
 package dpyl.eddy.piedfly.view;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Application;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -20,7 +18,6 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -88,6 +85,8 @@ public class MainActivity extends BaseActivity {
     private RecyclerView mSecondRecyclerView;
     private NestedScrollView mNestedScrollView;
 
+    private String mKey; // Used for replicating a user action after they grant an Android permission
+    private String mPokeType; // Used for replicating a user action after they grant an Android permission
     private DatabaseReference mPokeReference;
     private ValueEventListener mPokeListener;
 
@@ -194,6 +193,14 @@ public class MainActivity extends BaseActivity {
                     startPickGalleryImage();
                 }
             } break;
+            case AppPermissions.REQUEST_LOCATION: {
+                if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_LOCATION, grantResults)) {
+                    if (mKey != null) {
+                        if (mPokeType == null) startShowInMap(mKey);
+                        else pokeAction(mKey, mPokeType);
+                    }
+                } else mPokeType = null;
+            } break;
         }
     }
 
@@ -222,12 +229,15 @@ public class MainActivity extends BaseActivity {
             } break;
             case R.id.contact_poke: {
                 pokeAction(key, (String) view.getTag());
+                this.mPokeType = (String) view.getTag();
+                this.mKey = key;
             } break;
             case R.id.contact_image: {
                 // TODO
             } break;
             case R.id.contact_directions: {
                 startShowInMap(key);
+                this.mKey = key;
             } break;
         }
     }
@@ -302,7 +312,7 @@ public class MainActivity extends BaseActivity {
             emergency.setTrigger(uid);
             emergency.setStart(simpleLocation);
             String key = DataManager.startEmergency(emergency);
-            AppState.registerEmergencyUser(this, key);
+            AppState.registerEmergencyUser(this, mSharedPreferences, key);
         } slideForAlarm.resetSlider();
     }
 
@@ -323,9 +333,7 @@ public class MainActivity extends BaseActivity {
 
     @SuppressLint("ShowToast")
     private void startShowInMap(String key) {
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            AppPermissions.requestLocationPermission(MainActivity.this);
-        } else {
+        if (AppPermissions.requestLocationPermission(this)) {
             if (key != null) {
                 Intent intent = new Intent(this, MapsActivity.class);
                 intent.putExtra(getString(R.string.intent_uid), key);
@@ -412,7 +420,7 @@ public class MainActivity extends BaseActivity {
             Query keyQuery = DataManager.getDatabase().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("flock");
             DatabaseReference dataQuery = DataManager.getDatabase().getReference().child("users");
             FirebaseRecyclerOptions<User> options = new FirebaseRecyclerOptions.Builder<User>().setIndexedQuery(keyQuery, dataQuery, User.class).build();
-            mUserAdapter = new UserAdapter( options, this, AppState.emergencyUser(this));
+            mUserAdapter = new UserAdapter( options, this, AppState.emergencyUser(this, mSharedPreferences));
             mRecyclerView.setAdapter(mUserAdapter);
         }
     }
@@ -497,35 +505,37 @@ public class MainActivity extends BaseActivity {
 
     @SuppressLint("ShowToast")
     private void pokeAction(String key, String type) {
-        SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
-        String uid = mAuth.getCurrentUser().getUid();
-        switch (type) {
-            case Constants.POKE_NONE: {
-                Poke poke = new Poke();
-                poke.setUid(key);
-                poke.setTrigger(uid);
-                poke.setStart(simpleLocation);
-                DataManager.startPoke(poke);
-                showToast(Toast.makeText(this, R.string.content_poke_none, Toast.LENGTH_SHORT));
-            } break;
-            case Constants.POKE_FLOCK: {
-                Poke poke = new Poke(mUserAdapter.getPokes().get(key));
-                poke.setUid(uid);
-                poke.setTrigger(key);
-                poke.setChecker(uid);
-                poke.setFinish(simpleLocation);
-                DataManager.stopPoke(poke);
-                showToast(Toast.makeText(this, R.string.content_poke_flock, Toast.LENGTH_SHORT));
-            } break;
-            case Constants.POKE_USER: {
-                Poke poke = new Poke(mUserAdapter.getPokes().get(key));
-                poke.setUid(key);
-                poke.setTrigger(uid);
-                poke.setChecker(uid);
-                poke.setFinish(simpleLocation);
-                DataManager.stopPoke(poke);
-                showToast(Toast.makeText(this, R.string.content_poke_user, Toast.LENGTH_SHORT));
-            } break;
+        if (AppPermissions.requestLocationPermission(this)) {
+            SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
+            String uid = mAuth.getCurrentUser().getUid();
+            switch (type) {
+                case Constants.POKE_NONE: {
+                    Poke poke = new Poke();
+                    poke.setUid(key);
+                    poke.setTrigger(uid);
+                    poke.setStart(simpleLocation);
+                    DataManager.startPoke(poke);
+                    showToast(Toast.makeText(this, R.string.content_poke_none, Toast.LENGTH_SHORT));
+                } break;
+                case Constants.POKE_FLOCK: {
+                    Poke poke = new Poke(mUserAdapter.getPokes().get(key));
+                    poke.setUid(uid);
+                    poke.setTrigger(key);
+                    poke.setChecker(uid);
+                    poke.setFinish(simpleLocation);
+                    DataManager.stopPoke(poke);
+                    showToast(Toast.makeText(this, R.string.content_poke_flock, Toast.LENGTH_SHORT));
+                } break;
+                case Constants.POKE_USER: {
+                    Poke poke = new Poke(mUserAdapter.getPokes().get(key));
+                    poke.setUid(key);
+                    poke.setTrigger(uid);
+                    poke.setChecker(uid);
+                    poke.setFinish(simpleLocation);
+                    DataManager.stopPoke(poke);
+                    showToast(Toast.makeText(this, R.string.content_poke_user, Toast.LENGTH_SHORT));
+                } break;
+            }
         }
     }
 

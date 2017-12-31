@@ -17,7 +17,7 @@ public interface MessageDao {
     @Query("SELECT * FROM messages ORDER BY timestamp")
     LiveData<List<Message>> findAllByTimeStamp();
 
-    @Query("SELECT * FROM messages WHERE firebase_key=:firebaseKey")
+    @Query("SELECT * FROM messages WHERE firebaseKey=:firebaseKey")
     LiveData<Message> findOneByFirebaseKey(String firebaseKey);
 
     @Query("SELECT COUNT(*) FROM messages WHERE read='false'")

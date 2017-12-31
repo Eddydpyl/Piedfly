@@ -276,7 +276,7 @@ public class MessagingService extends FirebaseMessagingService {
 
     private Message buildMessage(String key, String text, MessageType messageType, String aux) {
         Message message = new Message();
-        message.setFirebase_key(key);
+        message.setFirebaseKey(key);
         message.setText(text);
         message.setType(messageType.name());
         if (aux != null) message.setAux(aux);
