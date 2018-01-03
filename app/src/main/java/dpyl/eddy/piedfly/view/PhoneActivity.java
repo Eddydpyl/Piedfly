@@ -162,6 +162,9 @@ public class PhoneActivity extends BaseActivity {
             @Override
             public void onCodeAutoRetrievalTimeOut(String s) {
                 super.onCodeAutoRetrievalTimeOut(s);
+                // TODO: Ported phone numbers don't work, this is a workaround.
+                mSharedPreferences.edit().putBoolean("phoneFIX", true).apply();
+                exitActivity();
             }
         };
     }

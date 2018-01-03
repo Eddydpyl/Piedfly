@@ -184,7 +184,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
             MessageType messageType = MessageType.valueOf(message.getType());
             switch (messageType) {
                 case REQUEST_FLOCK: {
-                    showFlockDialog(message);
+                    showFlockDialog(message, position);
                 } break;
             }
             // TODO: Actions dependant on MessageType
@@ -226,6 +226,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
 
     private void readyUser() {
         if (mAuth.getCurrentUser() != null) {
+            // TODO: onActivityResult() is called before onStart() and this was not contemplated. The line below is a quick fix.
+            if (mSharedPreferences == null) mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
             mSharedPreferences.edit().putString(getString(R.string.pref_uid), mAuth.getCurrentUser().getUid()).apply();
             User user = new User(mAuth.getCurrentUser().getUid());
             user.setToken(mSharedPreferences.getString(getString(R.string.pref_token), null));
@@ -262,22 +264,24 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                 if (user != null) {
                     String emergency = user.getEmergency();
                     if (emergency != null) AppState.registerEmergencyUser(BaseActivity.this, mSharedPreferences, emergency);
-                    for (String uid : user.getFlock().keySet()) {
-                        DataManager.getDatabase().getReference("users").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                User user = dataSnapshot.getValue(User.class);
-                                if (user != null) {
-                                    String emergency = user.getEmergency();
-                                    if (emergency != null) AppState.registerEmergencyFlock(BaseActivity.this, mSharedPreferences, emergency);
+                    if (user.getFlock() != null) {
+                        for (String uid : user.getFlock().keySet()) {
+                            DataManager.getDatabase().getReference("users").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    User user = dataSnapshot.getValue(User.class);
+                                    if (user != null) {
+                                        String emergency = user.getEmergency();
+                                        if (emergency != null) AppState.registerEmergencyFlock(BaseActivity.this, mSharedPreferences, emergency);
+                                    }
                                 }
-                            }
 
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-                                // TODO: Error Handling
-                            }
-                        });
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+                                    // TODO: Error Handling
+                                }
+                            });
+                        }
                     }
                 }
             }
@@ -292,7 +296,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
     private void checkAuthState() {
         if (mAuth.getCurrentUser() != null) {
             // The user is already signed in
-            if (mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) {
+            if ((mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty())
+                    && !mSharedPreferences.getBoolean("phoneFIX", false)) { // TODO: Ported phone numbers don't work, this is a workaround.
                 // The user doesn't have an associated phone number
                 if (!(this instanceof PhoneActivity)) {
                     Intent intent = new Intent(this, PhoneActivity.class);
@@ -311,6 +316,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
 
     // We must always have the smallID in memory, just in case we need to start a beacon.
     private void checkSmallID() {
+        // TODO: onActivityResult() is called before onStart() and this was not contemplated. The line below is a quick fix.
+        if (mSharedPreferences == null) mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         if (mSharedPreferences.getString(getString(R.string.pref_tiny_ID), "").isEmpty()) {
             String uid = mSharedPreferences.getString(getString(R.string.pref_uid), "");
             if (uid.isEmpty()) readyUser();
@@ -385,7 +392,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         });
     }
 
-    private void showFlockDialog(final Message message) {
+    private void showFlockDialog(final Message message, final int position) {
         if (mAuth != null && mAuth.getCurrentUser() != null) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage(getString(R.string.content_dialog_flock));
@@ -394,6 +401,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                 public void onClick(DialogInterface dialogInterface, int i) {
                     DataManager.addToFlock(mAuth.getCurrentUser().getUid(), message.getFirebaseKey());
                     mMessageCollectionViewModel.deleteMessage(message);
+                    mMessageAdapter.notifyItemRemoved(position);
                     dialogInterface.dismiss();
                 }
             }).setNegativeButton(getString(R.string.content_no), new DialogInterface.OnClickListener() {
