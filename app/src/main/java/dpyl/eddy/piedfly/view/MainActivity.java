@@ -68,6 +68,7 @@ import dpyl.eddy.piedfly.view.adapter.UserAdapter;
 import dpyl.eddy.piedfly.view.recyclerview.CustomItemTouchHelper;
 import dpyl.eddy.piedfly.view.viewholder.UserHolder;
 import dpyl.eddy.piedfly.view.viewmodel.ContactCollectionViewModel;
+import me.everything.android.ui.overscroll.OverScrollDecoratorHelper;
 
 public class MainActivity extends BaseActivity {
 
@@ -429,6 +430,10 @@ public class MainActivity extends BaseActivity {
         // Makes it look like there's a single RecyclerView
         mRecyclerView.setNestedScrollingEnabled(false);
         mSecondRecyclerView.setNestedScrollingEnabled(false);
+
+        //TODO: test this out see if it works.
+        // Adds overscroll effect
+        OverScrollDecoratorHelper.setUpStaticOverScroll(mNestedScrollView, OverScrollDecoratorHelper.ORIENTATION_VERTICAL);
     }
 
     private void attachFirebaseRecyclerViewAdapter() {
