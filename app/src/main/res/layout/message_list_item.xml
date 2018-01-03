@@ -1,9 +1,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/message_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:id="@+id/message_item">
+    android:orientation="vertical">
 
     <RelativeLayout
         android:id="@+id/item_background"
@@ -17,7 +16,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:layout_marginRight="@dimen/flock_item_marginRight"
+            android:layout_marginRight="@dimen/default_big_margin"
             android:src="@drawable/ic_delete_white_24dp" />
 
         <TextView
@@ -28,7 +27,7 @@
             android:layout_toLeftOf="@id/delete_icon"
             android:text="@string/content_delete_caps"
             android:textColor="@color/white"
-            android:textSize="@dimen/material_typography_body1" />
+            android:textSize="14sp" />
 
     </RelativeLayout>
 
@@ -36,26 +35,26 @@
         android:id="@+id/item_foreground"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/material_light_white"
         android:orientation="horizontal"
-        android:weightSum="5"
-        android:background="@color/material_light_white">
+        android:weightSum="5">
 
         <ImageView
             android:id="@+id/message_icon"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:padding="@dimen/material_layout_app_bar_icon_padding"
+            android:layout_weight="1"
+            android:padding="@dimen/default_margin"
             android:src="@drawable/ic_action_logo_dark" />
 
         <TextView
             android:id="@+id/message_text"
             android:layout_width="0dp"
-            android:layout_weight="4"
             android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:padding="@dimen/default_margin"
             android:textColor="@color/material_light_black"
-            android:padding="@dimen/material_layout_app_bar_icon_padding"
-            android:textSize="@dimen/material_typography_body1" />
+            android:textSize="14sp" />
 
     </LinearLayout>
 

@@ -5,9 +5,9 @@
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/map_contact_image"
-        android:layout_width="62dp"
-        android:layout_height="62dp"
-        android:layout_margin="@dimen/default_icon_margin"
+        android:layout_width="@dimen/map_user_image"
+        android:layout_height="@dimen/map_user_image"
+        android:layout_marginRight="@dimen/default_small_margin"
         android:src="@drawable/default_contact" />
 
 </FrameLayout>

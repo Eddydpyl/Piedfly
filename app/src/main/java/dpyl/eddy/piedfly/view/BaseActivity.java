@@ -109,7 +109,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
             return true;
         } else if (id == R.id.action_settings) {
             return true;
-        } return super.onOptionsItemSelected(item);
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -126,13 +127,16 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case AppPermissions.REQUEST_LOCATION: {
-                if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_LOCATION, grantResults)) startServices();
-            } break;
+                if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_LOCATION, grantResults))
+                    startServices();
+            }
+            break;
             case AppPermissions.REQUEST_CALL_PHONE: {
                 if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_CALL_PHONE, grantResults)) {
                     if (mPhoneNumber != null) startPhoneCall(mPhoneNumber);
                 }
-            } break;
+            }
+            break;
         }
     }
 
@@ -145,7 +149,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                     IdpResponse response = IdpResponse.fromResultIntent(data);
                     if (resultCode == Activity.RESULT_OK && response != null) {
                         // Successfully signed in
-                        if (response.getPhoneNumber() == null || response.getPhoneNumber().isEmpty()){
+                        if (false) {//response.getPhoneNumber() == null || response.getPhoneNumber().isEmpty()){
                             // The user doesn't have an associated phone number
                             Intent intent = new Intent(this, PhoneActivity.class);
                             startActivityForResult(intent, PHONE_SIGN_IN);
@@ -164,7 +168,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                         }
                     }
                 }
-            } break;
+            }
+            break;
             case PHONE_SIGN_IN: {
                 if (resultCode == Activity.RESULT_OK) {
                     // The user is signed in and has a verified phone number
@@ -173,7 +178,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                     // The user has pressed the back button or isn't signed in
                     checkAuthState();
                 }
-            } break;
+            }
+            break;
         }
     }
 
@@ -185,7 +191,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
             switch (messageType) {
                 case REQUEST_FLOCK: {
                     showFlockDialog(message);
-                } break;
+                }
+                break;
             }
             // TODO: Actions dependant on MessageType
         }
@@ -198,7 +205,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         if (mStateListener != null) {
             mSharedPreferences.unregisterOnSharedPreferenceChangeListener(mStateListener);
             mStateListener = null;
-        } mSharedPreferences = null;
+        }
+        mSharedPreferences = null;
     }
 
     // Listen to changes to the app state and update the UI accordingly
@@ -250,7 +258,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                         // TODO: Error Handling
                     }
                 });
-            } readyAppState();
+            }
+            readyAppState();
         } else checkAuthState();
     }
 
@@ -261,7 +270,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                 User user = dataSnapshot.getValue(User.class);
                 if (user != null) {
                     String emergency = user.getEmergency();
-                    if (emergency != null) AppState.registerEmergencyUser(BaseActivity.this, mSharedPreferences, emergency);
+                    if (emergency != null)
+                        AppState.registerEmergencyUser(BaseActivity.this, mSharedPreferences, emergency);
                     for (String uid : user.getFlock().keySet()) {
                         DataManager.getDatabase().getReference("users").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
@@ -269,7 +279,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                                 User user = dataSnapshot.getValue(User.class);
                                 if (user != null) {
                                     String emergency = user.getEmergency();
-                                    if (emergency != null) AppState.registerEmergencyFlock(BaseActivity.this, mSharedPreferences, emergency);
+                                    if (emergency != null)
+                                        AppState.registerEmergencyFlock(BaseActivity.this, mSharedPreferences, emergency);
                                 }
                             }
 
@@ -294,7 +305,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
             // The user is already signed in
             if (mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) {
                 // The user doesn't have an associated phone number
-                if (!(this instanceof PhoneActivity)) {
+                if (false) {//!(this instanceof PhoneActivity)) {
                     Intent intent = new Intent(this, PhoneActivity.class);
                     startActivityForResult(intent, PHONE_SIGN_IN);
                 }
@@ -362,7 +373,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                 mMessageCollectionViewModel.deleteMessage(mMessageAdapter.getMessages().get(position));
                 mMessageAdapter.notifyItemRemoved(position);
             }
-        }); new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView);
+        });
+        new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView);
     }
 
     private void setUpNotificationsMenuItem(final MenuItem menuCounter, final MenuItem menuEmpty) {
@@ -398,7 +410,9 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                 }
             }).setNegativeButton(getString(R.string.content_no), new DialogInterface.OnClickListener() {
                 @Override
-                public void onClick(DialogInterface dialogInterface, int i) { dialogInterface.dismiss(); }
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.dismiss();
+                }
             }).show();
         }
     }

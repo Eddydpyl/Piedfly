@@ -1,7 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?><!-- TODO: at some point remove text for tool text or add default text--><!--TODO: check material design guidelines, simplify, use same measures throughout app design-->
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--TODO:extract typography values-->
 
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/content"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -22,10 +25,10 @@
     </android.support.design.widget.AppBarLayout>
 
     <LinearLayout
-        android:id="@+id/linearLayout"
+        android:id="@+id/mainActivity_linearLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/material_layout_app_bar_height"
+        android:layout_marginTop="?attr/actionBarSize"
         android:orientation="vertical"
         android:weightSum="5">
 
@@ -43,15 +46,16 @@
                 android:layout_above="@+id/slide_for_alarm"
                 android:layout_alignParentTop="true"
                 android:layout_centerHorizontal="true"
+                android:layout_margin="@dimen/default_small_margin"
                 android:clickable="true"
                 android:elevation="@dimen/slider_elevation"
                 android:focusable="true"
                 android:maxHeight="250dp"
                 android:maxWidth="250dp"
-                android:padding="@dimen/default_area_margin"
                 android:src="@drawable/default_contact" />
 
-            <ImageView
+            <!--TODO: move some other places, here's ugly-->
+            <!--<ImageView
                 android:id="@+id/userDirections"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -64,7 +68,7 @@
                 android:focusable="true"
                 android:paddingEnd="0dp"
                 android:paddingStart="64dp"
-                android:src="@drawable/ic_user_directions" />
+                android:src="@drawable/ic_user_directions" />-->
 
             <com.ncorti.slidetoact.SlideToActView
                 android:id="@+id/slide_for_alarm"
@@ -72,16 +76,16 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
-                android:layout_marginBottom="@dimen/default_icon_margin"
+                android:layout_marginBottom="@dimen/default_small_margin"
                 android:elevation="@dimen/slider_elevation"
                 app:slider_height="@dimen/slider_height"
                 app:text="@string/content_slide_for_alarm"
-                app:text_size="15sp" />
+                app:text_size="14sp" />
 
         </RelativeLayout>
 
         <android.support.v4.widget.NestedScrollView
-            android:id="@+id/main_nestedScrollView"
+            android:id="@+id/mainActivity_nestedScrollView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="3">
@@ -94,12 +98,14 @@
                 <android.support.v7.widget.RecyclerView
                     android:id="@+id/flock_list"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    tools:listitem="@layout/flock_list_item" />
 
                 <android.support.v7.widget.RecyclerView
                     android:id="@+id/local_contacts_list"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    tools:listitem="@layout/contact_list_item" />
 
             </LinearLayout>
 

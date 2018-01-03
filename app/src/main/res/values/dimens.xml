@@ -1,10 +1,22 @@
 <resources>
-    <dimen name="fab_margin">16dp</dimen>
+
+    <!--Specific-->
     <dimen name="contact_name_width">150dp</dimen>
     <dimen name="slider_height">64dp</dimen>
     <dimen name="frame_elevation">2dp</dimen>
     <dimen name="slider_elevation">4dp</dimen>
     <dimen name="recycler_view_overscroll">204dp</dimen>
-    <dimen name="flock_item_marginRight">32dp</dimen>
     <dimen name="map_contactDetails_height">180dp</dimen>
+    <dimen name="map_contactDetails_circle_image">82dp</dimen>
+
+
+    <!--Default-->
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="default_small_margin">8dp</dimen>
+    <dimen name="default_margin">16dp</dimen>
+    <dimen name="default_big_margin">32dp</dimen>
+    <dimen name="default_card_corner_radius">2dp</dimen>
+    <dimen name="map_user_image">62dp</dimen>
+
+
 </resources>
