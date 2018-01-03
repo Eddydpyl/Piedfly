@@ -33,6 +33,5 @@
     <string name="content_poke_user">Has cancelado el Toque.</string>
     <string name="content_dialog_flock">¿Quieres añadir a este Usuario a tu Flock?</string>
     <string name="content_no_phone">Este usuario no tiene un número de teléfono verificado.</string>
-    <string name="content_no_phone_user">Tu número de teléfono no se ha podido verificar, la funcionalidad de la aplicación ha sido limitada.</string>
 
 </resources>
