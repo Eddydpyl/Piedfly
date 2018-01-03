@@ -17,6 +17,7 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -64,7 +65,7 @@ public class PhoneActivity extends BaseActivity {
         sendInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                PhoneAuthProvider.getInstance().verifyPhoneNumber(mPhoneEditText.getText().toString(), 60L, TimeUnit.SECONDS, PhoneActivity.this, mCallbacks);
+                PhoneAuthProvider.getInstance().verifyPhoneNumber(mPhoneEditText.getText().toString(), 30L, TimeUnit.SECONDS, PhoneActivity.this, mCallbacks);
                 mVerifying = true;
             }
         });
@@ -73,7 +74,7 @@ public class PhoneActivity extends BaseActivity {
             @Override
             public void onClick(View view) {
                 String code = mCodeEditText.getText().toString();
-                if(mVerificationId != null && !code.isEmpty()){
+                if(mVerificationId != null && !code.trim().isEmpty()){
                     PhoneAuthCredential credential = PhoneAuthProvider.getCredential(mVerificationId, code);
                     if(!mVerifying) linkAccounts(credential);
                 } else {
@@ -90,7 +91,7 @@ public class PhoneActivity extends BaseActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if(mVerifying) PhoneAuthProvider.getInstance().verifyPhoneNumber(mPhoneEditText.getText().toString(), 60L, TimeUnit.SECONDS, this, mCallbacks);
+        if(mVerifying) PhoneAuthProvider.getInstance().verifyPhoneNumber(mPhoneEditText.getText().toString(), 30L, TimeUnit.SECONDS, this, mCallbacks);
     }
 
     @Override
@@ -160,10 +161,12 @@ public class PhoneActivity extends BaseActivity {
             }
 
             @Override
+            @SuppressLint("ShowToast")
             public void onCodeAutoRetrievalTimeOut(String s) {
                 super.onCodeAutoRetrievalTimeOut(s);
-                // TODO: Ported phone numbers don't work, this is a workaround.
-                mSharedPreferences.edit().putBoolean("phoneFIX", true).apply();
+                // TODO: The user must have the ability to try to verify his phone again.
+                mSharedPreferences.edit().putBoolean(getString(R.string.pref_phone_not_verified), true).apply();
+                showToast(Toast.makeText(PhoneActivity.this, R.string.content_no_phone_user, Toast.LENGTH_SHORT));
                 exitActivity();
             }
         };
