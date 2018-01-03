@@ -80,7 +80,6 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
 
     private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
     private MessageAdapter mMessageAdapter;
-    private boolean notVerified;
     private Dialog mDialog;
 
     @Override
@@ -119,7 +118,6 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mStateListener = AppState.onSharedPreferenceChangeListener(this, mSharedPreferences, buildAppStateListener());
         mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
-        notVerified = mSharedPreferences.getBoolean(getString(R.string.pref_phone_not_verified), false);
         checkAuthState();
     }
 
@@ -147,11 +145,14 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                     IdpResponse response = IdpResponse.fromResultIntent(data);
                     if (resultCode == Activity.RESULT_OK && response != null) {
                         // Successfully signed in
+                        // TODO: Restore Phone Verification
+                        /*
                         if (response.getPhoneNumber() == null || response.getPhoneNumber().isEmpty()){
                             // The user doesn't have an associated phone number
                             Intent intent = new Intent(this, PhoneActivity.class);
                             startActivityForResult(intent, PHONE_SIGN_IN);
                         }
+                        */
                     } else {
                         // Sign in failed
                         if (response == null) {
@@ -297,7 +298,9 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
     private void checkAuthState() {
         if (mAuth.getCurrentUser() != null) {
             // The user is already signed in
-            if ((mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) && !notVerified) {
+            // TODO: Restore Phone Verification
+            /*
+            if (mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) {
                 // The user doesn't have an associated phone number
                 if (!(this instanceof PhoneActivity)) {
                     Intent intent = new Intent(this, PhoneActivity.class);
@@ -308,6 +311,9 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                 checkSmallID();
                 startServices();
             }
+            */
+            checkSmallID();
+            startServices();
         } else {
             // The user is not signed in
             startActivityForResult(AuthUI.getInstance().createSignInIntentBuilder().build(), EMAIL_SIGN_IN);
