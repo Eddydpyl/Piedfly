@@ -354,14 +354,16 @@ public class MainActivity extends BaseActivity {
 
         @Override
         protected Void doInBackground(Uri... uris) {
-            Cursor cursor = weakReference.get().getContentResolver().query(uris[0], new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER}, null, null, null);
+            Cursor cursor = weakReference.get().getContentResolver().query(uris[0], new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER, ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER}, null, null, null);
             if (cursor != null && cursor.moveToFirst()) {
                 final String name = cursor.getString(0);
                 final String phone = cursor.getString(1);
+                final String normalized = cursor.getString(2);
                 cursor.close();
-                // TODO: Format phone so that it matches the ones in the database
-                if (name != null && phone != null) {
-                    DataManager.getDatabase().getReference("users").orderByChild("phone").equalTo(phone).limitToFirst(1).addListenerForSingleValueEvent(new ValueEventListener() {
+                if (name != null && (phone != null || normalized != null)) {
+                    // TODO: Format phone so that it matches the ones in the database
+                    final String target = (normalized != null ? normalized : phone).replaceAll("\\s+","");
+                    DataManager.getDatabase().getReference("users").orderByChild("phone").equalTo(target).limitToFirst(1).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override @SuppressLint("ShowToast")
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
@@ -377,7 +379,7 @@ public class MainActivity extends BaseActivity {
                                 // TODO: A User with the provided phone does not exist
                                 Contact localContact = new Contact();
                                 localContact.setName(name);
-                                localContact.setPhone(phone);
+                                localContact.setPhone(target);
                                 mContactCollectionViewModel.addContact(localContact);
                             }
                         }
