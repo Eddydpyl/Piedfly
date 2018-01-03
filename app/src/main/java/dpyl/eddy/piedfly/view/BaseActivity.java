@@ -80,6 +80,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
 
     private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
     private MessageAdapter mMessageAdapter;
+    private boolean notVerified;
     private Dialog mDialog;
 
     @Override
@@ -118,6 +119,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mStateListener = AppState.onSharedPreferenceChangeListener(this, mSharedPreferences, buildAppStateListener());
         mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
+        notVerified = mSharedPreferences.getBoolean(getString(R.string.pref_phone_not_verified), false);
         checkAuthState();
     }
 
@@ -211,6 +213,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         mToast.show();
     }
 
+    @SuppressLint("ShowToast")
     void startPhoneCall(String phoneNumber) {
         this.mPhoneNumber = phoneNumber;
         if (phoneNumber != null) {
@@ -219,9 +222,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                 intent.setData(Uri.parse("tel:" + phoneNumber));
                 if (intent.resolveActivity(getPackageManager()) != null) startActivity(intent);
             }
-        } else {
-            // TODO: Error Handling
-        }
+        } else  showToast(Toast.makeText(this, R.string.content_no_phone, Toast.LENGTH_SHORT));
     }
 
     private void readyUser() {
@@ -296,8 +297,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
     private void checkAuthState() {
         if (mAuth.getCurrentUser() != null) {
             // The user is already signed in
-            if ((mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty())
-                    && !mSharedPreferences.getBoolean("phoneFIX", false)) { // TODO: Ported phone numbers don't work, this is a workaround.
+            if ((mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) && !notVerified) {
                 // The user doesn't have an associated phone number
                 if (!(this instanceof PhoneActivity)) {
                     Intent intent = new Intent(this, PhoneActivity.class);
