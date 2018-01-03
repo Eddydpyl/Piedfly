@@ -319,6 +319,7 @@ public class MainActivity extends BaseActivity {
 
     private void startEmergency() {
         if (mAuth.getCurrentUser() != null) {
+            slideForAlarm.setLocked(true);
             Emergency emergency = new Emergency();
             String uid = mAuth.getCurrentUser().getUid();
             SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
@@ -327,6 +328,7 @@ public class MainActivity extends BaseActivity {
             emergency.setStart(simpleLocation);
             String key = DataManager.startEmergency(emergency);
             AppState.registerEmergencyUser(this, mSharedPreferences, key);
+            slideForAlarm.setLocked(false);
         }
         slideForAlarm.resetSlider();
     }
