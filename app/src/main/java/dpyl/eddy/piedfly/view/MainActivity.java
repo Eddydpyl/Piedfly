@@ -25,6 +25,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerOptions;
@@ -68,7 +69,6 @@ import dpyl.eddy.piedfly.view.adapter.UserAdapter;
 import dpyl.eddy.piedfly.view.recyclerview.CustomItemTouchHelper;
 import dpyl.eddy.piedfly.view.viewholder.UserHolder;
 import dpyl.eddy.piedfly.view.viewmodel.ContactCollectionViewModel;
-import me.everything.android.ui.overscroll.OverScrollDecoratorHelper;
 
 public class MainActivity extends BaseActivity {
 
@@ -108,9 +108,8 @@ public class MainActivity extends BaseActivity {
         faButton = (FloatingActionButton) findViewById(R.id.fab);
         mCircleImageView = (CircleImageView) findViewById(R.id.userImage);
         slideForAlarm = (SlideToActView) findViewById(R.id.slide_for_alarm);
-        mNestedScrollView = (NestedScrollView) findViewById(R.id.mainActivity_nestedScrollView);
-        //TODO: ugly no that useful button, placed in a bad place.
-        //final ImageView userDirections = (ImageView) findViewById(R.id.userDirections);
+        mNestedScrollView = (NestedScrollView) findViewById(R.id.main_nestedScrollView);
+        final ImageView userDirections = (ImageView) findViewById(R.id.userDirections);
 
         faButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -124,14 +123,13 @@ public class MainActivity extends BaseActivity {
                 startPickGalleryImage();
             }
         });
-        /*userDirections.setOnClickListener(new View.OnClickListener() {
+        userDirections.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) { startShowInMap(mAuth.getCurrentUser().getUid()); }
-        });*/
+        });
         slideForAlarm.setOnSlideCompleteListener(new SlideToActView.OnSlideCompleteListener() {
             @Override
-            public void onSlideComplete(@NotNull final SlideToActView slideToActView) {
-                startEmergency();
+            public void onSlideComplete(@NotNull final SlideToActView slideToActView) { startEmergency();
             }
         });
         mNestedScrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
@@ -150,9 +148,7 @@ public class MainActivity extends BaseActivity {
         mContactCollectionViewModel = ViewModelProviders.of(this, mCustomViewModelFactory).get(ContactCollectionViewModel.class);
         mContactCollectionViewModel.getListOfContactsByName().observe(this, new Observer<List<Contact>>() {
             @Override
-            public void onChanged(@Nullable List<Contact> contacts) {
-                mContactAdapter.setContacts(contacts);
-            }
+            public void onChanged(@Nullable List<Contact> contacts) { mContactAdapter.setContacts(contacts); }
         });
 
         // Custom made swipe on recycler view (Used to delete objects)
@@ -161,8 +157,7 @@ public class MainActivity extends BaseActivity {
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
                 showUndoMessage(viewHolder);
             }
-        });
-        new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(mRecyclerView);
+        }); new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(mRecyclerView);
 
         // OnSwipe delete for the second recycler view
         ItemTouchHelper.SimpleCallback itemTouchHelperSecondRecycler = new CustomItemTouchHelper(0, ItemTouchHelper.LEFT, new CustomItemTouchHelper.RecyclerItemTouchHelperListener() {
@@ -171,8 +166,7 @@ public class MainActivity extends BaseActivity {
                 mContactCollectionViewModel.deleteContact(mContactAdapter.getContacts().get(position));
                 mContactAdapter.notifyItemRemoved(position);
             }
-        });
-        new ItemTouchHelper(itemTouchHelperSecondRecycler).attachToRecyclerView(mSecondRecyclerView);
+        }); new ItemTouchHelper(itemTouchHelperSecondRecycler).attachToRecyclerView(mSecondRecyclerView);
     }
 
     @Override
@@ -193,14 +187,12 @@ public class MainActivity extends BaseActivity {
                 if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_READ_CONTACTS, grantResults)) {
                     startPickContact();
                 }
-            }
-            break;
+            } break;
             case AppPermissions.REQUEST_EXTERNAL_STORAGE: {
                 if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_EXTERNAL_STORAGE, grantResults)) {
                     startPickGalleryImage();
                 }
-            }
-            break;
+            } break;
             case AppPermissions.REQUEST_LOCATION: {
                 if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_LOCATION, grantResults)) {
                     if (mKey != null) {
@@ -208,8 +200,7 @@ public class MainActivity extends BaseActivity {
                         else pokeAction(mKey, mPokeType);
                     }
                 } else mPokeType = null;
-            }
-            break;
+            } break;
         }
     }
 
@@ -235,23 +226,19 @@ public class MainActivity extends BaseActivity {
         switch (view.getId()) {
             case R.id.contact_call: {
                 startPhoneCall((String) view.getTag());
-            }
-            break;
+            } break;
             case R.id.contact_poke: {
                 pokeAction(key, (String) view.getTag());
                 this.mPokeType = (String) view.getTag();
                 this.mKey = key;
-            }
-            break;
+            } break;
             case R.id.contact_image: {
                 // TODO
-            }
-            break;
+            } break;
             case R.id.contact_directions: {
                 startShowInMap(key);
                 this.mKey = key;
-            }
-            break;
+            } break;
         }
     }
 
@@ -268,8 +255,7 @@ public class MainActivity extends BaseActivity {
         if (mUserAdapter != null) {
             mUserAdapter.stopListening();
             mUserAdapter = null;
-        }
-        removePokeListener();
+        } removePokeListener();
     }
 
     @Override
@@ -319,7 +305,6 @@ public class MainActivity extends BaseActivity {
 
     private void startEmergency() {
         if (mAuth.getCurrentUser() != null) {
-            slideForAlarm.setLocked(true);
             Emergency emergency = new Emergency();
             String uid = mAuth.getCurrentUser().getUid();
             SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
@@ -328,9 +313,7 @@ public class MainActivity extends BaseActivity {
             emergency.setStart(simpleLocation);
             String key = DataManager.startEmergency(emergency);
             AppState.registerEmergencyUser(this, mSharedPreferences, key);
-            slideForAlarm.setLocked(false);
-        }
-        slideForAlarm.resetSlider();
+        } slideForAlarm.resetSlider();
     }
 
     private void startPickContact() {
@@ -355,8 +338,7 @@ public class MainActivity extends BaseActivity {
                 Intent intent = new Intent(this, MapsActivity.class);
                 intent.putExtra(getString(R.string.intent_uid), key);
                 startActivity(intent);
-            } else
-                showToast(Toast.makeText(this, R.string.content_only_local_user_warning, Toast.LENGTH_SHORT));
+            } else showToast(Toast.makeText(this, R.string.content_only_local_user_warning, Toast.LENGTH_SHORT));
         }
     }
 
@@ -372,16 +354,17 @@ public class MainActivity extends BaseActivity {
 
         @Override
         protected Void doInBackground(Uri... uris) {
-            Cursor cursor = weakReference.get().getContentResolver().query(uris[0], new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER}, null, null, null);
+            Cursor cursor = weakReference.get().getContentResolver().query(uris[0], new String[]{ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER, ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER}, null, null, null);
             if (cursor != null && cursor.moveToFirst()) {
                 final String name = cursor.getString(0);
                 final String phone = cursor.getString(1);
+                final String normalized = cursor.getString(2);
                 cursor.close();
-                // TODO: Format phone so that it matches the ones in the database
-                if (name != null && phone != null) {
-                    DataManager.getDatabase().getReference("users").orderByChild("phone").equalTo(phone).limitToFirst(1).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        @SuppressLint("ShowToast")
+                if (name != null && (phone != null || normalized != null)) {
+                    // TODO: Format phone so that it matches the ones in the database
+                    final String target = (normalized != null ? normalized : phone).replaceAll("\\s+","");
+                    DataManager.getDatabase().getReference("users").orderByChild("phone").equalTo(target).limitToFirst(1).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override @SuppressLint("ShowToast")
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
                                 for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
@@ -389,14 +372,14 @@ public class MainActivity extends BaseActivity {
                                     if (user != null) {
                                         Request request = new Request(user.getUid(), uid, RequestType.JOIN_FLOCK);
                                         DataManager.requestJoinFlock(request);
-                                        showToast(Toast.makeText(weakReference.get(), weakReference.get().getString(R.string.content_join_flock_request) + " " + user.getName() + ".", Toast.LENGTH_SHORT));
+                                        showToast(Toast.makeText(weakReference.get(),weakReference.get().getString(R.string.content_join_flock_request) + " " + user.getName() + ".", Toast.LENGTH_SHORT));
                                     }
                                 }
                             } else {
                                 // TODO: A User with the provided phone does not exist
                                 Contact localContact = new Contact();
                                 localContact.setName(name);
-                                localContact.setPhone(phone);
+                                localContact.setPhone(target);
                                 mContactCollectionViewModel.addContact(localContact);
                             }
                         }
@@ -432,10 +415,6 @@ public class MainActivity extends BaseActivity {
         // Makes it look like there's a single RecyclerView
         mRecyclerView.setNestedScrollingEnabled(false);
         mSecondRecyclerView.setNestedScrollingEnabled(false);
-
-        //TODO: test this out see if it works.
-        // Adds overscroll effect
-        OverScrollDecoratorHelper.setUpStaticOverScroll(mNestedScrollView, OverScrollDecoratorHelper.ORIENTATION_VERTICAL);
     }
 
     private void attachFirebaseRecyclerViewAdapter() {
@@ -443,7 +422,7 @@ public class MainActivity extends BaseActivity {
             Query keyQuery = DataManager.getDatabase().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("flock");
             DatabaseReference dataQuery = DataManager.getDatabase().getReference().child("users");
             FirebaseRecyclerOptions<User> options = new FirebaseRecyclerOptions.Builder<User>().setIndexedQuery(keyQuery, dataQuery, User.class).build();
-            mUserAdapter = new UserAdapter(options, this, AppState.emergencyUser(this, mSharedPreferences));
+            mUserAdapter = new UserAdapter( options, this, AppState.emergencyUser(this, mSharedPreferences));
             mRecyclerView.setAdapter(mUserAdapter);
         }
     }
@@ -455,7 +434,7 @@ public class MainActivity extends BaseActivity {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     Map<String, String> pokes = (Map<String, String>) dataSnapshot.getValue();
-                    if (pokes != null) mUserAdapter.setPokes(pokes);
+                    if (pokes != null)  mUserAdapter.setPokes(pokes);
                     mUserAdapter.notifyDataSetChanged();
                 }
 
@@ -463,8 +442,7 @@ public class MainActivity extends BaseActivity {
                 public void onCancelled(DatabaseError databaseError) {
                     // TODO: Error handling
                 }
-            };
-            mPokeReference.addValueEventListener(mPokeListener);
+            }; mPokeReference.addValueEventListener(mPokeListener);
         }
     }
 
@@ -500,7 +478,7 @@ public class MainActivity extends BaseActivity {
 
     private void showUndoMessage(RecyclerView.ViewHolder viewHolder) {
         final String uid1 = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
-        final String uid2 = ((UserHolder) viewHolder).uid;
+        final String uid2 = ((UserHolder)viewHolder).uid;
         if (uid1 != null && uid2 != null) {
             DataManager.removeFromFlock(uid2, uid1);
             // Show snackBar with undo option
@@ -512,9 +490,7 @@ public class MainActivity extends BaseActivity {
                         Snackbar snackbar = Snackbar.make(mCoordinatorLayout, getString(R.string.content_removed) + " " + user.getName(), Snackbar.LENGTH_LONG);
                         snackbar.setAction(R.string.content_undo_caps, new View.OnClickListener() {
                             @Override
-                            public void onClick(View view) {
-                                DataManager.addToFlock(uid2, uid1);
-                            }
+                            public void onClick(View view) { DataManager.addToFlock(uid2, uid1); }
                         });
                         snackbar.setActionTextColor(Color.YELLOW);
                         snackbar.show();
@@ -542,8 +518,7 @@ public class MainActivity extends BaseActivity {
                     poke.setStart(simpleLocation);
                     DataManager.startPoke(poke);
                     showToast(Toast.makeText(this, R.string.content_poke_none, Toast.LENGTH_SHORT));
-                }
-                break;
+                } break;
                 case Constants.POKE_FLOCK: {
                     Poke poke = new Poke(mUserAdapter.getPokes().get(key));
                     poke.setUid(uid);
@@ -552,8 +527,7 @@ public class MainActivity extends BaseActivity {
                     poke.setFinish(simpleLocation);
                     DataManager.stopPoke(poke);
                     showToast(Toast.makeText(this, R.string.content_poke_flock, Toast.LENGTH_SHORT));
-                }
-                break;
+                } break;
                 case Constants.POKE_USER: {
                     Poke poke = new Poke(mUserAdapter.getPokes().get(key));
                     poke.setUid(key);
@@ -562,8 +536,7 @@ public class MainActivity extends BaseActivity {
                     poke.setFinish(simpleLocation);
                     DataManager.stopPoke(poke);
                     showToast(Toast.makeText(this, R.string.content_poke_user, Toast.LENGTH_SHORT));
-                }
-                break;
+                } break;
             }
         }
     }

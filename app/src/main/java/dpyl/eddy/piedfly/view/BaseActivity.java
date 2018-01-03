@@ -146,13 +146,13 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                     if (resultCode == Activity.RESULT_OK && response != null) {
                         // Successfully signed in
                         // TODO: Restore Phone Verification
-                        /*
+                        /*********************************************************************************
                         if (response.getPhoneNumber() == null || response.getPhoneNumber().isEmpty()){
                             // The user doesn't have an associated phone number
                             Intent intent = new Intent(this, PhoneActivity.class);
                             startActivityForResult(intent, PHONE_SIGN_IN);
                         }
-                        */
+                        *********************************************************************************/
                     } else {
                         // Sign in failed
                         if (response == null) {
@@ -299,7 +299,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         if (mAuth.getCurrentUser() != null) {
             // The user is already signed in
             // TODO: Restore Phone Verification
-            /*
+            /********************************************************************************************************************
             if (mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) {
                 // The user doesn't have an associated phone number
                 if (!(this instanceof PhoneActivity)) {
@@ -311,9 +311,9 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                 checkSmallID();
                 startServices();
             }
-            */
-            checkSmallID();
-            startServices();
+            *********************************************************************************************************************/
+            checkSmallID(); // Remove when Phone Verification is restored
+            startServices(); // Remove when Phone Verification is restored
         } else {
             // The user is not signed in
             startActivityForResult(AuthUI.getInstance().createSignInIntentBuilder().build(), EMAIL_SIGN_IN);

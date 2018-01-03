@@ -120,7 +120,7 @@ public class PhoneActivity extends BaseActivity {
 
     @SuppressLint("HardwareIds")
     private void writePhoneNumber() {
-        //TODO: Make sure the phone number is always successfully retrieved (Use content resolver phone.NUMBER contract?)
+        //TODO: Make sure the phone number is always successfully retrieved (Maybe use content resolver phone.NUMBER contract)
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
             TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
             String phoneNumber = telephonyManager.getLine1Number();
@@ -166,6 +166,7 @@ public class PhoneActivity extends BaseActivity {
             @Override
             public void onCodeAutoRetrievalTimeOut(String s) {
                 super.onCodeAutoRetrievalTimeOut(s);
+                // TODO: Error handling
             }
         };
     }
