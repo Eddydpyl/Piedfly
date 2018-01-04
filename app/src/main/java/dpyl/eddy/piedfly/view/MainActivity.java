@@ -129,7 +129,13 @@ public class MainActivity extends BaseActivity {
         slideForAlarm.setOnSlideCompleteListener(new SlideToActView.OnSlideCompleteListener() {
             @Override
             public void onSlideComplete(@NotNull final SlideToActView slideToActView) {
-                startEmergency();
+
+                //TODO: hecho a lo cutre rápido, poner bien.
+                if (mSharedPreferences.getString(getString(R.string.pref_emergencies_user), "").isEmpty()) {
+                    startEmergency();
+                } else {
+                    stopEmergency();
+                }
             }
         });
         mNestedScrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
@@ -317,6 +323,7 @@ public class MainActivity extends BaseActivity {
 
     private void startEmergency() {
         if (mAuth.getCurrentUser() != null) {
+
             Emergency emergency = new Emergency();
             String uid = mAuth.getCurrentUser().getUid();
             SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
@@ -327,6 +334,7 @@ public class MainActivity extends BaseActivity {
             AppState.registerEmergencyUser(this, mSharedPreferences, key);
         }
         slideForAlarm.resetSlider();
+
     }
 
     private void stopEmergency() {
@@ -340,7 +348,8 @@ public class MainActivity extends BaseActivity {
             emergency.setFinish(simpleLocation);
             DataManager.stopEmergency(emergency);
             AppState.unRegisterEmergencyUser(this, mSharedPreferences);
-        } slideForAlarm.resetSlider();
+        }
+        slideForAlarm.resetSlider();
     }
 
     private void startPickContact() {
