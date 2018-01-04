@@ -51,6 +51,9 @@ public class Utility {
         }
     }
 
+    // TODO: Add a 'minimum distance to last known location' check. Without this, points will "jump around" when GPS is not available
+    // (when the location is being triangulated from the cell towers), or you can check if the new location is outside of the accuracy value from the last known location.
+
     /**
      * Determines whether one Location reading is better than the current Location fix
      * @param location  The new Location that you want to evaluate
@@ -236,27 +239,28 @@ public class Utility {
      */
     public static String getCountryISO(Context context) {
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        String countryISO = telephonyManager.getSimCountryIso();
-        if (countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2,3}"))
-            return countryISO.toUpperCase();
-        countryISO = telephonyManager.getNetworkCountryIso();
-        if (countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2,3}"))
-            return countryISO.toUpperCase();
-        Locale locale = Locale.getDefault();
-        try {
-            Location lastKnownLocation = getLastKnownLocation(context);
-            Geocoder geocoder = new Geocoder(context, locale);
-            List<Address> addresses = geocoder.getFromLocation(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude(), 1);
-            if (addresses.size() > 0) countryISO = addresses.get(0).getCountryCode();
+        if (telephonyManager != null) {
+            String countryISO = telephonyManager.getSimCountryIso();
             if (countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2,3}"))
                 return countryISO.toUpperCase();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        countryISO = locale.getCountry();
-        if (countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2,3}"))
-            return countryISO.toUpperCase();
-        return null;
+            countryISO = telephonyManager.getNetworkCountryIso();
+            if (countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2,3}"))
+                return countryISO.toUpperCase();
+            Locale locale = Locale.getDefault();
+            try {
+                Location lastKnownLocation = getLastKnownLocation(context);
+                Geocoder geocoder = new Geocoder(context, locale);
+                List<Address> addresses = geocoder.getFromLocation(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude(), 1);
+                if (addresses.size() > 0) countryISO = addresses.get(0).getCountryCode();
+                if (countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2,3}"))
+                    return countryISO.toUpperCase();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            countryISO = locale.getCountry();
+            if (countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2,3}"))
+                return countryISO.toUpperCase();
+        } return null;
     }
 
     public static boolean isNetworkAvailable(Context context) {

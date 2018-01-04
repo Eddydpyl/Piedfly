@@ -1,6 +1,7 @@
 package dpyl.eddy.piedfly.view;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -16,6 +17,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -283,12 +285,19 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
         }
     }
 
+    @SuppressLint("ShowToast")
     private void focusCamera(String uid) {
         if (mMap != null && mMarkers != null) {
-            CameraPosition cameraAnimation = new CameraPosition.Builder().target(mMarkers.get(uid).getPosition()).zoom(ZOOM_LEVEL)
-                    .tilt(mMap.getCameraPosition().tilt).bearing(mMap.getCameraPosition().bearing).build();
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraAnimation));
-            setDetailsScreen(uid);
+            if (mMarkers.containsKey(uid)) {
+                CameraPosition cameraAnimation = new CameraPosition.Builder().target(mMarkers.get(uid).getPosition()).zoom(ZOOM_LEVEL)
+                        .tilt(mMap.getCameraPosition().tilt).bearing(mMap.getCameraPosition().bearing).build();
+                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraAnimation));
+            } else {
+                CameraPosition cameraAnimation = new CameraPosition.Builder().target(new LatLng(0.0, 0.0)).zoom(0)
+                        .tilt(mMap.getCameraPosition().tilt).bearing(mMap.getCameraPosition().bearing).build();
+                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraAnimation));
+                showToast(Toast.makeText(this, R.string.content_no_location, Toast.LENGTH_SHORT));
+            } setDetailsScreen(uid);
             mFocus = uid;
         }
     }
@@ -302,21 +311,23 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
                     mContactDetailsName.setText(user.getName());
                     StorageReference storageReference = user.getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(user.getPhotoUrl()) : null;
                     GlideApp.with(mContactDetailsImage.getContext()).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mContactDetailsImage);
-                    final Location location = new Location("");
-                    location.setLatitude(user.getLastKnownLocation().getLatitude());
-                    location.setLongitude(user.getLastKnownLocation().getLongitude());
-                    mContactDetailsLocation.setText(lastSeen(location));
-                    mContactDetailsLocation.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            Uri gmmIntentUri = Uri.parse("geo:" + location.getLatitude() + "," + location.getLongitude());
-                            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                            mapIntent.setPackage("com.google.android.apps.maps");
-                            if (mapIntent.resolveActivity(getPackageManager()) != null) {
-                                startActivity(mapIntent);
+                    if (user.getLastKnownLocation() != null) {
+                        final Location location = new Location("");
+                        location.setLatitude(user.getLastKnownLocation().getLatitude());
+                        location.setLongitude(user.getLastKnownLocation().getLongitude());
+                        mContactDetailsLocation.setText(lastSeen(location));
+                        mContactDetailsLocation.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                Uri gmmIntentUri = Uri.parse("geo:" + location.getLatitude() + "," + location.getLongitude());
+                                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                                mapIntent.setPackage("com.google.android.apps.maps");
+                                if (mapIntent.resolveActivity(getPackageManager()) != null) {
+                                    startActivity(mapIntent);
+                                }
                             }
-                        }
-                    });
+                        });
+                    } else mContactDetailsLocation.setText(getString(R.string.content_no_location));
                     mContactDetailsCall.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {

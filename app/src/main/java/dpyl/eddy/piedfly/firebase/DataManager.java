@@ -103,12 +103,12 @@ public class DataManager {
         user2Ref.removeValue();
     }
 
-    public static void setLastKnownLocation (@NonNull String uid, @NonNull final SimpleLocation location) {
+    public static void setLastKnownLocation (@NonNull String uid, @NonNull final SimpleLocation simpleLocation) {
         final DatabaseReference userRef = mDatabase.getReference("users").child(uid);
         final Map<String, Object> childUpdates = new HashMap<>();
-        childUpdates.put("/lastKnownLocation", location);
+        childUpdates.put("/lastKnownLocation", simpleLocation);
         userRef.updateChildren(childUpdates);
-        mGeoFire.setLocation(uid, new GeoLocation(location.getLatitude(), location.getLongitude()));
+        mGeoFire.setLocation(uid, new GeoLocation(simpleLocation.getLatitude(), simpleLocation.getLongitude()));
         if (!mGeoQueries.isEmpty()) {
             userRef.child("emergency").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
@@ -117,7 +117,7 @@ public class DataManager {
                         String key = dataSnapshot.getValue(String.class);
                         if (mGeoQueries.containsKey(key)) {
                             GeoQuery geoQuery = mGeoQueries.get(key);
-                            geoQuery.setCenter(new GeoLocation(location.getLatitude(), location.getLongitude()));
+                            geoQuery.setCenter(new GeoLocation(simpleLocation.getLatitude(), simpleLocation.getLongitude()));
                         }
                     }
                 }

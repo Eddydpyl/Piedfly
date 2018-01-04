@@ -50,6 +50,7 @@
     <string name="content_poke_user">You have cancelled the Poke.</string>
     <string name="content_dialog_flock">Do you want to add this User to your Flock?</string>
     <string name="content_no_phone">This user has no verified phone number.</string>
+    <string name="content_no_location">Couldn\'t retrieve this user\'s location.</string>
 
     <string name="action_settings">Settings</string>
 

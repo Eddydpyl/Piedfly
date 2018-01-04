@@ -83,10 +83,15 @@ public class MapUserAdapter extends FirebaseRecyclerAdapter<User, MapHolder> {
         }
 
         if (model.getUid().equals(mFocus) && !focused) {
-            CameraPosition cameraAnimation = new CameraPosition.Builder().target(mMarkers.get(mFocus).getPosition()).zoom(ZOOM_LEVEL)
-                    .tilt(mMap.getCameraPosition().tilt).bearing(mMap.getCameraPosition().bearing).build();
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraAnimation));
-            focused = true;
+            if (mMarkers.containsKey(mFocus)) {
+                CameraPosition cameraAnimation = new CameraPosition.Builder().target(mMarkers.get(mFocus).getPosition()).zoom(ZOOM_LEVEL)
+                        .tilt(mMap.getCameraPosition().tilt).bearing(mMap.getCameraPosition().bearing).build();
+                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraAnimation));
+            } else {
+                CameraPosition cameraAnimation = new CameraPosition.Builder().target(new LatLng(0.0, 0.0)).zoom(0)
+                        .tilt(mMap.getCameraPosition().tilt).bearing(mMap.getCameraPosition().bearing).build();
+                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraAnimation));
+            } focused = true;
         }
     }
 
