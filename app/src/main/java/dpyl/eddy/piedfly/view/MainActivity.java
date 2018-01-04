@@ -316,6 +316,20 @@ public class MainActivity extends BaseActivity {
         } slideForAlarm.resetSlider();
     }
 
+    private void stopEmergency() {
+        String key = mSharedPreferences.getString(getString(R.string.pref_emergencies_user), "");
+        if (mAuth.getCurrentUser() != null && !key.isEmpty()) {
+            Emergency emergency = new Emergency(key);
+            String uid = mAuth.getCurrentUser().getUid();
+            SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
+            emergency.setUid(uid);
+            emergency.setChecker(uid);
+            emergency.setFinish(simpleLocation);
+            DataManager.stopEmergency(emergency);
+            AppState.unRegisterEmergencyUser(this, mSharedPreferences);
+        } slideForAlarm.resetSlider();
+    }
+
     private void startPickContact() {
         if (AppPermissions.requestReadContactsPermission(this)) {
             Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);

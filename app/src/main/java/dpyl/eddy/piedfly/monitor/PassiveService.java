@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 
@@ -100,6 +101,7 @@ public class PassiveService extends Service {
                         .setSmallIcon(R.drawable.ic_logo)
                         .setContentTitle(context.getString(R.string.content_push_emergency_user_title))
                         .setContentText(context.getString(R.string.content_push_emergency_user_text))
+                        .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
                         .setVibrate(pattern)
                         .setAutoCancel(true)
                         .setPriority(Notification.PRIORITY_HIGH);

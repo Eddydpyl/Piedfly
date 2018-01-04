@@ -34,13 +34,13 @@ public class AppState {
         registerEmergency(sharedPreferences, emergencyKey, context.getString(R.string.pref_emergencies_nearby));
     }
 
-    public static void unRegisterEmergencyUser(Context context, String emergencyKey) {
+    public static void unRegisterEmergencyUser(Context context) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        unRegisterEmergencyUser(context, sharedPreferences, emergencyKey);
+        unRegisterEmergencyUser(context, sharedPreferences);
     }
 
-    public static void unRegisterEmergencyUser(Context context, SharedPreferences sharedPreferences, String emergencyKey) {
-        sharedPreferences.edit().putString(context.getString(R.string.pref_emergencies_user), emergencyKey).apply();
+    public static void unRegisterEmergencyUser(Context context, SharedPreferences sharedPreferences) {
+        sharedPreferences.edit().putString(context.getString(R.string.pref_emergencies_user), "").apply();
     }
 
     public static void unRegisterEmergencyFlock(Context context, String emergencyKey) {

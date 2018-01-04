@@ -28,6 +28,8 @@ public class LocationService extends Service {
     protected Location lastKnownLocation;
     private boolean mLocationUpdating;
 
+    // TODO: Take into account that GPS drains a lot of battery, so maybe querying for network location sometimes is better.
+
     public LocationService() {}
 
     @Override
@@ -43,8 +45,7 @@ public class LocationService extends Service {
                 }
                 if (bestLocation != null && (lastKnownLocation == null || Utility.isBetterLocationGreedy(bestLocation, lastKnownLocation, 5.0))) {
                     final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-                    String uid = sharedPreferences.getString(getBaseContext().getString(R.string.pref_uid), "");
-                    if (uid.isEmpty()) stopSelf();
+                    String uid = sharedPreferences.getString(getBaseContext().getString(R.string.pref_uid), ""); if (uid.isEmpty()) stopSelf();
                     SimpleLocation simpleLocation = new SimpleLocation(bestLocation.getTime(), bestLocation.getLatitude(), bestLocation.getLongitude());
                     DataManager.setLastKnownLocation(uid, simpleLocation);
                     lastKnownLocation = bestLocation;
