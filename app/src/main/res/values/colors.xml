@@ -2,9 +2,17 @@
 <resources>
     <color name="colorWhite">#ffffff</color>
 
+    <!--Original Colors-->
+   <!-- <color name="colorPrimary">#03A9F4</color>
+    <color name="colorPrimaryDark">#0288D1</color>
+    <color name="colorAccent">#FF4081</color>-->
+
+
+    <!-- New Colors -->
     <color name="colorPrimary">#03A9F4</color>
     <color name="colorPrimaryDark">#0288D1</color>
     <color name="colorAccent">#FF4081</color>
+
 
     <color name="primary_text">#212121</color>
     <color name="secondary_text">#757575</color>

@@ -50,25 +50,11 @@
                 android:clickable="true"
                 android:elevation="@dimen/slider_elevation"
                 android:focusable="true"
+                android:hapticFeedbackEnabled="true"
                 android:maxHeight="250dp"
                 android:maxWidth="250dp"
                 android:src="@drawable/default_contact" />
 
-            <!--TODO: move some other places, here's ugly-->
-            <!--<ImageView
-                android:id="@+id/userDirections"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_above="@+id/slide_for_alarm"
-                android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true"
-                android:layout_margin="@dimen/default_area_margin"
-                android:clickable="true"
-                android:elevation="@dimen/slider_elevation"
-                android:focusable="true"
-                android:paddingEnd="0dp"
-                android:paddingStart="64dp"
-                android:src="@drawable/ic_user_directions" />-->
 
             <com.ncorti.slidetoact.SlideToActView
                 android:id="@+id/slide_for_alarm"

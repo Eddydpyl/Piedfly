@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import dpyl.eddy.piedfly.AppState;
-import dpyl.eddy.piedfly.room.RoomManager;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.firebase.model.Emergency;
 import dpyl.eddy.piedfly.firebase.model.Event;
@@ -27,6 +26,7 @@ import dpyl.eddy.piedfly.firebase.model.EventType;
 import dpyl.eddy.piedfly.firebase.model.Poke;
 import dpyl.eddy.piedfly.firebase.model.Request;
 import dpyl.eddy.piedfly.firebase.model.User;
+import dpyl.eddy.piedfly.room.RoomManager;
 import dpyl.eddy.piedfly.room.model.Message;
 import dpyl.eddy.piedfly.room.model.MessageType;
 import dpyl.eddy.piedfly.view.MainActivity;
@@ -60,7 +60,7 @@ public class MessagingService extends FirebaseMessagingService {
         }
     }
 
-    private void sendNotification(final Map<String, String> data){
+    private void sendNotification(final Map<String, String> data) {
         final String type = data.get("type");
         final String key = data.get("key");
         switch (type) {
@@ -82,7 +82,7 @@ public class MessagingService extends FirebaseMessagingService {
                                         if (user != null) {
                                             pushNotification(user.getName() + " " + getString(R.string.content_push_emergency_flock_title), getString(R.string.content_push_emergency_flock_text), MainActivity.class);
                                             emergencies.put(emergency, mNotificationID);
-                                            Message message = buildMessage(emergency, user.getName() + " " + getString(R.string.content_push_emergency_flock_title), MessageType.EMERGENCY_START,null);
+                                            Message message = buildMessage(emergency, user.getName() + " " + getString(R.string.content_push_emergency_flock_title), MessageType.EMERGENCY_START, null);
                                             storeMessage(message, null);
                                         }
                                     }
@@ -103,7 +103,7 @@ public class MessagingService extends FirebaseMessagingService {
                                         if (user != null) {
                                             pushNotification(user.getName() + " " + getString(R.string.content_push_emergency_finish_title), getString(R.string.content_push_emergency_finish_text), MainActivity.class);
                                             removeNotification(emergencies.remove(emergency));
-                                            Message message = buildMessage(emergency, user.getName() + " " + getString(R.string.content_push_emergency_finish_title), MessageType.EMERGENCY_FINISH,null);
+                                            Message message = buildMessage(emergency, user.getName() + " " + getString(R.string.content_push_emergency_finish_title), MessageType.EMERGENCY_FINISH, null);
                                             storeMessage(message, null);
                                         }
                                     }
@@ -121,7 +121,8 @@ public class MessagingService extends FirebaseMessagingService {
                     public void onCancelled(DatabaseError databaseError) {
                         // TODO: Error handling
                     }
-                }); break;
+                });
+                break;
             case MESSAGE_TYPE_EMERGENCY_NEARBY:
                 // The user has either entered or left the perimeter of an Emergency
                 final Boolean state = Boolean.valueOf(data.get("state"));
@@ -135,7 +136,7 @@ public class MessagingService extends FirebaseMessagingService {
                                 AppState.registerEmergencyNearby(getBaseContext(), key);
                                 pushNotification(getString(R.string.content_push_emergency_nearby_title), getString(R.string.content_push_emergency_nearby_text), MainActivity.class);
                                 emergencies.put(emergency.getKey(), mNotificationID);
-                                Message message = buildMessage(emergency.getKey(), getString(R.string.content_push_emergency_nearby_title), MessageType.EMERGENCY_NEARBY,null);
+                                Message message = buildMessage(emergency.getKey(), getString(R.string.content_push_emergency_nearby_title), MessageType.EMERGENCY_NEARBY, null);
                                 storeMessage(message, null);
                             } else {
                                 // The user has left the perimeter
@@ -149,7 +150,8 @@ public class MessagingService extends FirebaseMessagingService {
                     public void onCancelled(DatabaseError databaseError) {
                         // TODO: Error handling
                     }
-                }); break;
+                });
+                break;
             case MESSAGE_TYPE_REQUEST:
                 // A Request has been sent to the user
                 mDatabase.getReference("requests").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -163,7 +165,7 @@ public class MessagingService extends FirebaseMessagingService {
                                     User user = dataSnapshot.getValue(User.class);
                                     if (user != null) {
                                         pushNotification(user.getName() + " " + getString(R.string.content_push_request_title), getString(R.string.content_push_request_text), MainActivity.class);
-                                        Message message = buildMessage(user.getUid(), user.getName() + " " + getString(R.string.content_push_request_title), MessageType.REQUEST_FLOCK,null);
+                                        Message message = buildMessage(user.getUid(), user.getName() + " " + getString(R.string.content_push_request_title), MessageType.REQUEST_FLOCK, null);
                                         storeMessage(message, null);
                                     }
                                 }
@@ -180,7 +182,8 @@ public class MessagingService extends FirebaseMessagingService {
                     public void onCancelled(DatabaseError databaseError) {
                         // TODO: Error handling
                     }
-                }); break;
+                });
+                break;
             case MESSAGE_TYPE_START_POKE:
                 // A Poke has been sent to the user
                 mDatabase.getReference("pokes").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -209,7 +212,8 @@ public class MessagingService extends FirebaseMessagingService {
                     public void onCancelled(DatabaseError databaseError) {
                         // TODO: Error handling
                     }
-                }); break;
+                });
+                break;
             case MESSAGE_TYPE_END_POKE:
                 // A Poke involving the user has been checked
                 mDatabase.getReference("pokes").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -217,7 +221,7 @@ public class MessagingService extends FirebaseMessagingService {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Poke poke = dataSnapshot.getValue(Poke.class);
                         if (poke != null) {
-                            mDatabase.getReference("users").child(poke.getTrigger()).addListenerForSingleValueEvent(new ValueEventListener() {
+                            mDatabase.getReference("users").child(poke.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {
                                     User user = dataSnapshot.getValue(User.class);
@@ -238,12 +242,13 @@ public class MessagingService extends FirebaseMessagingService {
                     public void onCancelled(DatabaseError databaseError) {
                         // TODO: Error handling
                     }
-                }); break;
+                });
+                break;
         }
     }
 
     private void pushNotification(String title, String text, Class<?> target) {
-        final long[] pattern = {250,500,250,500};
+        final long[] pattern = {250, 500, 250, 500};
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(R.drawable.ic_logo)
@@ -260,7 +265,8 @@ public class MessagingService extends FirebaseMessagingService {
         PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
         mBuilder.setContentIntent(resultPendingIntent);
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        if (notificationManager != null) notificationManager.notify(mNotificationID++, mBuilder.build());
+        if (notificationManager != null)
+            notificationManager.notify(mNotificationID++, mBuilder.build());
     }
 
     private void removeNotification(Integer id) {

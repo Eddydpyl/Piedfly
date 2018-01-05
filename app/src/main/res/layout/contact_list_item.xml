@@ -74,6 +74,7 @@
             android:layout_toLeftOf="@+id/contact_call"
             android:clickable="true"
             android:focusable="true"
+            android:hapticFeedbackEnabled="true"
             android:src="@drawable/ic_gps_fixed_24dp"
             android:tint="@color/colorSecondaryAccent" />
 
@@ -87,6 +88,7 @@
             android:layout_marginRight="@dimen/default_big_margin"
             android:clickable="true"
             android:focusable="true"
+            android:hapticFeedbackEnabled="true"
             android:src="@drawable/ic_call_24dp"
             android:tint="@color/colorSecondaryAccent" />
 
