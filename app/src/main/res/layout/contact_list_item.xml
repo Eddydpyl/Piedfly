@@ -70,8 +70,7 @@
             android:layout_gravity="center_vertical"
             android:layout_marginEnd="@dimen/default_margin"
             android:layout_toStartOf="@+id/contact_call"
-            android:clickable="true"
-            android:focusable="true"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_gps_fixed_24dp"
             android:tint="@color/colorSecondaryAccent" />
 
@@ -83,11 +82,9 @@
             android:layout_centerVertical="true"
             android:layout_gravity="center_vertical"
             android:layout_marginEnd="@dimen/default_big_margin"
-            android:clickable="true"
-            android:focusable="true"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_call_24dp"
             android:tint="@color/colorSecondaryAccent" />
-
 
     </RelativeLayout>
 

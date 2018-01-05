@@ -234,24 +234,20 @@ public class MainActivity extends BaseActivity {
         super.OnListItemClick(position, view, key);
         switch (view.getId()) {
             case R.id.contact_call: {
-                view.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 startPhoneCall((String) view.getTag());
             }
             break;
             case R.id.contact_poke: {
-                view.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 pokeAction(key, (String) view.getTag());
                 this.mPokeType = (String) view.getTag();
                 this.mKey = key;
             }
             break;
             case R.id.contact_image: {
-                view.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 // TODO: maybe show picture bigger like whatssap
             }
             break;
             case R.id.contact_directions: {
-                view.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 startShowInMap(key);
                 this.mKey = key;
             }

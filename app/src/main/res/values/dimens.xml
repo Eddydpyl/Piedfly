@@ -17,6 +17,7 @@
     <dimen name="default_big_margin">32dp</dimen>
     <dimen name="default_card_corner_radius">2dp</dimen>
     <dimen name="map_user_image">62dp</dimen>
+    <dimen name="default_civ_border_width">2dp</dimen>
 
 
 </resources>

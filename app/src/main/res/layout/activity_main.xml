@@ -53,6 +53,8 @@
                 android:hapticFeedbackEnabled="true"
                 android:maxHeight="250dp"
                 android:maxWidth="250dp"
+                app:civ_border_width="@dimen/default_civ_border_width"
+                app:civ_border_color="@color/colorWhite"
                 android:src="@drawable/default_contact" />
 
 
