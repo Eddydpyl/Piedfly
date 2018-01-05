@@ -28,7 +28,7 @@ import dpyl.eddy.piedfly.view.MainActivity;
 
 public class PassiveService extends Service {
 
-    private static final String NOTIFICATION_CANCELED = "nCANCELLED";
+    static final String NOTIFICATION_CANCELED = "nCANCELLED";
     private static final int NOTIFICATION_ID = 12345;
     private static final int PUSH_ID = 54321;
 
@@ -45,6 +45,8 @@ public class PassiveService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent.getExtras() != null && intent.getBooleanExtra(NOTIFICATION_CANCELED, false))
+            createStickyNotification();
         return START_STICKY;
     }
 
@@ -99,7 +101,6 @@ public class PassiveService extends Service {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
-                boolean notificationCancelled = intent.getExtras() != null && intent.getExtras().getBoolean(NOTIFICATION_CANCELED, false);
                 if (action != null && (action.equals(Intent.ACTION_SCREEN_ON) || action.equals(Intent.ACTION_SCREEN_OFF))) {
                     long currentTime = System.currentTimeMillis();
                     if (lastReceived == null) lastReceived = currentTime;
@@ -111,7 +112,7 @@ public class PassiveService extends Service {
                         }
                     } else counter = 0;
                     lastReceived = currentTime;
-                } else if (notificationCancelled) createStickyNotification();
+                }
             }
         };
         IntentFilter filter = new IntentFilter();
@@ -122,19 +123,19 @@ public class PassiveService extends Service {
     }
 
     private void createStickyNotification() {
+        Intent intent = new Intent(this, NotificationCancelledReceiver.class).putExtra(NOTIFICATION_CANCELED, true);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this.getApplicationContext(), 0, intent, 0);
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(R.drawable.ic_logo)
                         .setContentTitle(getString(R.string.content_notification_title))
                         .setContentText(getString(R.string.content_notification_text))
                         .setOngoing(true)
-                        .setShowWhen(false);
+                        .setShowWhen(false)
+                        .setDeleteIntent(pendingIntent);
         Notification notification = builder.build();
         notification.flags |= Notification.FLAG_NO_CLEAR;
         startForeground(NOTIFICATION_ID, notification);
-        Intent intent = new Intent(this, PassiveService.class).putExtra(NOTIFICATION_CANCELED, true);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this.getApplicationContext(), 0, intent, 0);
-        builder.setDeleteIntent(pendingIntent);
     }
 
 }
