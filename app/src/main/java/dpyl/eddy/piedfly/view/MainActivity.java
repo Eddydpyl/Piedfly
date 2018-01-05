@@ -129,7 +129,8 @@ public class MainActivity extends BaseActivity {
         slideForAlarm.setOnSlideCompleteListener(new SlideToActView.OnSlideCompleteListener() {
             @Override
             public void onSlideComplete(@NotNull final SlideToActView slideToActView) {
-                if (!AppState.emergencyUser(MainActivity.this, mSharedPreferences)) startEmergency();
+                if (!AppState.emergencyUser(MainActivity.this, mSharedPreferences))
+                    startEmergency();
                 else stopEmergency();
             }
         });
@@ -233,21 +234,24 @@ public class MainActivity extends BaseActivity {
         super.OnListItemClick(position, view, key);
         switch (view.getId()) {
             case R.id.contact_call: {
-
+                view.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 startPhoneCall((String) view.getTag());
             }
             break;
             case R.id.contact_poke: {
+                view.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 pokeAction(key, (String) view.getTag());
                 this.mPokeType = (String) view.getTag();
                 this.mKey = key;
             }
             break;
             case R.id.contact_image: {
-                // TODO
+                view.playSoundEffect(android.view.SoundEffectConstants.CLICK);
+                // TODO: maybe show picture bigger like whatssap
             }
             break;
             case R.id.contact_directions: {
+                view.playSoundEffect(android.view.SoundEffectConstants.CLICK);
                 startShowInMap(key);
                 this.mKey = key;
             }
