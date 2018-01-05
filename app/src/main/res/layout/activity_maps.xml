@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+<!--TODO: only image content description missing-->
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -23,7 +25,6 @@
                 android:layout_height="?attr/actionBarSize"
                 android:background="?attr/colorPrimary"
                 android:title="@string/content_map_activity_label"
-                android:titleTextColor="@color/white"
                 app:popupTheme="@style/AppTheme.PopupOverlay" />
 
         </android.support.design.widget.AppBarLayout>
@@ -101,9 +102,9 @@
                     android:id="@+id/map_contact_details_name"
                     android:layout_width="@dimen/contact_name_width"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
                     android:layout_below="@+id/map_contact_details_image"
-                    android:layout_marginLeft="@dimen/default_margin"
+                    android:layout_marginStart="@dimen/default_margin"
                     android:ellipsize="end"
                     android:lines="1"
                     android:textColor="@color/primary_text"
@@ -115,8 +116,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/map_contact_details_name"
-                    android:layout_marginLeft="@dimen/default_margin"
-                    android:layout_marginRight="@dimen/default_margin"
+                    android:layout_marginEnd="@dimen/default_margin"
+                    android:layout_marginStart="@dimen/default_margin"
                     android:ellipsize="end"
                     android:lines="1"
                     android:textColor="@color/secondary_text"
@@ -127,12 +128,12 @@
                     android:id="@+id/map_contact_details_call"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:layout_gravity="center_vertical"
-                    android:layout_marginRight="@dimen/default_big_margin"
-                    android:src="@drawable/ic_call_48dp"
-                    android:tint="@drawable/main_colored_states" />
+                    android:layout_marginEnd="@dimen/default_big_margin"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_call_48dp" />
 
             </RelativeLayout>
 

@@ -233,6 +233,7 @@ public class MainActivity extends BaseActivity {
         super.OnListItemClick(position, view, key);
         switch (view.getId()) {
             case R.id.contact_call: {
+
                 startPhoneCall((String) view.getTag());
             }
             break;

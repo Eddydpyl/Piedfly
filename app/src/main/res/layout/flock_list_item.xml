@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+<!--TODO: only image content description missing-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -16,17 +17,17 @@
             android:id="@+id/delete_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:layout_marginRight="@dimen/default_big_margin"
+            android:layout_marginEnd="@dimen/default_big_margin"
             android:src="@drawable/ic_delete_white_24dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_marginRight="@dimen/default_margin"
-            android:layout_toLeftOf="@id/delete_icon"
+            android:layout_marginEnd="@dimen/default_margin"
+            android:layout_toStartOf="@id/delete_icon"
             android:text="@string/content_delete_caps"
             android:textColor="@color/white"
             android:textSize="14sp" />
@@ -43,7 +44,7 @@
             android:id="@+id/contact_image"
             android:layout_width="62dp"
             android:layout_height="62dp"
-            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:layout_margin="@dimen/default_margin"
             android:src="@drawable/default_contact" />
@@ -60,19 +61,18 @@
             android:textSize="14sp"
             tools:text="Random-Random Random (Random)" />
 
-        <!--TODO: fix tint, it changes color badly, ask company-->
-
         <ImageView
             android:id="@+id/contact_directions"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_gravity="center_vertical"
-            android:layout_marginRight="@dimen/default_margin"
-            android:layout_toLeftOf="@+id/contact_call"
-            android:background="?android:attr/selectableItemBackground"
+            android:layout_marginEnd="@dimen/default_margin"
+            android:layout_toStartOf="@+id/contact_call"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
+            android:soundEffectsEnabled="true"
             android:src="@drawable/ic_gps_fixed_24dp"
             android:tint="@color/colorSecondaryAccent" />
 
@@ -80,13 +80,14 @@
             android:id="@+id/contact_call"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:layout_gravity="center_vertical"
-            android:layout_marginRight="@dimen/default_big_margin"
-            android:background="?android:attr/selectableItemBackground"
+            android:layout_marginEnd="@dimen/default_big_margin"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
+            android:soundEffectsEnabled="true"
             android:src="@drawable/ic_call_24dp"
             android:tint="@color/colorSecondaryAccent" />
 
@@ -94,10 +95,10 @@
             android:id="@+id/contact_poke"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:layout_gravity="center_vertical"
-            android:layout_marginRight="@dimen/default_big_margin"
+            android:layout_marginEnd="@dimen/default_big_margin"
             android:clickable="true"
             android:focusable="true"
             android:src="@drawable/ic_poke_empty"
