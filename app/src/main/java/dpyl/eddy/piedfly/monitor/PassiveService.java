@@ -28,45 +28,23 @@ import dpyl.eddy.piedfly.view.MainActivity;
 
 public class PassiveService extends Service {
 
-    private static  final int NOTIFICATION_ID = 12345;
-    private static  final int PUSH_ID = 54321;
+    private static final String NOTIFICATION_CANCELED = "nCANCELLED";
+    private static final int NOTIFICATION_ID = 12345;
+    private static final int PUSH_ID = 54321;
 
     private BroadcastReceiver mBroadcastReceiver;
-    private boolean mBroadcastReceiverOn;
 
     public PassiveService() {}
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mBroadcastReceiverOn = false;
-        mBroadcastReceiver = new BroadcastReceiver() {
-
-            private Long lastReceived;
-            private Integer counter = 0;
-
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-                if (action != null && (action.equals(Intent.ACTION_SCREEN_ON) || action.equals(Intent.ACTION_SCREEN_OFF))) {
-                    long currentTime = System.currentTimeMillis();
-                    if (lastReceived == null) lastReceived = currentTime;
-                        if (currentTime - lastReceived < Constants.POWER_INTERVAL) {
-                        if (Constants.POWER_CLICKS <= counter++) {
-                            if (!AppState.emergencyUser(context)) {
-                                startEmergency(context);
-                            } counter = 0;
-                        }
-                    } else counter = 0;
-                    lastReceived = currentTime;
-                }
-            }
-        };
+        registerBroadcastReceiver();
+        createStickyNotification();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        createStickyNotification();
         return START_STICKY;
     }
 
@@ -78,10 +56,8 @@ public class PassiveService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mBroadcastReceiverOn) {
-            unregisterReceiver(mBroadcastReceiver);
-            mBroadcastReceiverOn = false;
-        } stopForeground(true);
+        unregisterReceiver(mBroadcastReceiver);
+        stopForeground(true);
     }
 
     private void startEmergency(Context context) {
@@ -114,30 +90,51 @@ public class PassiveService extends Service {
         mNotificationManager.notify(PUSH_ID, mBuilder.build());
     }
 
-    private void createStickyNotification() {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean powerToggle = sharedPreferences.getBoolean(getString(R.string.pref_power_toggle), true);
-        if (powerToggle && !mBroadcastReceiverOn) {
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(Intent.ACTION_SCREEN_ON);
-            filter.addAction(Intent.ACTION_SCREEN_OFF);
-            filter.addAction(Intent.ACTION_USER_PRESENT);
-            registerReceiver(mBroadcastReceiver, filter);
-            mBroadcastReceiverOn = true;
-            NotificationCompat.Builder builder =
-                    new NotificationCompat.Builder(this)
-                            .setSmallIcon(R.drawable.ic_logo)
-                            .setContentTitle(getString(R.string.content_notification_title))
-                            .setContentText(getString(R.string.content_notification_text))
-                            .setOngoing(true)
-                            .setShowWhen(false);
-            Notification notification = builder.build();
-            notification.flags |= Notification.FLAG_NO_CLEAR;
-            startForeground(NOTIFICATION_ID, notification);
-        } else if (!powerToggle && mBroadcastReceiverOn) {
-            unregisterReceiver(mBroadcastReceiver);
-            mBroadcastReceiverOn = false;
-            stopForeground(true);
-        }
+    private void registerBroadcastReceiver() {
+        mBroadcastReceiver = new BroadcastReceiver() {
+
+            private Long lastReceived;
+            private Integer counter = 0;
+
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                boolean notificationCancelled = intent.getExtras() != null && intent.getExtras().getBoolean(NOTIFICATION_CANCELED, false);
+                if (action != null && (action.equals(Intent.ACTION_SCREEN_ON) || action.equals(Intent.ACTION_SCREEN_OFF))) {
+                    long currentTime = System.currentTimeMillis();
+                    if (lastReceived == null) lastReceived = currentTime;
+                    if (currentTime - lastReceived < Constants.POWER_INTERVAL) {
+                        if (Constants.POWER_CLICKS <= counter++) {
+                            if (!AppState.emergencyUser(context)) {
+                                startEmergency(context);
+                            } counter = 0;
+                        }
+                    } else counter = 0;
+                    lastReceived = currentTime;
+                } else if (notificationCancelled) createStickyNotification();
+            }
+        };
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_SCREEN_ON);
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction(Intent.ACTION_USER_PRESENT);
+        registerReceiver(mBroadcastReceiver, filter);
     }
+
+    private void createStickyNotification() {
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.ic_logo)
+                        .setContentTitle(getString(R.string.content_notification_title))
+                        .setContentText(getString(R.string.content_notification_text))
+                        .setOngoing(true)
+                        .setShowWhen(false);
+        Notification notification = builder.build();
+        notification.flags |= Notification.FLAG_NO_CLEAR;
+        startForeground(NOTIFICATION_ID, notification);
+        Intent intent = new Intent(this, PassiveService.class).putExtra(NOTIFICATION_CANCELED, true);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this.getApplicationContext(), 0, intent, 0);
+        builder.setDeleteIntent(pendingIntent);
+    }
+
 }

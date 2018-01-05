@@ -346,7 +346,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
 
     private void startServices() {
         Intent passiveService = new Intent(this, PassiveService.class);
-        startService(passiveService);
+        if(mSharedPreferences.getBoolean(getString(R.string.pref_power_toggle), true))
+            startService(passiveService);
         if (AppPermissions.requestLocationPermission(this)) {
             Intent locationService = new Intent(this, LocationService.class);
             startService(locationService);
