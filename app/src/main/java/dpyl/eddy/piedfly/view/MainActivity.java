@@ -267,9 +267,11 @@ public class MainActivity extends BaseActivity {
         if (existsEmergency()) {
             mSlideForAlarm.setVisibility(View.INVISIBLE);
             mSlideToCancelAlarm.setVisibility(View.VISIBLE);
+            toEmergencyAnimation();
         } else {
             mSlideForAlarm.setVisibility(View.VISIBLE);
             mSlideToCancelAlarm.setVisibility(View.INVISIBLE);
+            toNormalAnimation();
         }
 
     }
@@ -380,6 +382,71 @@ public class MainActivity extends BaseActivity {
         return colorAnimation;
     }
 
+    private void toEmergencyAnimation() {
+        ValueAnimator colorPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorPrimary), getResources().getColor(R.color.colorSecondary), Constants.TRANSITION_ANIM_TIME);
+        ValueAnimator colorDarkPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorPrimaryDark), getResources().getColor(R.color.colorSecondaryDark), Constants.TRANSITION_ANIM_TIME);
+
+
+        colorPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+
+            @Override
+            public void onAnimationUpdate(ValueAnimator animator) {
+                int animatorValue = (int) animator.getAnimatedValue();
+                mToolbar.setBackgroundColor(animatorValue);
+                int[][] states = new int[][]{
+                        new int[]{android.R.attr.state_enabled},
+                        new int[]{-android.R.attr.state_enabled},
+                };
+                mFab.setBackgroundTintList(new ColorStateList(states, new int[]{animatorValue, animatorValue}));
+            }
+
+        });
+
+        colorDarkPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animator) {
+                int animatorValue = (int) animator.getAnimatedValue();
+                mWindow.setStatusBarColor(animatorValue);
+            }
+        });
+
+        colorPrimaryAnimator.start();
+        colorDarkPrimaryAnimator.start();
+    }
+
+    private void toNormalAnimation() {
+        ValueAnimator colorPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorSecondary), getResources().getColor(R.color.colorPrimary), Constants.TRANSITION_ANIM_TIME);
+        ValueAnimator colorDarkPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorSecondaryDark), getResources().getColor(R.color.colorPrimaryDark), Constants.TRANSITION_ANIM_TIME);
+
+
+        colorPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+
+            @Override
+            public void onAnimationUpdate(ValueAnimator animator) {
+                int animatorValue = (int) animator.getAnimatedValue();
+                mToolbar.setBackgroundColor(animatorValue);
+                int[][] states = new int[][]{
+                        new int[]{android.R.attr.state_enabled},
+                        new int[]{-android.R.attr.state_enabled},
+                };
+                mFab.setBackgroundTintList(new ColorStateList(states, new int[]{animatorValue, animatorValue}));
+            }
+
+        });
+
+        colorDarkPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animator) {
+                int animatorValue = (int) animator.getAnimatedValue();
+                mWindow.setStatusBarColor(animatorValue);
+            }
+        });
+
+
+        colorPrimaryAnimator.start();
+        colorDarkPrimaryAnimator.start();
+    }
+
     @Override
     protected AppState.AppStateListener buildAppStateListener() {
 
@@ -389,74 +456,14 @@ public class MainActivity extends BaseActivity {
             public void onUserEmergencyStart() {
                 // TODO: The user has activated an emergency
                 mUserAdapter.setEmergency(true);
+                toEmergencyAnimation();
 
-                ValueAnimator colorPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorPrimary), getResources().getColor(R.color.colorSecondary), Constants.TRANSITION_ANIM_TIME);
-                ValueAnimator colorDarkPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorPrimaryDark), getResources().getColor(R.color.colorSecondaryDark), Constants.TRANSITION_ANIM_TIME);
-
-
-                colorPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-
-                    @Override
-                    public void onAnimationUpdate(ValueAnimator animator) {
-                        int animatorValue = (int) animator.getAnimatedValue();
-                        mToolbar.setBackgroundColor(animatorValue);
-                        int[][] states = new int[][]{
-                                new int[]{android.R.attr.state_enabled},
-                                new int[]{-android.R.attr.state_enabled},
-                        };
-                        mFab.setBackgroundTintList(new ColorStateList(states, new int[]{animatorValue, animatorValue}));
-                    }
-
-                });
-
-                colorDarkPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                    @Override
-                    public void onAnimationUpdate(ValueAnimator animator) {
-                        int animatorValue = (int) animator.getAnimatedValue();
-                        mWindow.setStatusBarColor(animatorValue);
-                    }
-                });
-
-
-                colorPrimaryAnimator.start();
-                colorDarkPrimaryAnimator.start();
             }
 
             @Override
             public void onUserEmergencyStop() {
                 // TODO: The user had an emergency active and now it has been stopped
-
-                ValueAnimator colorPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorSecondary), getResources().getColor(R.color.colorPrimary), Constants.TRANSITION_ANIM_TIME);
-                ValueAnimator colorDarkPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorSecondaryDark), getResources().getColor(R.color.colorPrimaryDark), Constants.TRANSITION_ANIM_TIME);
-
-
-                colorPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-
-                    @Override
-                    public void onAnimationUpdate(ValueAnimator animator) {
-                        int animatorValue = (int) animator.getAnimatedValue();
-                        mToolbar.setBackgroundColor(animatorValue);
-                        int[][] states = new int[][]{
-                                new int[]{android.R.attr.state_enabled},
-                                new int[]{-android.R.attr.state_enabled},
-                        };
-                        mFab.setBackgroundTintList(new ColorStateList(states, new int[]{animatorValue, animatorValue}));
-                    }
-
-                });
-
-                colorDarkPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                    @Override
-                    public void onAnimationUpdate(ValueAnimator animator) {
-                        int animatorValue = (int) animator.getAnimatedValue();
-                        mWindow.setStatusBarColor(animatorValue);
-                    }
-                });
-
-
-                colorPrimaryAnimator.start();
-                colorDarkPrimaryAnimator.start();
-
+                toNormalAnimation();
             }
 
             @Override
