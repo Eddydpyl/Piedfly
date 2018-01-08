@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <objectAnimator
+        android
+        android:propertyName="backgroundTint"
+        android:duration="1600"
+        android:interpolator="@android:anim/accelerate_interpolator"
+        android:valueFrom="@color/colorPrimary"
+        android:valueTo="@color/colorSecondary"
+        android:valueType="colorType" />
+
+</set>
