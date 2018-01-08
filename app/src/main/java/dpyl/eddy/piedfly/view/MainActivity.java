@@ -30,6 +30,7 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerOptions;
@@ -371,6 +372,7 @@ public class MainActivity extends BaseActivity {
     private ValueAnimator getColorAnimator(int colorFrom, int colorTo, int duration) {
         ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
         colorAnimation.setDuration(duration);
+        colorAnimation.setInterpolator(new AccelerateDecelerateInterpolator());
         return colorAnimation;
     }
 
