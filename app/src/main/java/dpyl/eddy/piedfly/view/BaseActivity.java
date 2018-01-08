@@ -40,6 +40,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.mikepenz.actionitembadge.library.ActionItemBadge;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -329,7 +330,9 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
             startServices(); // Remove when Phone Verification is restored
         } else {
             // The user is not signed in
-            startActivityForResult(AuthUI.getInstance().createSignInIntentBuilder().build(), EMAIL_SIGN_IN);
+            startActivityForResult(AuthUI.getInstance().createSignInIntentBuilder()
+                    .setAvailableProviders(Arrays.asList(new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
+                            new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build())).build(), EMAIL_SIGN_IN);
         }
     }
 
@@ -434,4 +437,5 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
             }).show();
         }
     }
+
 }
