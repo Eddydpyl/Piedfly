@@ -45,11 +45,11 @@ import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import dpyl.eddy.piedfly.AppState;
+import dpyl.eddy.piedfly.R;
+import dpyl.eddy.piedfly.Utility;
 import dpyl.eddy.piedfly.firebase.DataManager;
 import dpyl.eddy.piedfly.firebase.FileManager;
 import dpyl.eddy.piedfly.firebase.GlideApp;
-import dpyl.eddy.piedfly.R;
-import dpyl.eddy.piedfly.Utility;
 import dpyl.eddy.piedfly.firebase.model.SimpleLocation;
 import dpyl.eddy.piedfly.firebase.model.User;
 import dpyl.eddy.piedfly.view.adapter.MapUserAdapter;
@@ -78,6 +78,12 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (existsEmergency())
+            setTheme(R.style.AppThemeEmergency_NoActionBar);
+        else
+            setTheme(R.style.AppTheme_NoActionBar);
+
         setContentView(R.layout.activity_maps);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.map_toolbar);
@@ -99,7 +105,9 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
         GlideApp.with(this).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(userImage);
         userImage.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) { focusCamera(mAuth.getCurrentUser().getUid()); }
+            public void onClick(View view) {
+                focusCamera(mAuth.getCurrentUser().getUid());
+            }
         });
 
         mRecyclerView = (RecyclerView) findViewById(R.id.map_recycler);
@@ -112,6 +120,11 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
         else mFocus = getIntent().getStringExtra(getString(R.string.intent_uid));
     }
 
+
+    private boolean existsEmergency() {
+        return !mSharedPreferences.getString(getString(R.string.pref_emergencies_user), "").isEmpty();
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -122,7 +135,8 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     @Override
     public void OnListItemClick(int position, View view, String key) {
         super.OnListItemClick(position, view, key);
-        if (view.getId() == R.id.map_contact_image || view.getId() == R.id.map_user_image) focusCamera(key);
+        if (view.getId() == R.id.map_contact_image || view.getId() == R.id.map_user_image)
+            focusCamera(key);
     }
 
     @Override
@@ -148,7 +162,8 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
                 DataManager.getDatabase().getReference("users").child(entry.getKey()).child("lastKnownLocation").removeEventListener(entry.getValue());
                 mListeners.remove(entry.getKey());
             }
-        } mMap.setOnCameraChangeListener(null);
+        }
+        mMap.setOnCameraChangeListener(null);
     }
 
     @Override
@@ -297,7 +312,8 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
                         .tilt(mMap.getCameraPosition().tilt).bearing(mMap.getCameraPosition().bearing).build();
                 mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraAnimation));
                 showToast(Toast.makeText(this, R.string.content_no_location, Toast.LENGTH_SHORT));
-            } setDetailsScreen(uid);
+            }
+            setDetailsScreen(uid);
             mFocus = uid;
         }
     }
@@ -365,6 +381,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
         } catch (IOException e) {
             e.printStackTrace();
             lastSeen += " lat: " + location.getLatitude() + ", long: " + location.getLongitude();
-        } return lastSeen;
+        }
+        return lastSeen;
     }
 }

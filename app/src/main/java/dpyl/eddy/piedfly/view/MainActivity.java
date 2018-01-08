@@ -253,6 +253,10 @@ public class MainActivity extends BaseActivity {
         showAppropiateSlider();
     }
 
+    private boolean existsEmergency() {
+        return !mSharedPreferences.getString(getString(R.string.pref_emergencies_user), "").isEmpty();
+    }
+
     /**
      * Shows the slide to cancel or the slide for alarm slider depending on this user active emergencies.
      */
@@ -496,10 +500,6 @@ public class MainActivity extends BaseActivity {
             String key = DataManager.startEmergency(emergency);
             AppState.registerEmergencyUser(this, mSharedPreferences, key);
         }
-    }
-
-    private boolean existsEmergency() {
-        return !mSharedPreferences.getString(getString(R.string.pref_emergencies_user), "").isEmpty();
     }
 
     private void stopEmergency() {
