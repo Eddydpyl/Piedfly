@@ -34,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/map_AppBarLayout"
-            android:background="@color/material_light_white"
+            android:background="@color/default_background_color"
             android:elevation="@dimen/frame_elevation"
             android:orientation="horizontal">
 
@@ -50,7 +50,7 @@
                 android:layout_height="match_parent"
                 android:layout_marginBottom="@dimen/default_small_margin"
                 android:layout_marginTop="@dimen/default_small_margin"
-                android:background="@color/colorSecondaryAccent" />
+                android:background="@color/divider_color" />
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/map_recycler"
@@ -82,6 +82,7 @@
             android:layout_height="@dimen/map_contactDetails_height"
             android:layout_alignParentBottom="true"
             android:layout_margin="@dimen/default_small_margin"
+            android:background="@color/default_background_color"
             card_view:cardCornerRadius="@dimen/default_card_corner_radius">
 
             <RelativeLayout

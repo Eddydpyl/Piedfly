@@ -1,4 +1,4 @@
-package com.ncorti.slidetoact
+package superlemoncandy.myslidetoact
 
 import android.animation.Animator
 import android.animation.AnimatorSet

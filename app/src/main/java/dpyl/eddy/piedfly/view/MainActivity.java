@@ -1,10 +1,13 @@
 package dpyl.eddy.piedfly.view;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.app.Application;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -24,7 +27,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerOptions;
@@ -76,13 +81,16 @@ public class MainActivity extends BaseActivity {
     private static final int REQUEST_PICK_CONTACT = 100;
     private static final int REQUEST_PICK_IMAGE = 101;
 
+    private Window mWindow;
     private CoordinatorLayout mCoordinatorLayout;
     private CircleImageView mCircleImageView;
-    private SlideToActView slideForAlarm;
-    private FloatingActionButton faButton;
+    private SlideToActView mSlideForAlarm;
+    private SlideToActView mSlideToCancelAlarm;
+    private FloatingActionButton mFab;
     private RecyclerView mRecyclerView;
     private RecyclerView mSecondRecyclerView;
     private NestedScrollView mNestedScrollView;
+    private Toolbar mToolbar;
 
     private String mKey; // Used for replicating a user action after they grant an Android permission
     private String mPokeType; // Used for replicating a user action after they grant an Android permission
@@ -95,22 +103,29 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Once the Activity is ready, swap the splash screen for the actual theme
-        setTheme(R.style.AppTheme_NoActionBar);
+
         super.onCreate(savedInstanceState);
+
+        // Once the Activity is ready, swap the splash screen for the actual theme
+        if (existsEmergency())
+            setTheme(R.style.AppThemeEmergency_NoActionBar);
+        else
+            setTheme(R.style.AppTheme_NoActionBar);
+
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
+        mWindow = this.getWindow();
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
         mCoordinatorLayout = findViewById(R.id.content);
-        faButton = (FloatingActionButton) findViewById(R.id.fab);
         mCircleImageView = (CircleImageView) findViewById(R.id.userImage);
-        slideForAlarm = (SlideToActView) findViewById(R.id.slide_for_alarm);
+        mFab = (FloatingActionButton) findViewById(R.id.fab);
+        mSlideForAlarm = (SlideToActView) findViewById(R.id.slide_for_alarm);
+        mSlideToCancelAlarm = (SlideToActView) findViewById(R.id.slide_to_cancel);
         mNestedScrollView = (NestedScrollView) findViewById(R.id.mainActivity_nestedScrollView);
-        //final ImageView userDirections = (ImageView) findViewById(R.id.userDirections);
 
-        faButton.setOnClickListener(new View.OnClickListener() {
+
+        mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startPickContact();
@@ -122,24 +137,75 @@ public class MainActivity extends BaseActivity {
                 startPickGalleryImage();
             }
         });
-        /*userDirections.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) { startShowInMap(mAuth.getCurrentUser().getUid()); }
-        });*/
-        slideForAlarm.setOnSlideCompleteListener(new SlideToActView.OnSlideCompleteListener() {
+
+        mSlideForAlarm.setOnSlideCompleteListener(new SlideToActView.OnSlideCompleteListener() {
             @Override
             public void onSlideComplete(@NotNull final SlideToActView slideToActView) {
-                if (!AppState.emergencyUser(MainActivity.this, mSharedPreferences))
-                    startEmergency();
-                else stopEmergency();
+                startEmergency();
+            }
+        });
+
+        mSlideForAlarm.setOnSlideToActAnimationEventListener(new SlideToActView.OnSlideToActAnimationEventListener() {
+            @Override
+            public void onSlideCompleteAnimationStarted(SlideToActView slideToActView, float v) {
+
+            }
+
+            @Override
+            public void onSlideCompleteAnimationEnded(SlideToActView slideToActView) {
+                mSlideForAlarm.setVisibility(View.INVISIBLE);
+                mSlideToCancelAlarm.setVisibility(View.VISIBLE);
+                mSlideToCancelAlarm.resetSlider();
+            }
+
+            @Override
+            public void onSlideResetAnimationStarted(SlideToActView slideToActView) {
+
+            }
+
+            @Override
+            public void onSlideResetAnimationEnded(SlideToActView slideToActView) {
+
+            }
+        });
+
+        mSlideToCancelAlarm.setOnSlideCompleteListener(new SlideToActView.OnSlideCompleteListener() {
+            @Override
+            public void onSlideComplete(@NotNull SlideToActView slideToActView) {
+                stopEmergency();
+            }
+        });
+
+
+        mSlideToCancelAlarm.setOnSlideToActAnimationEventListener(new SlideToActView.OnSlideToActAnimationEventListener() {
+            @Override
+            public void onSlideCompleteAnimationStarted(SlideToActView slideToActView, float v) {
+
+            }
+
+            @Override
+            public void onSlideCompleteAnimationEnded(SlideToActView slideToActView) {
+                mSlideToCancelAlarm.setVisibility(View.INVISIBLE);
+                mSlideForAlarm.setVisibility(View.VISIBLE);
+                mSlideForAlarm.resetSlider();
+            }
+
+            @Override
+            public void onSlideResetAnimationStarted(SlideToActView slideToActView) {
+
+            }
+
+            @Override
+            public void onSlideResetAnimationEnded(SlideToActView slideToActView) {
+
             }
         });
         mNestedScrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
             @Override
             public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
                 // Floating button only appears at the end of the list
-                if (!v.canScrollVertically(1)) faButton.show();
-                else faButton.hide();
+                if (!v.canScrollVertically(1)) mFab.show();
+                else mFab.hide();
             }
         });
 
@@ -183,6 +249,24 @@ public class MainActivity extends BaseActivity {
             mUserAdapter.startListening();
             setUpPokeListener();
         }
+        showAppropiateSlider();
+    }
+
+    /**
+     * Shows the slide to cancel or the slide for alarm slider depending on this user active emergencies.
+     */
+
+    //TODO: fucking library won't allow to complete listener or change it's text programatically
+    private void showAppropiateSlider() {
+
+        if (existsEmergency()) {
+            mSlideForAlarm.setVisibility(View.INVISIBLE);
+            mSlideToCancelAlarm.setVisibility(View.VISIBLE);
+        } else {
+            mSlideForAlarm.setVisibility(View.VISIBLE);
+            mSlideToCancelAlarm.setVisibility(View.INVISIBLE);
+        }
+
     }
 
     @Override
@@ -245,6 +329,9 @@ public class MainActivity extends BaseActivity {
             break;
             case R.id.contact_image: {
                 // TODO: maybe show picture bigger like whatssap
+                startShowInMap(key);
+                this.mKey = key;
+
             }
             break;
             case R.id.contact_directions: {
@@ -272,6 +359,21 @@ public class MainActivity extends BaseActivity {
         removePokeListener();
     }
 
+    /**
+     * Returns a color value animator that can be used with along an update listener to obtain the values between two colors.
+     *
+     * @param colorFrom Starting color
+     * @param colorTo   End color
+     * @param duration  Animation duration in milliseconds
+     * @return Value Animator with the corresponding parameters
+     */
+
+    private ValueAnimator getColorAnimator(int colorFrom, int colorTo, int duration) {
+        ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
+        colorAnimation.setDuration(duration);
+        return colorAnimation;
+    }
+
     @Override
     protected AppState.AppStateListener buildAppStateListener() {
 
@@ -281,11 +383,74 @@ public class MainActivity extends BaseActivity {
             public void onUserEmergencyStart() {
                 // TODO: The user has activated an emergency
                 mUserAdapter.setEmergency(true);
+
+                ValueAnimator colorPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorPrimary), getResources().getColor(R.color.colorSecondary), Constants.TRANSITION_ANIM_TIME);
+                ValueAnimator colorDarkPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorPrimaryDark), getResources().getColor(R.color.colorSecondaryDark), Constants.TRANSITION_ANIM_TIME);
+
+
+                colorPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animator) {
+                        int animatorValue = (int) animator.getAnimatedValue();
+                        mToolbar.setBackgroundColor(animatorValue);
+                        int[][] states = new int[][]{
+                                new int[]{android.R.attr.state_enabled},
+                                new int[]{-android.R.attr.state_enabled},
+                        };
+                        mFab.setBackgroundTintList(new ColorStateList(states, new int[]{animatorValue, animatorValue}));
+                    }
+
+                });
+
+                colorDarkPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animator) {
+                        int animatorValue = (int) animator.getAnimatedValue();
+                        mWindow.setStatusBarColor(animatorValue);
+                    }
+                });
+
+
+                colorPrimaryAnimator.start();
+                colorDarkPrimaryAnimator.start();
             }
 
             @Override
             public void onUserEmergencyStop() {
                 // TODO: The user had an emergency active and now it has been stopped
+
+                ValueAnimator colorPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorSecondary), getResources().getColor(R.color.colorPrimary), Constants.TRANSITION_ANIM_TIME);
+                ValueAnimator colorDarkPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorSecondaryDark), getResources().getColor(R.color.colorPrimaryDark), Constants.TRANSITION_ANIM_TIME);
+
+
+                colorPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animator) {
+                        int animatorValue = (int) animator.getAnimatedValue();
+                        mToolbar.setBackgroundColor(animatorValue);
+                        int[][] states = new int[][]{
+                                new int[]{android.R.attr.state_enabled},
+                                new int[]{-android.R.attr.state_enabled},
+                        };
+                        mFab.setBackgroundTintList(new ColorStateList(states, new int[]{animatorValue, animatorValue}));
+                    }
+
+                });
+
+                colorDarkPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animator) {
+                        int animatorValue = (int) animator.getAnimatedValue();
+                        mWindow.setStatusBarColor(animatorValue);
+                    }
+                });
+
+
+                colorPrimaryAnimator.start();
+                colorDarkPrimaryAnimator.start();
+
             }
 
             @Override
@@ -318,6 +483,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void startEmergency() {
+
         if (mAuth.getCurrentUser() != null) {
             Emergency emergency = new Emergency();
             String uid = mAuth.getCurrentUser().getUid();
@@ -328,8 +494,10 @@ public class MainActivity extends BaseActivity {
             String key = DataManager.startEmergency(emergency);
             AppState.registerEmergencyUser(this, mSharedPreferences, key);
         }
-        slideForAlarm.resetSlider();
+    }
 
+    private boolean existsEmergency() {
+        return !mSharedPreferences.getString(getString(R.string.pref_emergencies_user), "").isEmpty();
     }
 
     private void stopEmergency() {
@@ -344,7 +512,6 @@ public class MainActivity extends BaseActivity {
             DataManager.stopEmergency(emergency);
             AppState.unRegisterEmergencyUser(this, mSharedPreferences);
         }
-        slideForAlarm.resetSlider();
     }
 
     private void startPickContact() {
@@ -488,6 +655,7 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    //TODO: maybe cache the profile image or save it locally too
     private void setProfilePicture() {
         StorageReference storageReference = mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
         GlideApp.with(this).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
@@ -499,13 +667,14 @@ public class MainActivity extends BaseActivity {
         FileManager.uploadProfilePicture(mAuth, bitmap, new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
-                StorageReference storageReference = mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
-                GlideApp.with(mCircleImageView.getContext()).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
+                Log.i(TAG, "Image uploaded successfully. It can be found here: " + mAuth.getCurrentUser().getPhotoUrl());
             }
         }, new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                // TODO: Error Handling
+                Toast.makeText(MainActivity.this, getString(R.string.content_upload_error), Toast.LENGTH_SHORT).show();
+                GlideApp.with(mCircleImageView.getContext()).load(R.drawable.default_contact).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
+
             }
         });
     }

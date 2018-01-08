@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorWhite">#ffffff</color>
+
+
+    <color name="full_white">#ffff</color>
 
     <!--Original Colors-->
-   <!-- <color name="colorPrimary">#03A9F4</color>
-    <color name="colorPrimaryDark">#0288D1</color>
-    <color name="colorAccent">#FF4081</color>-->
-
-
-    <!-- New Colors -->
+   <!-- <color name="default_background_color">#ffffff</color>
     <color name="colorPrimary">#03A9F4</color>
     <color name="colorPrimaryDark">#0288D1</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="divider_color">#BDBDBD</color>-->
 
+    <!--Simplified Original Colors -->
+    <color name="default_background_color">#ffffff</color>
+    <color name="colorPrimary">#03A9F4</color>
+    <color name="colorPrimaryDark">#0288D1</color>
+    <color name="colorAccent">#F44336</color>
+    <color name="divider_color">#BDBDBD</color>
 
     <color name="primary_text">#212121</color>
     <color name="secondary_text">#757575</color>
@@ -20,4 +24,24 @@
     <color name="colorSecondary">#F44336</color>
     <color name="colorSecondaryDark">#D32F2F</color>
     <color name="colorSecondaryAccent">#9E9E9E</color>
+
+
+    <!-- New Colors -->
+
+    <!--Security-->
+    <!--<color name="default_background_color">#EBEBEB</color>
+    <color name="colorPrimary">#769CB0</color>
+    <color name="colorPrimaryDark">#263248</color>
+    <color name="colorAccent">#FF4538</color>
+    <color name="divider_color">#BDBDBD</color>-->
+
+    <!-- Fresh -->
+    <!--<color name="default_background_color">#FFFFFF</color>
+    <color name="colorPrimary">#03A9F4</color>
+    <color name="colorPrimaryDark">#0288D1</color>
+    <color name="colorAccent">#FFB300</color>
+    <color name="divider_color">#BDBDBD</color>-->
+
+
+
 </resources>

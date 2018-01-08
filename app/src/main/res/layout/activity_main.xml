@@ -36,9 +36,10 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="2"
-            android:background="@color/colorSecondaryAccent"
+            android:background="@color/divider_color"
             android:elevation="@dimen/frame_elevation">
 
+            <!--TODO: match parent makes the whole view clickable-->
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/userImage"
                 android:layout_width="match_parent"
@@ -50,13 +51,24 @@
                 android:clickable="true"
                 android:elevation="@dimen/slider_elevation"
                 android:focusable="true"
-                android:hapticFeedbackEnabled="true"
                 android:maxHeight="250dp"
                 android:maxWidth="250dp"
-                app:civ_border_width="@dimen/default_civ_border_width"
-                app:civ_border_color="@color/colorWhite"
-                android:src="@drawable/default_contact" />
+                android:src="@drawable/default_contact"
+                app:civ_border_color="@color/default_background_color"
+                app:civ_border_width="@dimen/default_civ_border_width" />
 
+            <com.ncorti.slidetoact.SlideToActView
+                android:id="@+id/slide_to_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                app:outer_color="@color/colorSecondary"
+                android:layout_marginBottom="@dimen/default_small_margin"
+                android:elevation="@dimen/slider_elevation"
+                app:slider_height="@dimen/slider_height"
+                app:text="@string/content_slide_to_cancel"
+                app:text_size="15sp" />
 
             <com.ncorti.slidetoact.SlideToActView
                 android:id="@+id/slide_for_alarm"
@@ -67,6 +79,7 @@
                 android:layout_marginBottom="@dimen/default_small_margin"
                 android:elevation="@dimen/slider_elevation"
                 app:slider_height="@dimen/slider_height"
+                app:outer_color="@color/colorPrimary"
                 app:text="@string/content_slide_for_alarm"
                 app:text_size="15sp" />
 

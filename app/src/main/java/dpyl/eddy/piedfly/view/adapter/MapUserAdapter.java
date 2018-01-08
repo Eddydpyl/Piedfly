@@ -1,5 +1,6 @@
 package dpyl.eddy.piedfly.view.adapter;
 
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,9 +19,9 @@ import com.google.firebase.storage.StorageReference;
 
 import java.util.Map;
 
+import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.firebase.FileManager;
 import dpyl.eddy.piedfly.firebase.GlideApp;
-import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.firebase.model.SimpleLocation;
 import dpyl.eddy.piedfly.firebase.model.User;
 import dpyl.eddy.piedfly.view.viewholder.MapHolder;
@@ -65,10 +66,23 @@ public class MapUserAdapter extends FirebaseRecyclerAdapter<User, MapHolder> {
         return new MapHolder(itemView, mOnListItemClickListener);
     }
 
+
+    private void bindImage(MapHolder holder, User model) {
+
+        StorageReference storageReference = model.getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(model.getPhotoUrl()) : null;
+
+        //TODO: see if don't animate works
+        //Drawable.ConstantState firebaseDrawable = storageReference.get
+        Drawable.ConstantState holderDrawable = holder.mMapContactImage.getDrawable().getConstantState();
+
+        if (true) {//!holderDrawable.equals(firebaseDrawable)) {
+            GlideApp.with(holder.itemView.getContext()).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).dontAnimate().into(holder.mMapContactImage);
+        }
+    }
+
     @Override
     protected void onBindViewHolder(MapHolder holder, int position, User model) {
-        StorageReference storageReference = model.getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(model.getPhotoUrl()) : null;
-        GlideApp.with(holder.itemView.getContext()).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(holder.mMapContactImage);
+        bindImage(holder, model);
         holder.uid = model.getUid();
 
         SimpleLocation simpleLocation = model.getLastKnownLocation();
@@ -91,7 +105,8 @@ public class MapUserAdapter extends FirebaseRecyclerAdapter<User, MapHolder> {
                 CameraPosition cameraAnimation = new CameraPosition.Builder().target(new LatLng(0.0, 0.0)).zoom(0)
                         .tilt(mMap.getCameraPosition().tilt).bearing(mMap.getCameraPosition().bearing).build();
                 mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraAnimation));
-            } focused = true;
+            }
+            focused = true;
         }
     }
 

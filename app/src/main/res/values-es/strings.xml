@@ -8,7 +8,7 @@
     <string name="content_yes">Si</string>
     <string name="content_no">No</string>
     <string name="content_undo_caps">DESHACER</string>
-    <string name="content_removed">eliminado</string>
+    <string name="content_removed">Eliminado</string>
     <string name="content_upload_error">Subida de imagen fallida, por favor inténtalo de nuevo.</string>
     <string name="content_slide_for_alarm">Lanzar Emergencia</string>
     <string name="content_delete_caps">BORRAR</string>
@@ -35,5 +35,6 @@
     <string name="content_no_phone">Este usuario no tiene un número de teléfono verificado.</string>
     <string name="content_no_location">No se pudo recuperar la localización del usuario.</string>
     <string name="content_map_activity_label">Mapa</string>
+    <string name="content_slide_to_cancel">Cancelar Emergencia</string>
 
 </resources>

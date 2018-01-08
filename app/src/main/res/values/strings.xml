@@ -56,5 +56,6 @@
 
     <string name="permission_location_cancelled">We need your location for the map to work.</string>
     <string name="content_map_activity_label">Map</string>
+    <string name="content_slide_to_cancel">Slide to Cancel</string>
 
 </resources>

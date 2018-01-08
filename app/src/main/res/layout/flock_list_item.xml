@@ -29,7 +29,7 @@
             android:layout_marginEnd="@dimen/default_margin"
             android:layout_toStartOf="@id/delete_icon"
             android:text="@string/content_delete_caps"
-            android:textColor="@color/white"
+            android:textColor="@color/full_white"
             android:textSize="14sp" />
 
     </RelativeLayout>
@@ -38,7 +38,7 @@
         android:id="@+id/item_foreground"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/material_light_white">
+        android:background="@color/default_background_color">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/contact_image"

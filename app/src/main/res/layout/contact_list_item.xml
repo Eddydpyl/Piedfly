@@ -11,7 +11,7 @@
         android:id="@+id/item_background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/colorPrimary">
+        android:background="@color/colorSecondary">
 
         <ImageView
             android:id="@+id/delete_icon"
@@ -29,7 +29,7 @@
             android:layout_marginEnd="@dimen/default_margin"
             android:layout_toStartOf="@id/delete_icon"
             android:text="@string/content_delete_caps"
-            android:textColor="@color/white"
+            android:textColor="@color/full_white"
             android:textSize="14sp" />
 
     </RelativeLayout>
@@ -38,7 +38,7 @@
         android:id="@+id/item_foreground"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/material_blue_grey_50">
+        android:background="@color/divider_color">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/contact_image"
