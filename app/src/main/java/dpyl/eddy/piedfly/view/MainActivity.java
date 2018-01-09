@@ -267,11 +267,31 @@ public class MainActivity extends BaseActivity {
         if (existsEmergency()) {
             mSlideForAlarm.setVisibility(View.INVISIBLE);
             mSlideToCancelAlarm.setVisibility(View.VISIBLE);
-            toEmergencyAnimation();
+
+            //TODO: move to a function
+            int colorSecondary = getResources().getColor(R.color.colorSecondary);
+            int colorSecondaryDark = getResources().getColor(R.color.colorSecondaryDark);
+            mToolbar.setBackgroundColor(colorSecondary);
+            int[][] states = new int[][]{
+                    new int[]{android.R.attr.state_enabled},
+                    new int[]{-android.R.attr.state_enabled},
+            };
+            mFab.setBackgroundTintList(new ColorStateList(states, new int[]{colorSecondary, colorSecondary}));
+            mWindow.setStatusBarColor(colorSecondaryDark);
+
         } else {
             mSlideForAlarm.setVisibility(View.VISIBLE);
             mSlideToCancelAlarm.setVisibility(View.INVISIBLE);
-            toNormalAnimation();
+
+            int colorSecondary = getResources().getColor(R.color.colorPrimary);
+            int colorSecondaryDark = getResources().getColor(R.color.colorPrimaryDark);
+            mToolbar.setBackgroundColor(colorSecondary);
+            int[][] states = new int[][]{
+                    new int[]{android.R.attr.state_enabled},
+                    new int[]{-android.R.attr.state_enabled},
+            };
+            mFab.setBackgroundTintList(new ColorStateList(states, new int[]{colorSecondary, colorSecondary}));
+            mWindow.setStatusBarColor(colorSecondaryDark);
         }
 
     }
