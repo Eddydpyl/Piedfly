@@ -101,7 +101,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
         mContactDetailsCall = (ImageView) findViewById(R.id.map_contact_details_call);
 
         CircleImageView userImage = (CircleImageView) findViewById(R.id.map_user_image);
-        StorageReference storageReference = mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
+        StorageReference storageReference = mAuth.getCurrentUser() != null && Utility.isFirebaseStorage(mAuth.getCurrentUser().getPhotoUrl()) ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
         GlideApp.with(this).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(userImage);
         userImage.setOnClickListener(new View.OnClickListener() {
             @Override

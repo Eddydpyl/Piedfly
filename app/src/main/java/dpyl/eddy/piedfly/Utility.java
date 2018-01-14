@@ -269,6 +269,11 @@ public class Utility {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
+    public static boolean isFirebaseStorage(Uri uri) {
+        final String FIREBASE_STORAGE = "https://firebasestorage.googleapis.com/";
+        return uri != null && uri.toString().startsWith(FIREBASE_STORAGE);
+    }
+
     /** Checks whether two providers are the same */
     private static boolean isSameProvider(String provider1, String provider2) {
         if (provider1 == null) {

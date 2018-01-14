@@ -118,7 +118,6 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
     @Override
     protected void onStart() {
         super.onStart();
-        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mStateListener = AppState.onSharedPreferenceChangeListener(this, mSharedPreferences, buildAppStateListener());
         mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
         checkAuthState();
@@ -175,7 +174,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
             case PHONE_SIGN_IN: {
                 if (resultCode == Activity.RESULT_OK) {
                     // The user is signed in and has a verified phone number
-                    readyUser();
+                    readyUserData();
                 } else if (resultCode == Activity.RESULT_CANCELED || data == null) {
                     // The user has pressed the back button or isn't signed in
                     checkAuthState();
@@ -208,6 +207,11 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
             mSharedPreferences.unregisterOnSharedPreferenceChangeListener(mStateListener);
             mStateListener = null;
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
         mSharedPreferences = null;
     }
 
@@ -233,18 +237,15 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         } else showToast(Toast.makeText(this, R.string.content_no_phone, Toast.LENGTH_SHORT));
     }
 
-    private void readyUser() {
+    private void readyUserData() {
         if (mAuth.getCurrentUser() != null) {
-            // TODO: onActivityResult() is called before onStart() and this was not contemplated. The line below is a quick fix.
-            if (mSharedPreferences == null)
-                mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
             mSharedPreferences.edit().putString(getString(R.string.pref_uid), mAuth.getCurrentUser().getUid()).apply();
             User user = new User(mAuth.getCurrentUser().getUid());
             user.setToken(mSharedPreferences.getString(getString(R.string.pref_token), null));
-            user.setPhone(mAuth.getCurrentUser().getPhoneNumber());
             user.setEmail(mAuth.getCurrentUser().getEmail());
             user.setName(mAuth.getCurrentUser().getDisplayName());
-            DataManager.createUser(user);
+            user.setPhone(mAuth.getCurrentUser().getPhoneNumber());
+            DataManager.updateUser(user);
             if (mAuth.getCurrentUser().getPhotoUrl() != null) {
                 Utility.loadIntoBitmap(getApplication(), mAuth.getCurrentUser().getPhotoUrl(), new Utility.BitMapTaskListener() {
                     @Override
@@ -330,12 +331,9 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
 
     // We must always have the smallID in memory, just in case we need to start a beacon.
     private void checkSmallID() {
-        // TODO: onActivityResult() is called before onStart() and this was not contemplated. The line below is a quick fix.
-        if (mSharedPreferences == null)
-            mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         if (mSharedPreferences.getString(getString(R.string.pref_tiny_ID), "").isEmpty()) {
             String uid = mSharedPreferences.getString(getString(R.string.pref_uid), "");
-            if (uid.isEmpty()) readyUser();
+            if (uid.isEmpty()) readyUserData();
             else {
                 DataManager.getDatabase().getReference("users").child(uid).child("smallID").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override

@@ -43,7 +43,7 @@ public class DataManager {
         return mDatabase;
     }
 
-    public static void createUser(@NonNull User user) {
+    public static void updateUser(@NonNull User user) {
         if(user.getUid() == null)
             throw new RuntimeException("User has no uid");
         final DatabaseReference userRef = mDatabase.getReference("users").child(user.getUid());
@@ -55,18 +55,6 @@ public class DataManager {
             childUpdates.put("/phone", user.getPhone());
         if(user.getEmail() != null)
             childUpdates.put("/email", user.getEmail());
-        if(user.getName() != null)
-            childUpdates.put("/name", user.getName());
-        userRef.updateChildren(childUpdates);
-    }
-
-    public static void updateUser(@NonNull User user) {
-        if(user.getUid() == null)
-            throw new RuntimeException("User has no uid");
-        final DatabaseReference userRef = mDatabase.getReference("users").child(user.getUid());
-        final Map<String, Object> childUpdates = new HashMap<>();
-        if(user.getToken() != null)
-            childUpdates.put("/token", user.getToken());
         if(user.getName() != null)
             childUpdates.put("/name", user.getName());
         if(user.getAge() != null)
