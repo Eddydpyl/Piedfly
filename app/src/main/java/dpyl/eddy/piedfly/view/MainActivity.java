@@ -261,12 +261,11 @@ public class MainActivity extends BaseActivity {
      * Shows the slide to cancel or the slide for alarm slider depending on this user active emergencies.
      */
 
-    //TODO: fucking library won't allow to complete listener or change it's text programatically
     private void showAppropiateSlider() {
 
         if (existsEmergency()) {
             mSlideForAlarm.setVisibility(View.INVISIBLE);
-            //TODO: complete the invisible slide to act when release is out
+            mSlideForAlarm.completeSlider();
             mSlideToCancelAlarm.setVisibility(View.VISIBLE);
 
             //TODO: move to a function
@@ -283,7 +282,7 @@ public class MainActivity extends BaseActivity {
         } else {
             mSlideForAlarm.setVisibility(View.VISIBLE);
             mSlideToCancelAlarm.setVisibility(View.INVISIBLE);
-            //TODO: complete the invisible slide to act when release is out
+            mSlideToCancelAlarm.completeSlider();
 
             int colorSecondary = getResources().getColor(R.color.colorPrimary);
             int colorSecondaryDark = getResources().getColor(R.color.colorPrimaryDark);
