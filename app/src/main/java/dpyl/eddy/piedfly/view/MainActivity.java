@@ -193,7 +193,9 @@ public class MainActivity extends BaseActivity {
             mUserAdapter.startListening();
             setUpPokeListener();
         }
-        showAppropiateSlider();
+        // Workaround for a strange crash caused by the SlideToAct library
+        if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhoneNumber() != null && !mAuth.getCurrentUser().getPhoneNumber().isEmpty())
+            showAppropiateSlider();
     }
 
     @Override
