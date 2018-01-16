@@ -21,7 +21,7 @@
     <string name="content_request_permission_message">This App requires you to allow it to read and write the system settings.</string>
     <string name="content_notification_title">You Are Protected</string>
     <string name="content_notification_text">If in danger, press the power button repeatedly</string>
-    <string name="content_join_flock_request">A request to join your flock has been sent to</string>
+    <string name="content_join_flock_request">A request to join your Flock has been sent to</string>
     <string name="content_yes">Yes</string>
     <string name="content_no">No</string>
     <string name="content_undo_caps">UNDO</string>
@@ -45,9 +45,9 @@
     <string name="content_push_poke_start_text">Indicate that you\'re fine by clicking on this notification.</string>
     <string name="content_push_poke_end_title">seems to be fine.</string>
     <string name="content_push_poke_end_text">No need to worry!</string>
-    <string name="content_poke_none">A Poke has been sent and we\'re waiting for an answer.</string>
+    <string name="content_poke_none">A poke has been sent and we\'re waiting for an answer.</string>
     <string name="content_poke_flock">¡You\'re fine! No need to worry.</string>
-    <string name="content_poke_user">You have cancelled the Poke.</string>
+    <string name="content_poke_user">You have cancelled the poke.</string>
     <string name="content_dialog_flock">Do you want to add this User to your Flock?</string>
     <string name="content_no_phone">This user has no verified phone number.</string>
     <string name="content_no_location">Couldn\'t retrieve this user\'s location.</string>

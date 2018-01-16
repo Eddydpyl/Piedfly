@@ -79,7 +79,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (existsEmergency())
+        if (AppState.emergencyUser(this, mSharedPreferences))
             setTheme(R.style.AppThemeEmergency_NoActionBar);
         else
             setTheme(R.style.AppTheme_NoActionBar);
@@ -118,11 +118,6 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
 
         if (savedInstanceState != null) mFocus = savedInstanceState.getString(FOCUS);
         else mFocus = getIntent().getStringExtra(getString(R.string.intent_uid));
-    }
-
-
-    private boolean existsEmergency() {
-        return !mSharedPreferences.getString(getString(R.string.pref_emergencies_user), "").isEmpty();
     }
 
     @Override
