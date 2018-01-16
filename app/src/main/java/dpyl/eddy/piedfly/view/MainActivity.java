@@ -93,6 +93,7 @@ public class MainActivity extends BaseActivity {
     private NestedScrollView mNestedScrollView;
     private Toolbar mToolbar;
 
+    private boolean state; // Auxiliary variable used to avoid repeating animations when AppState changes
     private String mKey; // Used for replicating a user action after they grant an Android permission
     private String mPokeType; // Used for replicating a user action after they grant an Android permission
     private DatabaseReference mPokeReference;
@@ -108,10 +109,13 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
 
         // Once the Activity is ready, swap the splash screen for the actual theme
-        if (existsEmergency())
+        if (AppState.emergencyUser(this, mSharedPreferences) || AppState.emergencyFlock(this, mSharedPreferences)) {
             setTheme(R.style.AppThemeEmergency_NoActionBar);
-        else
+            state = true;
+        } else {
             setTheme(R.style.AppTheme_NoActionBar);
+            state = false;
+        }
 
         setContentView(R.layout.activity_main);
 
@@ -125,6 +129,7 @@ public class MainActivity extends BaseActivity {
         mSlideToCancelAlarm = (SlideToActView) findViewById(R.id.slide_to_cancel);
         mNestedScrollView = (NestedScrollView) findViewById(R.id.mainActivity_nestedScrollView);
 
+        setUpSliderListeners();
 
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -139,68 +144,6 @@ public class MainActivity extends BaseActivity {
             }
         });
 
-        mSlideForAlarm.setOnSlideCompleteListener(new SlideToActView.OnSlideCompleteListener() {
-            @Override
-            public void onSlideComplete(@NotNull final SlideToActView slideToActView) {
-                startEmergency();
-            }
-        });
-
-        mSlideForAlarm.setOnSlideToActAnimationEventListener(new SlideToActView.OnSlideToActAnimationEventListener() {
-            @Override
-            public void onSlideCompleteAnimationStarted(SlideToActView slideToActView, float v) {
-
-            }
-
-            @Override
-            public void onSlideCompleteAnimationEnded(SlideToActView slideToActView) {
-                mSlideForAlarm.setVisibility(View.INVISIBLE);
-                mSlideToCancelAlarm.setVisibility(View.VISIBLE);
-                mSlideToCancelAlarm.resetSlider();
-            }
-
-            @Override
-            public void onSlideResetAnimationStarted(SlideToActView slideToActView) {
-
-            }
-
-            @Override
-            public void onSlideResetAnimationEnded(SlideToActView slideToActView) {
-
-            }
-        });
-
-        mSlideToCancelAlarm.setOnSlideCompleteListener(new SlideToActView.OnSlideCompleteListener() {
-            @Override
-            public void onSlideComplete(@NotNull SlideToActView slideToActView) {
-                stopEmergency();
-            }
-        });
-
-
-        mSlideToCancelAlarm.setOnSlideToActAnimationEventListener(new SlideToActView.OnSlideToActAnimationEventListener() {
-            @Override
-            public void onSlideCompleteAnimationStarted(SlideToActView slideToActView, float v) {
-
-            }
-
-            @Override
-            public void onSlideCompleteAnimationEnded(SlideToActView slideToActView) {
-                mSlideToCancelAlarm.setVisibility(View.INVISIBLE);
-                mSlideForAlarm.setVisibility(View.VISIBLE);
-                mSlideForAlarm.resetSlider();
-            }
-
-            @Override
-            public void onSlideResetAnimationStarted(SlideToActView slideToActView) {
-
-            }
-
-            @Override
-            public void onSlideResetAnimationEnded(SlideToActView slideToActView) {
-
-            }
-        });
         mNestedScrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
             @Override
             public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
@@ -251,50 +194,6 @@ public class MainActivity extends BaseActivity {
             setUpPokeListener();
         }
         showAppropiateSlider();
-    }
-
-    private boolean existsEmergency() {
-        return !mSharedPreferences.getString(getString(R.string.pref_emergencies_user), "").isEmpty();
-    }
-
-    /**
-     * Shows the slide to cancel or the slide for alarm slider depending on this user active emergencies.
-     */
-
-    private void showAppropiateSlider() {
-
-        if (existsEmergency()) {
-            mSlideForAlarm.setVisibility(View.INVISIBLE);
-            mSlideForAlarm.completeSlider();
-            mSlideToCancelAlarm.setVisibility(View.VISIBLE);
-
-            //TODO: move to a function
-            int colorSecondary = getResources().getColor(R.color.colorSecondary);
-            int colorSecondaryDark = getResources().getColor(R.color.colorSecondaryDark);
-            mToolbar.setBackgroundColor(colorSecondary);
-            int[][] states = new int[][]{
-                    new int[]{android.R.attr.state_enabled},
-                    new int[]{-android.R.attr.state_enabled},
-            };
-            mFab.setBackgroundTintList(new ColorStateList(states, new int[]{colorSecondary, colorSecondary}));
-            mWindow.setStatusBarColor(colorSecondaryDark);
-
-        } else {
-            mSlideForAlarm.setVisibility(View.VISIBLE);
-            mSlideToCancelAlarm.setVisibility(View.INVISIBLE);
-            mSlideToCancelAlarm.completeSlider();
-
-            int colorSecondary = getResources().getColor(R.color.colorPrimary);
-            int colorSecondaryDark = getResources().getColor(R.color.colorPrimaryDark);
-            mToolbar.setBackgroundColor(colorSecondary);
-            int[][] states = new int[][]{
-                    new int[]{android.R.attr.state_enabled},
-                    new int[]{-android.R.attr.state_enabled},
-            };
-            mFab.setBackgroundTintList(new ColorStateList(states, new int[]{colorSecondary, colorSecondary}));
-            mWindow.setStatusBarColor(colorSecondaryDark);
-        }
-
     }
 
     @Override
@@ -387,87 +286,6 @@ public class MainActivity extends BaseActivity {
         removePokeListener();
     }
 
-    /**
-     * Returns a color value animator that can be used with along an update listener to obtain the values between two colors.
-     *
-     * @param colorFrom Starting color
-     * @param colorTo   End color
-     * @param duration  Animation duration in milliseconds
-     * @return Value Animator with the corresponding parameters
-     */
-
-    private ValueAnimator getColorAnimator(int colorFrom, int colorTo, int duration) {
-        ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
-        colorAnimation.setDuration(duration);
-        colorAnimation.setInterpolator(new AccelerateDecelerateInterpolator());
-        return colorAnimation;
-    }
-
-    private void toEmergencyAnimation() {
-        ValueAnimator colorPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorPrimary), getResources().getColor(R.color.colorSecondary), Constants.TRANSITION_ANIM_TIME);
-        ValueAnimator colorDarkPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorPrimaryDark), getResources().getColor(R.color.colorSecondaryDark), Constants.TRANSITION_ANIM_TIME);
-
-
-        colorPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-
-            @Override
-            public void onAnimationUpdate(ValueAnimator animator) {
-                int animatorValue = (int) animator.getAnimatedValue();
-                mToolbar.setBackgroundColor(animatorValue);
-                int[][] states = new int[][]{
-                        new int[]{android.R.attr.state_enabled},
-                        new int[]{-android.R.attr.state_enabled},
-                };
-                mFab.setBackgroundTintList(new ColorStateList(states, new int[]{animatorValue, animatorValue}));
-            }
-
-        });
-
-        colorDarkPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animator) {
-                int animatorValue = (int) animator.getAnimatedValue();
-                mWindow.setStatusBarColor(animatorValue);
-            }
-        });
-
-        colorPrimaryAnimator.start();
-        colorDarkPrimaryAnimator.start();
-    }
-
-    private void toNormalAnimation() {
-        ValueAnimator colorPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorSecondary), getResources().getColor(R.color.colorPrimary), Constants.TRANSITION_ANIM_TIME);
-        ValueAnimator colorDarkPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorSecondaryDark), getResources().getColor(R.color.colorPrimaryDark), Constants.TRANSITION_ANIM_TIME);
-
-
-        colorPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-
-            @Override
-            public void onAnimationUpdate(ValueAnimator animator) {
-                int animatorValue = (int) animator.getAnimatedValue();
-                mToolbar.setBackgroundColor(animatorValue);
-                int[][] states = new int[][]{
-                        new int[]{android.R.attr.state_enabled},
-                        new int[]{-android.R.attr.state_enabled},
-                };
-                mFab.setBackgroundTintList(new ColorStateList(states, new int[]{animatorValue, animatorValue}));
-            }
-
-        });
-
-        colorDarkPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animator) {
-                int animatorValue = (int) animator.getAnimatedValue();
-                mWindow.setStatusBarColor(animatorValue);
-            }
-        });
-
-
-        colorPrimaryAnimator.start();
-        colorDarkPrimaryAnimator.start();
-    }
-
     @Override
     protected AppState.AppStateListener buildAppStateListener() {
 
@@ -475,27 +293,40 @@ public class MainActivity extends BaseActivity {
 
             @Override
             public void onUserEmergencyStart() {
-                // TODO: The user has activated an emergency
+                // The user has activated an emergency
                 mUserAdapter.setEmergency(true);
-                toEmergencyAnimation();
-
+                if (!state) {
+                    state = true;
+                    toEmergencyAnimation();
+                }
             }
 
             @Override
             public void onUserEmergencyStop() {
-                // TODO: The user had an emergency active and now it has been stopped
-                toNormalAnimation();
+                // The user had an emergency active and now it has been stopped
+                if (state && !AppState.emergencyFlock(MainActivity.this, mSharedPreferences)) {
+                    state = false;
+                    toNormalAnimation();
+                }
             }
 
             @Override
             public void onFlockEmergencyStart() {
-                // TODO: There is at least one emergency active
+                // There is at least one emergency active
                 mUserAdapter.setEmergency(true);
+                if (!state) {
+                    state = true;
+                    toEmergencyAnimation();
+                }
             }
 
             @Override
             public void onFlockEmergencyStop() {
-                // TODO: There was at least a flock emergency active and now they have all been stopped
+                // There was at least a flock emergency active and now they have all been stopped
+                if (state && !AppState.emergencyUser(MainActivity.this, mSharedPreferences)) {
+                    state = false;
+                    toNormalAnimation();
+                }
             }
 
             @Override
@@ -510,14 +341,13 @@ public class MainActivity extends BaseActivity {
 
             @Override
             public void onAllEmergencyStop() {
-                // TODO: There was at least an emergency active and now they have all been stopped
+                // There was at least an emergency active and now they have all been stopped
                 mUserAdapter.setEmergency(false);
             }
         };
     }
 
     private void startEmergency() {
-
         if (mAuth.getCurrentUser() != null) {
             Emergency emergency = new Emergency();
             String uid = mAuth.getCurrentUser().getUid();
@@ -777,6 +607,173 @@ public class MainActivity extends BaseActivity {
                 break;
             }
         }
+    }
+
+    /**
+     * Returns a color value animator that can be used with along an update listener to obtain the values between two colors.
+     *
+     * @param colorFrom Starting color
+     * @param colorTo   End color
+     * @param duration  Animation duration in milliseconds
+     * @return Value Animator with the corresponding parameters
+     */
+    private ValueAnimator getColorAnimator(int colorFrom, int colorTo, int duration) {
+        ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
+        colorAnimation.setDuration(duration);
+        colorAnimation.setInterpolator(new AccelerateDecelerateInterpolator());
+        return colorAnimation;
+    }
+
+    private void toEmergencyAnimation() {
+        ValueAnimator colorPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorPrimary), getResources().getColor(R.color.colorSecondary), Constants.TRANSITION_ANIM_TIME);
+        ValueAnimator colorDarkPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorPrimaryDark), getResources().getColor(R.color.colorSecondaryDark), Constants.TRANSITION_ANIM_TIME);
+
+        colorPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+
+            @Override
+            public void onAnimationUpdate(ValueAnimator animator) {
+                int animatorValue = (int) animator.getAnimatedValue();
+                mToolbar.setBackgroundColor(animatorValue);
+                int[][] states = new int[][]{
+                        new int[]{android.R.attr.state_enabled},
+                        new int[]{-android.R.attr.state_enabled},
+                };
+                mFab.setBackgroundTintList(new ColorStateList(states, new int[]{animatorValue, animatorValue}));
+            }
+
+        });
+
+        colorDarkPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animator) {
+                int animatorValue = (int) animator.getAnimatedValue();
+                mWindow.setStatusBarColor(animatorValue);
+            }
+        });
+
+        colorPrimaryAnimator.start();
+        colorDarkPrimaryAnimator.start();
+    }
+
+    private void toNormalAnimation() {
+        ValueAnimator colorPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorSecondary), getResources().getColor(R.color.colorPrimary), Constants.TRANSITION_ANIM_TIME);
+        ValueAnimator colorDarkPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorSecondaryDark), getResources().getColor(R.color.colorPrimaryDark), Constants.TRANSITION_ANIM_TIME);
+
+        colorPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+
+            @Override
+            public void onAnimationUpdate(ValueAnimator animator) {
+                int animatorValue = (int) animator.getAnimatedValue();
+                mToolbar.setBackgroundColor(animatorValue);
+                int[][] states = new int[][]{
+                        new int[]{android.R.attr.state_enabled},
+                        new int[]{-android.R.attr.state_enabled},
+                };
+                mFab.setBackgroundTintList(new ColorStateList(states, new int[]{animatorValue, animatorValue}));
+            }
+
+        });
+
+        colorDarkPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animator) {
+                int animatorValue = (int) animator.getAnimatedValue();
+                mWindow.setStatusBarColor(animatorValue);
+            }
+        });
+
+        colorPrimaryAnimator.start();
+        colorDarkPrimaryAnimator.start();
+    }
+
+    /**
+     * Shows the slide to cancel or the slide for alarm slider depending on this user active emergencies.
+     */
+    private void showAppropiateSlider() {
+        if (AppState.emergencyUser(this, mSharedPreferences)) {
+            mSlideForAlarm.setVisibility(View.INVISIBLE);
+            mSlideForAlarm.completeSlider();
+            mSlideToCancelAlarm.setVisibility(View.VISIBLE);
+
+            //TODO: move to a function
+            int colorSecondary = getResources().getColor(R.color.colorSecondary);
+            int colorSecondaryDark = getResources().getColor(R.color.colorSecondaryDark);
+            mToolbar.setBackgroundColor(colorSecondary);
+            int[][] states = new int[][]{
+                    new int[]{android.R.attr.state_enabled},
+                    new int[]{-android.R.attr.state_enabled},
+            };
+            mFab.setBackgroundTintList(new ColorStateList(states, new int[]{colorSecondary, colorSecondary}));
+            mWindow.setStatusBarColor(colorSecondaryDark);
+
+        } else {
+            mSlideForAlarm.setVisibility(View.VISIBLE);
+            mSlideToCancelAlarm.setVisibility(View.INVISIBLE);
+            mSlideToCancelAlarm.completeSlider();
+
+            int colorSecondary = getResources().getColor(R.color.colorPrimary);
+            int colorSecondaryDark = getResources().getColor(R.color.colorPrimaryDark);
+            mToolbar.setBackgroundColor(colorSecondary);
+            int[][] states = new int[][]{
+                    new int[]{android.R.attr.state_enabled},
+                    new int[]{-android.R.attr.state_enabled},
+            };
+            mFab.setBackgroundTintList(new ColorStateList(states, new int[]{colorSecondary, colorSecondary}));
+            mWindow.setStatusBarColor(colorSecondaryDark);
+        }
+
+    }
+
+    private void setUpSliderListeners() {
+        mSlideForAlarm.setOnSlideCompleteListener(new SlideToActView.OnSlideCompleteListener() {
+            @Override
+            public void onSlideComplete(@NotNull final SlideToActView slideToActView) {
+                startEmergency();
+            }
+        });
+
+        mSlideForAlarm.setOnSlideToActAnimationEventListener(new SlideToActView.OnSlideToActAnimationEventListener() {
+            @Override
+            public void onSlideCompleteAnimationStarted(SlideToActView slideToActView, float v) {}
+
+            @Override
+            public void onSlideCompleteAnimationEnded(SlideToActView slideToActView) {
+                mSlideForAlarm.setVisibility(View.INVISIBLE);
+                mSlideToCancelAlarm.setVisibility(View.VISIBLE);
+                mSlideToCancelAlarm.resetSlider();
+            }
+
+            @Override
+            public void onSlideResetAnimationStarted(SlideToActView slideToActView) {}
+
+            @Override
+            public void onSlideResetAnimationEnded(SlideToActView slideToActView) {}
+        });
+
+        mSlideToCancelAlarm.setOnSlideCompleteListener(new SlideToActView.OnSlideCompleteListener() {
+            @Override
+            public void onSlideComplete(@NotNull SlideToActView slideToActView) {
+                stopEmergency();
+            }
+        });
+
+        mSlideToCancelAlarm.setOnSlideToActAnimationEventListener(new SlideToActView.OnSlideToActAnimationEventListener() {
+            @Override
+            public void onSlideCompleteAnimationStarted(SlideToActView slideToActView, float v) {}
+
+            @Override
+            public void onSlideCompleteAnimationEnded(SlideToActView slideToActView) {
+                mSlideToCancelAlarm.setVisibility(View.INVISIBLE);
+                mSlideForAlarm.setVisibility(View.VISIBLE);
+                mSlideForAlarm.resetSlider();
+            }
+
+            @Override
+            public void onSlideResetAnimationStarted(SlideToActView slideToActView) {}
+
+            @Override
+            public void onSlideResetAnimationEnded(SlideToActView slideToActView) {}
+        });
     }
 
 }
