@@ -150,7 +150,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                     IdpResponse response = IdpResponse.fromResultIntent(data);
                     if (resultCode == Activity.RESULT_OK && response != null) {
                         // Successfully signed in
-                        if (false){//response.getPhoneNumber() == null || response.getPhoneNumber().isEmpty()){
+                        if (response.getPhoneNumber() == null || response.getPhoneNumber().isEmpty()) {
                             // The user doesn't have an associated phone number
                             Intent intent = new Intent(this, PhoneActivity.class);
                             startActivityForResult(intent, PHONE_SIGN_IN);
@@ -312,7 +312,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
             // The user is already signed in
             if (mAuth.getCurrentUser().getPhoneNumber() == null || mAuth.getCurrentUser().getPhoneNumber().isEmpty()) {
                 // The user doesn't have an associated phone number
-                if (false){//!(this instanceof PhoneActivity)) {
+                if (!(this instanceof PhoneActivity)) {
                     Intent intent = new Intent(this, PhoneActivity.class);
                     startActivityForResult(intent, PHONE_SIGN_IN);
                 }

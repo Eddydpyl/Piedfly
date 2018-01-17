@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1025577213480-umd7p7l856ughrfujmfdjs9cphcce2mj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "dpyl.eddy.piedfly",
+            "certificate_hash": "876b586a667608b90be92779774e6db4a75010c9"
+          }
+        },
+        {
           "client_id": "1025577213480-t9mvciip4dvq04robj0adl5a7s63bnn0.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

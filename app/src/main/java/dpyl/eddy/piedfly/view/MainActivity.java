@@ -192,9 +192,8 @@ public class MainActivity extends BaseActivity {
             setUpPokeListener();
         }
         // Workaround for a strange crash caused by the SlideToAct library
-        //TODO: uncommented since verify phone doesnt work
-        //if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhoneNumber() != null && !mAuth.getCurrentUser().getPhoneNumber().isEmpty())
-        showAppropriateSlider();
+        if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhoneNumber() != null && !mAuth.getCurrentUser().getPhoneNumber().isEmpty())
+            showAppropriateSlider();
     }
 
     @Override
@@ -360,8 +359,7 @@ public class MainActivity extends BaseActivity {
             }
             String key = DataManager.startEmergency(emergency);
             AppState.registerEmergencyUser(this, mSharedPreferences, key);
-            // UI recolor
-            toEmergencyAnimation();
+            mSlideForAlarm.setText(getString(R.string.content_slide_to_cancel));
         }
     }
 
@@ -378,8 +376,7 @@ public class MainActivity extends BaseActivity {
             }
             DataManager.stopEmergency(emergency);
             AppState.unRegisterEmergencyUser(this, mSharedPreferences);
-            // UI recolor
-            toNormalAnimation();
+            mSlideForAlarm.setText(getString(R.string.content_slide_for_alarm));
         }
     }
 
@@ -730,13 +727,11 @@ public class MainActivity extends BaseActivity {
      */
     private void showAppropriateSlider() {
         if (AppState.emergencyUser(this, mSharedPreferences)) {
-            mSlideForAlarm.resetSlider();
             mSlideForAlarm.setText(getString(R.string.content_slide_to_cancel));
             toEmergency();
 
         } else {
-            mSlideForAlarm.resetSlider();
-            mSlideForAlarm.setText(getString(R.string.content_slide_to_cancel));
+            mSlideForAlarm.setText(getString(R.string.content_slide_for_alarm));
             toNormal();
         }
 
@@ -762,7 +757,7 @@ public class MainActivity extends BaseActivity {
 
             @Override
             public void onSlideCompleteAnimationEnded(SlideToActView slideToActView) {
-                showAppropriateSlider();
+                slideToActView.resetSlider();
             }
 
             @Override

@@ -6,7 +6,7 @@ package dpyl.eddy.piedfly;
 
 public class Constants {
 
-    public static final int TRANSITION_ANIM_TIME = 600; // Time our app takes to change colors when an emergency is triggered.
+    public static final int TRANSITION_ANIM_TIME = 800; // Time our app takes to change colors when an emergency is triggered.
     public static final String DATABASE_NAME = "LOCAL_DB";
     public static final String POKE_NONE = "noPoke"; // Used as a Tag to identify the state of a poke icon in MainActivity.
     public static final String POKE_USER = "userPoke"; // Used as a Tag to identify the state of a poke icon in MainActivity.
