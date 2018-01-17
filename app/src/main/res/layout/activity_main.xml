@@ -58,19 +58,6 @@
                 app:civ_border_width="@dimen/default_civ_border_width" />
 
             <com.ncorti.slidetoact.SlideToActView
-                android:id="@+id/slide_to_cancel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_centerHorizontal="true"
-                app:outer_color="@color/colorSecondary"
-                android:layout_marginBottom="@dimen/default_small_margin"
-                android:elevation="@dimen/slider_elevation"
-                app:slider_height="@dimen/slider_height"
-                app:text="@string/content_slide_to_cancel"
-                app:text_size="15sp" />
-
-            <com.ncorti.slidetoact.SlideToActView
                 android:id="@+id/slide_for_alarm"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

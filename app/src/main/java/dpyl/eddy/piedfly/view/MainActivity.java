@@ -86,14 +86,13 @@ public class MainActivity extends BaseActivity {
     private CoordinatorLayout mCoordinatorLayout;
     private CircleImageView mCircleImageView;
     private SlideToActView mSlideForAlarm;
-    private SlideToActView mSlideToCancelAlarm;
     private FloatingActionButton mFab;
     private RecyclerView mRecyclerView;
     private RecyclerView mSecondRecyclerView;
     private NestedScrollView mNestedScrollView;
     private Toolbar mToolbar;
 
-    private boolean state; // Auxiliary variable used to avoid repeating animations when AppState changes
+    private boolean mState; // Auxiliary variable used to avoid repeating animations when AppState changes
     private String mKey; // Used for replicating a user action after they grant an Android permission
     private String mPokeType; // Used for replicating a user action after they grant an Android permission
     private DatabaseReference mPokeReference;
@@ -111,10 +110,10 @@ public class MainActivity extends BaseActivity {
         // Once the Activity is ready, swap the splash screen for the actual theme
         if (AppState.emergencyUser(this, mSharedPreferences) || AppState.emergencyFlock(this, mSharedPreferences)) {
             setTheme(R.style.AppThemeEmergency_NoActionBar);
-            state = true;
+            mState = true;
         } else {
             setTheme(R.style.AppTheme_NoActionBar);
-            state = false;
+            mState = false;
         }
 
         setContentView(R.layout.activity_main);
@@ -126,7 +125,6 @@ public class MainActivity extends BaseActivity {
         mCircleImageView = (CircleImageView) findViewById(R.id.userImage);
         mFab = (FloatingActionButton) findViewById(R.id.fab);
         mSlideForAlarm = (SlideToActView) findViewById(R.id.slide_for_alarm);
-        mSlideToCancelAlarm = (SlideToActView) findViewById(R.id.slide_to_cancel);
         mNestedScrollView = (NestedScrollView) findViewById(R.id.mainActivity_nestedScrollView);
 
         setUpSliderListeners();
@@ -193,7 +191,7 @@ public class MainActivity extends BaseActivity {
             mUserAdapter.startListening();
             setUpPokeListener();
         }
-        showAppropiateSlider();
+        showAppropriateSlider();
     }
 
     @Override
@@ -295,8 +293,8 @@ public class MainActivity extends BaseActivity {
             public void onUserEmergencyStart() {
                 // The user has activated an emergency
                 mUserAdapter.setEmergency(true);
-                if (!state) {
-                    state = true;
+                if (!mState) {
+                    mState = true;
                     toEmergencyAnimation();
                 }
             }
@@ -304,8 +302,8 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onUserEmergencyStop() {
                 // The user had an emergency active and now it has been stopped
-                if (state && !AppState.emergencyFlock(MainActivity.this, mSharedPreferences)) {
-                    state = false;
+                if (mState && !AppState.emergencyFlock(MainActivity.this, mSharedPreferences)) {
+                    mState = false;
                     toNormalAnimation();
                 }
             }
@@ -314,8 +312,8 @@ public class MainActivity extends BaseActivity {
             public void onFlockEmergencyStart() {
                 // There is at least one emergency active
                 mUserAdapter.setEmergency(true);
-                if (!state) {
-                    state = true;
+                if (!mState) {
+                    mState = true;
                     toEmergencyAnimation();
                 }
             }
@@ -323,8 +321,8 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onFlockEmergencyStop() {
                 // There was at least a flock emergency active and now they have all been stopped
-                if (state && !AppState.emergencyUser(MainActivity.this, mSharedPreferences)) {
-                    state = false;
+                if (mState && !AppState.emergencyUser(MainActivity.this, mSharedPreferences)) {
+                    mState = false;
                     toNormalAnimation();
                 }
             }
@@ -357,6 +355,8 @@ public class MainActivity extends BaseActivity {
             emergency.setStart(simpleLocation);
             String key = DataManager.startEmergency(emergency);
             AppState.registerEmergencyUser(this, mSharedPreferences, key);
+            // UI recolor
+            toEmergencyAnimation();
         }
     }
 
@@ -371,6 +371,8 @@ public class MainActivity extends BaseActivity {
             emergency.setFinish(simpleLocation);
             DataManager.stopEmergency(emergency);
             AppState.unRegisterEmergencyUser(this, mSharedPreferences);
+            // UI recolor
+            toNormalAnimation();
         }
     }
 
@@ -648,6 +650,7 @@ public class MainActivity extends BaseActivity {
             public void onAnimationUpdate(ValueAnimator animator) {
                 int animatorValue = (int) animator.getAnimatedValue();
                 mWindow.setStatusBarColor(animatorValue);
+                mSlideForAlarm.setMOuterColor(animatorValue);
             }
         });
 
@@ -670,6 +673,7 @@ public class MainActivity extends BaseActivity {
                         new int[]{-android.R.attr.state_enabled},
                 };
                 mFab.setBackgroundTintList(new ColorStateList(states, new int[]{animatorValue, animatorValue}));
+                mSlideForAlarm.setMOuterColor(animatorValue);
             }
 
         });
@@ -686,40 +690,48 @@ public class MainActivity extends BaseActivity {
         colorDarkPrimaryAnimator.start();
     }
 
+
+    private void toEmergency() {
+        int color = getResources().getColor(R.color.colorSecondary);
+        int colorDark = getResources().getColor(R.color.colorSecondaryDark);
+        mToolbar.setBackgroundColor(color);
+        int[][] states = new int[][]{
+                new int[]{android.R.attr.state_enabled},
+                new int[]{-android.R.attr.state_enabled},
+        };
+        mFab.setBackgroundTintList(new ColorStateList(states, new int[]{color, color}));
+        mWindow.setStatusBarColor(colorDark);
+        mSlideForAlarm.setMOuterColor(color);
+    }
+
+    private void toNormal() {
+        int color = getResources().getColor(R.color.colorPrimary);
+        int colorDark = getResources().getColor(R.color.colorPrimaryDark);
+        mToolbar.setBackgroundColor(color);
+        int[][] states = new int[][]{
+                new int[]{android.R.attr.state_enabled},
+                new int[]{-android.R.attr.state_enabled},
+        };
+        mFab.setBackgroundTintList(new ColorStateList(states, new int[]{color, color}));
+        mWindow.setStatusBarColor(colorDark);
+        mSlideForAlarm.setMOuterColor(color);
+    }
+
+
     /**
      * Shows the slide to cancel or the slide for alarm slider depending on this user active emergencies.
      */
-    private void showAppropiateSlider() {
+    private void showAppropriateSlider() {
         if (AppState.emergencyUser(this, mSharedPreferences)) {
-            mSlideForAlarm.setVisibility(View.INVISIBLE);
-            mSlideForAlarm.completeSlider();
-            mSlideToCancelAlarm.setVisibility(View.VISIBLE);
+            mSlideForAlarm.resetSlider();
+            mSlideForAlarm.setText(getString(R.string.content_slide_to_cancel));
+            toEmergency();
 
-            //TODO: move to a function
-            int colorSecondary = getResources().getColor(R.color.colorSecondary);
-            int colorSecondaryDark = getResources().getColor(R.color.colorSecondaryDark);
-            mToolbar.setBackgroundColor(colorSecondary);
-            int[][] states = new int[][]{
-                    new int[]{android.R.attr.state_enabled},
-                    new int[]{-android.R.attr.state_enabled},
-            };
-            mFab.setBackgroundTintList(new ColorStateList(states, new int[]{colorSecondary, colorSecondary}));
-            mWindow.setStatusBarColor(colorSecondaryDark);
 
         } else {
-            mSlideForAlarm.setVisibility(View.VISIBLE);
-            mSlideToCancelAlarm.setVisibility(View.INVISIBLE);
-            mSlideToCancelAlarm.completeSlider();
-
-            int colorSecondary = getResources().getColor(R.color.colorPrimary);
-            int colorSecondaryDark = getResources().getColor(R.color.colorPrimaryDark);
-            mToolbar.setBackgroundColor(colorSecondary);
-            int[][] states = new int[][]{
-                    new int[]{android.R.attr.state_enabled},
-                    new int[]{-android.R.attr.state_enabled},
-            };
-            mFab.setBackgroundTintList(new ColorStateList(states, new int[]{colorSecondary, colorSecondary}));
-            mWindow.setStatusBarColor(colorSecondaryDark);
+            mSlideForAlarm.resetSlider();
+            mSlideForAlarm.setText(getString(R.string.content_slide_to_cancel));
+            toNormal();
         }
 
     }
@@ -728,52 +740,36 @@ public class MainActivity extends BaseActivity {
         mSlideForAlarm.setOnSlideCompleteListener(new SlideToActView.OnSlideCompleteListener() {
             @Override
             public void onSlideComplete(@NotNull final SlideToActView slideToActView) {
-                startEmergency();
+                if (AppState.emergencyUser(getApplicationContext(), mSharedPreferences)) {
+                    startEmergency();
+                } else {
+                    stopEmergency();
+                }
             }
         });
 
         mSlideForAlarm.setOnSlideToActAnimationEventListener(new SlideToActView.OnSlideToActAnimationEventListener() {
             @Override
-            public void onSlideCompleteAnimationStarted(SlideToActView slideToActView, float v) {}
+            public void onSlideCompleteAnimationStarted(SlideToActView slideToActView, float v) {
+
+            }
 
             @Override
             public void onSlideCompleteAnimationEnded(SlideToActView slideToActView) {
-                mSlideForAlarm.setVisibility(View.INVISIBLE);
-                mSlideToCancelAlarm.setVisibility(View.VISIBLE);
-                mSlideToCancelAlarm.resetSlider();
+                showAppropriateSlider();
             }
 
             @Override
-            public void onSlideResetAnimationStarted(SlideToActView slideToActView) {}
+            public void onSlideResetAnimationStarted(SlideToActView slideToActView) {
 
-            @Override
-            public void onSlideResetAnimationEnded(SlideToActView slideToActView) {}
-        });
-
-        mSlideToCancelAlarm.setOnSlideCompleteListener(new SlideToActView.OnSlideCompleteListener() {
-            @Override
-            public void onSlideComplete(@NotNull SlideToActView slideToActView) {
-                stopEmergency();
-            }
-        });
-
-        mSlideToCancelAlarm.setOnSlideToActAnimationEventListener(new SlideToActView.OnSlideToActAnimationEventListener() {
-            @Override
-            public void onSlideCompleteAnimationStarted(SlideToActView slideToActView, float v) {}
-
-            @Override
-            public void onSlideCompleteAnimationEnded(SlideToActView slideToActView) {
-                mSlideToCancelAlarm.setVisibility(View.INVISIBLE);
-                mSlideForAlarm.setVisibility(View.VISIBLE);
-                mSlideForAlarm.resetSlider();
             }
 
             @Override
-            public void onSlideResetAnimationStarted(SlideToActView slideToActView) {}
+            public void onSlideResetAnimationEnded(SlideToActView slideToActView) {
 
-            @Override
-            public void onSlideResetAnimationEnded(SlideToActView slideToActView) {}
+            }
         });
+
     }
 
 }

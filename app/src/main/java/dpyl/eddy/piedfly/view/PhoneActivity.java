@@ -76,9 +76,9 @@ public class PhoneActivity extends BaseActivity {
             @Override
             public void onClick(View view) {
                 String code = mCodeEditText.getText().toString();
-                if(mVerificationId != null && !code.trim().isEmpty()){
+                if (mVerificationId != null && !code.trim().isEmpty()) {
                     PhoneAuthCredential credential = PhoneAuthProvider.getCredential(mVerificationId, code);
-                    if(!mVerifying) linkAccounts(credential);
+                    if (!mVerifying) linkAccounts(credential);
                 } else {
                     // TODO: The verification process hasn't been started
                 }
@@ -88,13 +88,16 @@ public class PhoneActivity extends BaseActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) { return false; }
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return false;
+    }
 
     @Override
     protected void onStart() {
         super.onStart();
         String phone = mPhoneEditText.getText().toString();
-        if (mVerifying && !phone.trim().isEmpty()) PhoneAuthProvider.getInstance().verifyPhoneNumber(phone, 30L, TimeUnit.SECONDS, this, mCallbacks);
+        if (mVerifying && !phone.trim().isEmpty())
+            PhoneAuthProvider.getInstance().verifyPhoneNumber(phone, 30L, TimeUnit.SECONDS, this, mCallbacks);
     }
 
     @Override
@@ -106,7 +109,8 @@ public class PhoneActivity extends BaseActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_READ_PHONE_STATE) {
-            if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_READ_PHONE_STATE, grantResults)) writePhoneNumber();
+            if (AppPermissions.permissionGranted(requestCode, AppPermissions.REQUEST_READ_PHONE_STATE, grantResults))
+                writePhoneNumber();
         }
     }
 
@@ -116,7 +120,9 @@ public class PhoneActivity extends BaseActivity {
     }
 
     @Override
-    protected AppState.AppStateListener buildAppStateListener() { return null; }
+    protected AppState.AppStateListener buildAppStateListener() {
+        return null;
+    }
 
     @SuppressLint("HardwareIds")
     private void writePhoneNumber() {
@@ -152,7 +158,8 @@ public class PhoneActivity extends BaseActivity {
                 } else {
                     // TODO: Error handling
                     // Some other error
-                } mVerifying = false;
+                }
+                mVerifying = false;
             }
 
             @Override
