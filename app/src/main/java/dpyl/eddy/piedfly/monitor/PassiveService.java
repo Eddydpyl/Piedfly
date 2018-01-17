@@ -9,9 +9,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 
@@ -65,11 +67,13 @@ public class PassiveService extends Service {
     private void startEmergency(Context context) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         String uid = sharedPreferences.getString(context.getString(R.string.pref_uid), "");
-        SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(context));
         Emergency emergency = new Emergency();
         emergency.setUid(uid);
         emergency.setTrigger(uid);
-        emergency.setStart(simpleLocation);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
+            emergency.setStart(simpleLocation);
+        }
         String key = DataManager.startEmergency(emergency);
         AppState.registerEmergencyUser(context, key);
 

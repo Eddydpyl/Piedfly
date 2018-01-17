@@ -7,6 +7,7 @@ import android.app.Application;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -21,6 +22,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -353,7 +355,8 @@ public class MainActivity extends BaseActivity {
             String uid = mAuth.getCurrentUser().getUid();
             emergency.setUid(uid);
             emergency.setTrigger(uid);
-            if (AppPermissions.requestLocationPermission(this)) {
+            // Starting an emergency has priority over asking the user for permissions
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
                 emergency.setStart(simpleLocation);
             }
@@ -370,7 +373,8 @@ public class MainActivity extends BaseActivity {
             String uid = mAuth.getCurrentUser().getUid();
             emergency.setUid(uid);
             emergency.setChecker(uid);
-            if (AppPermissions.requestLocationPermission(this)) {
+            // Stopping an emergency has priority over asking the user for permissions
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
                 emergency.setFinish(simpleLocation);
             }
