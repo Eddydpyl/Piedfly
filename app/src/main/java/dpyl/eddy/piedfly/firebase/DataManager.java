@@ -220,23 +220,25 @@ public class DataManager {
                 User user = dataSnapshot.getValue(User.class);
                 if (user != null) {
                     Map<String, String> flock = user.getFlock();
-                    for (String key : flock.keySet()) {
-                        if (flock.get(key) != null && !flock.get(key).equals(Constants.PLACEHOLDER)){
-                            mDatabase.getReference("pokes").child(flock.get(key)).addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    Poke poke = dataSnapshot.getValue(Poke.class);
-                                    if (poke != null && poke.getUid().equals(uid)) {
-                                        poke.setChecker(uid);
-                                        stopPoke(poke);
+                    if (flock != null) {
+                        for (String key : flock.keySet()) {
+                            if (flock.get(key) != null && !flock.get(key).equals(Constants.PLACEHOLDER)){
+                                mDatabase.getReference("pokes").child(flock.get(key)).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        Poke poke = dataSnapshot.getValue(Poke.class);
+                                        if (poke != null && poke.getUid().equals(uid)) {
+                                            poke.setChecker(uid);
+                                            stopPoke(poke);
+                                        }
                                     }
-                                }
 
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-                                    // TODO: Error handling
-                                }
-                            });
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+                                        // TODO: Error handling
+                                    }
+                                });
+                            }
                         }
                     }
                 }

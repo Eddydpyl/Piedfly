@@ -191,7 +191,9 @@ public class MainActivity extends BaseActivity {
             mUserAdapter.startListening();
             setUpPokeListener();
         }
-        showAppropriateSlider();
+        // Workaround for a strange crash caused by the SlideToAct library
+        if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhoneNumber() != null && !mAuth.getCurrentUser().getPhoneNumber().isEmpty())
+            showAppropriateSlider();
     }
 
     @Override
@@ -346,13 +348,15 @@ public class MainActivity extends BaseActivity {
     }
 
     private void startEmergency() {
-        if (mAuth.getCurrentUser() != null) {
+        if (mAuth.getCurrentUser() != null && AppPermissions.requestLocationPermission(this)) {
             Emergency emergency = new Emergency();
             String uid = mAuth.getCurrentUser().getUid();
-            SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
             emergency.setUid(uid);
             emergency.setTrigger(uid);
-            emergency.setStart(simpleLocation);
+            if (AppPermissions.requestLocationPermission(this)) {
+                SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
+                emergency.setStart(simpleLocation);
+            }
             String key = DataManager.startEmergency(emergency);
             AppState.registerEmergencyUser(this, mSharedPreferences, key);
             // UI recolor
@@ -365,10 +369,12 @@ public class MainActivity extends BaseActivity {
         if (mAuth.getCurrentUser() != null && !key.isEmpty()) {
             Emergency emergency = new Emergency(key);
             String uid = mAuth.getCurrentUser().getUid();
-            SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
             emergency.setUid(uid);
             emergency.setChecker(uid);
-            emergency.setFinish(simpleLocation);
+            if (AppPermissions.requestLocationPermission(this)) {
+                SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
+                emergency.setFinish(simpleLocation);
+            }
             DataManager.stopEmergency(emergency);
             AppState.unRegisterEmergencyUser(this, mSharedPreferences);
             // UI recolor
