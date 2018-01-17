@@ -192,8 +192,9 @@ public class MainActivity extends BaseActivity {
             setUpPokeListener();
         }
         // Workaround for a strange crash caused by the SlideToAct library
-        if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhoneNumber() != null && !mAuth.getCurrentUser().getPhoneNumber().isEmpty())
-            showAppropriateSlider();
+        //TODO: uncommented since verify phone doesnt work
+        //if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getPhoneNumber() != null && !mAuth.getCurrentUser().getPhoneNumber().isEmpty())
+        showAppropriateSlider();
     }
 
     @Override
@@ -647,6 +648,7 @@ public class MainActivity extends BaseActivity {
                         new int[]{-android.R.attr.state_enabled},
                 };
                 mFab.setBackgroundTintList(new ColorStateList(states, new int[]{animatorValue, animatorValue}));
+                mSlideForAlarm.setMOuterColor(animatorValue);
             }
 
         });
@@ -656,7 +658,6 @@ public class MainActivity extends BaseActivity {
             public void onAnimationUpdate(ValueAnimator animator) {
                 int animatorValue = (int) animator.getAnimatedValue();
                 mWindow.setStatusBarColor(animatorValue);
-                mSlideForAlarm.setMOuterColor(animatorValue);
             }
         });
 
@@ -733,7 +734,6 @@ public class MainActivity extends BaseActivity {
             mSlideForAlarm.setText(getString(R.string.content_slide_to_cancel));
             toEmergency();
 
-
         } else {
             mSlideForAlarm.resetSlider();
             mSlideForAlarm.setText(getString(R.string.content_slide_to_cancel));
@@ -747,9 +747,9 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onSlideComplete(@NotNull final SlideToActView slideToActView) {
                 if (AppState.emergencyUser(getApplicationContext(), mSharedPreferences)) {
-                    startEmergency();
-                } else {
                     stopEmergency();
+                } else {
+                    startEmergency();
                 }
             }
         });
