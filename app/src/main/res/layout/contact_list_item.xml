@@ -38,7 +38,7 @@
         android:id="@+id/item_foreground"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/divider_color">
+        android:background="@color/material_blue_grey_50">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/contact_image"

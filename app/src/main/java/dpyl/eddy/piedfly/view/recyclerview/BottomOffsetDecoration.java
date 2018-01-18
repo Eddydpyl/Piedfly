@@ -18,7 +18,6 @@ public class BottomOffsetDecoration extends RecyclerView.ItemDecoration {
         if (dataSize > 2 && position == dataSize - 1) {
 
             int itemHeight = view.getHeight() > 0 ? view.getHeight() : parent.findViewHolderForLayoutPosition(position - 1).itemView.getHeight();
-
             //You can always scroll the whole recycler view up but the last item
             outRect.set(0, 0, 0, parent.getHeight() - itemHeight);
 

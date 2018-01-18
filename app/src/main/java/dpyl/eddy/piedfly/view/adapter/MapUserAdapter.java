@@ -1,6 +1,5 @@
 package dpyl.eddy.piedfly.view.adapter;
 
-import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -68,16 +67,8 @@ public class MapUserAdapter extends FirebaseRecyclerAdapter<User, MapHolder> {
 
 
     private void bindImage(MapHolder holder, User model) {
-
         StorageReference storageReference = model.getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(model.getPhotoUrl()) : null;
-
-        //TODO: see if don't animate works
-        //Drawable.ConstantState firebaseDrawable = storageReference.get
-        Drawable.ConstantState holderDrawable = holder.mMapContactImage.getDrawable().getConstantState();
-
-        if (true) {//!holderDrawable.equals(firebaseDrawable)) {
-            GlideApp.with(holder.itemView.getContext()).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).dontAnimate().into(holder.mMapContactImage);
-        }
+        GlideApp.with(holder.itemView.getContext()).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).dontAnimate().into(holder.mMapContactImage);
     }
 
     @Override

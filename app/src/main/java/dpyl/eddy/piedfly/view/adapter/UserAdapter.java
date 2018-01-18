@@ -21,10 +21,10 @@ import com.google.firebase.storage.StorageReference;
 import java.util.Map;
 
 import dpyl.eddy.piedfly.Constants;
+import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.firebase.DataManager;
 import dpyl.eddy.piedfly.firebase.FileManager;
 import dpyl.eddy.piedfly.firebase.GlideApp;
-import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.firebase.model.Poke;
 import dpyl.eddy.piedfly.firebase.model.User;
 import dpyl.eddy.piedfly.view.viewholder.OnListItemClickListener;
@@ -34,18 +34,18 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
 
     private Map<String, String> mPokes;
     private OnListItemClickListener mOnListItemClickListener;
-    private boolean emergency;
+    private boolean mEmergency;
 
     public UserAdapter(FirebaseRecyclerOptions<User> options, OnListItemClickListener onListItemClickListener) {
         super(options);
         this.mOnListItemClickListener = onListItemClickListener;
-        this.emergency = false;
+        this.mEmergency = false;
     }
 
-    public UserAdapter(FirebaseRecyclerOptions<User> options, OnListItemClickListener onListItemClickListener, boolean emergency) {
+    public UserAdapter(FirebaseRecyclerOptions<User> options, OnListItemClickListener onListItemClickListener, boolean mEmergency) {
         super(options);
         this.mOnListItemClickListener = onListItemClickListener;
-        this.emergency = emergency;
+        this.mEmergency = mEmergency;
     }
 
     @Override
@@ -74,8 +74,8 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
         holder.mContactCall.setTag(model.getPhone());
         final Context context = holder.itemView.getContext();
         StorageReference storageReference = model.getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(model.getPhotoUrl()) : null;
-        GlideApp.with(context).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(holder.mContactImage);
-        if (emergency || model.getEmergency() != null) {
+        GlideApp.with(context).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).dontAnimate().into(holder.mContactImage);
+        if (mEmergency || model.getEmergency() != null) {
             holder.mContactPoke.setVisibility(View.INVISIBLE);
             holder.mContactCall.setVisibility(View.VISIBLE);
         } else {
@@ -86,7 +86,7 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
     }
 
     public void setEmergency(boolean emergency) {
-        this.emergency = emergency;
+        this.mEmergency = emergency;
         notifyDataSetChanged();
     }
 

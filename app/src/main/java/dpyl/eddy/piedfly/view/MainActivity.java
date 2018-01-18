@@ -31,6 +31,7 @@ import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Toast;
@@ -88,9 +89,9 @@ public class MainActivity extends BaseActivity {
     private CoordinatorLayout mCoordinatorLayout;
     private CircleImageView mCircleImageView;
     private SlideToActView mSlideForAlarm;
-    private FloatingActionButton mFab;
-    private RecyclerView mRecyclerView;
-    private RecyclerView mSecondRecyclerView;
+    private static FloatingActionButton mFab;
+    public static RecyclerView mRecyclerView;
+    public static RecyclerView mSecondRecyclerView;
     private NestedScrollView mNestedScrollView;
     private Toolbar mToolbar;
 
@@ -485,6 +486,38 @@ public class MainActivity extends BaseActivity {
         // Makes it look like there's a single RecyclerView
         mRecyclerView.setNestedScrollingEnabled(false);
         mSecondRecyclerView.setNestedScrollingEnabled(false);
+    }
+
+
+    //TODO: move to a utils class
+    public static void updateRecyclerOffset() {
+
+        ViewGroup.MarginLayoutParams marginLayoutParams =
+                (ViewGroup.MarginLayoutParams) mSecondRecyclerView.getLayoutParams();
+
+        int firstItems = mRecyclerView.getAdapter().getItemCount();
+        int secondItems = mSecondRecyclerView.getAdapter().getItemCount();
+
+        if (firstItems + secondItems <= 2) {
+            marginLayoutParams.setMargins(0, 0, 0, 0);
+            mSecondRecyclerView.setLayoutParams(marginLayoutParams);
+            mFab.show();
+            return;
+        }
+
+        if (firstItems + secondItems == 3) {
+            mFab.hide();
+        }
+        //TODO: make precise bottom margin, and make sure this methods executes after any changes in any of the two recyclers
+        int itemHeight = 0;
+        try {
+            itemHeight = mSecondRecyclerView.findViewHolderForAdapterPosition(0).itemView.getMeasuredHeight();
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+
+        marginLayoutParams.setMargins(0, 0, 0, itemHeight * (firstItems + secondItems - 1));
+        mSecondRecyclerView.setLayoutParams(marginLayoutParams);
     }
 
     private void attachFirebaseRecyclerViewAdapter() {
