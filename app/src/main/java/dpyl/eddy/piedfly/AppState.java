@@ -88,13 +88,14 @@ public class AppState {
 
     public static SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener(final Context context, final SharedPreferences sharedPreferences, final AppStateListener appStateListener) {
         if (appStateListener == null) return null;
-        SharedPreferences.OnSharedPreferenceChangeListener listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+        return new SharedPreferences.OnSharedPreferenceChangeListener() {
             public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
                 if (key.equals(context.getString(R.string.pref_emergencies_user))) {
                     String emergency = sharedPreferences.getString(key, "");
                     if (emergency.isEmpty()) {
                         appStateListener.onUserEmergencyStop();
-                        if (!emergencyActive(context, sharedPreferences)) appStateListener.onAllEmergencyStop();
+                        if (!emergencyActive(context, sharedPreferences))
+                            appStateListener.onAllEmergencyStop();
                     } else {
                         appStateListener.onUserEmergencyStart();
                     }
@@ -102,7 +103,8 @@ public class AppState {
                     Set<String> emergencies = sharedPreferences.getStringSet(key, new HashSet<String>());
                     if (emergencies.isEmpty()) {
                         appStateListener.onFlockEmergencyStop();
-                        if (!emergencyActive(context, sharedPreferences)) appStateListener.onAllEmergencyStop();
+                        if (!emergencyActive(context, sharedPreferences))
+                            appStateListener.onAllEmergencyStop();
                     } else {
                         appStateListener.onFlockEmergencyStart();
                     }
@@ -110,22 +112,29 @@ public class AppState {
                     Set<String> emergencies = sharedPreferences.getStringSet(key, new HashSet<String>());
                     if (emergencies.isEmpty()) {
                         appStateListener.onNearbyEmergencyStop();
-                        if (!emergencyActive(context, sharedPreferences)) appStateListener.onAllEmergencyStop();
+                        if (!emergencyActive(context, sharedPreferences))
+                            appStateListener.onAllEmergencyStop();
                     } else {
                         appStateListener.onNearbyEmergencyStart();
                     }
                 }
             }
-        }; return listener;
+        };
     }
 
     public interface AppStateListener {
         void onUserEmergencyStart();
+
         void onUserEmergencyStop();
+
         void onFlockEmergencyStart();
+
         void onFlockEmergencyStop();
+
         void onNearbyEmergencyStart();
+
         void onNearbyEmergencyStop();
+
         void onAllEmergencyStop();
     }
 
@@ -135,8 +144,10 @@ public class AppState {
     }
 
     private static void registerEmergency(SharedPreferences sharedPreferences, String emergencyKey, String type) {
-        Set<String> emergencies = sharedPreferences.getStringSet(type, new HashSet<String>());
-        if (emergencies.add(emergencyKey)) sharedPreferences.edit().putStringSet(type, emergencies).apply();
+        Set<String> emergencies = new HashSet<>();
+        emergencies.addAll(sharedPreferences.getStringSet(type, new HashSet<String>()));
+        if (emergencies.add(emergencyKey))
+            sharedPreferences.edit().putStringSet(type, emergencies).apply();
     }
 
     private static void unRegisterEmergency(Context context, String emergencyKey, String type) {
@@ -145,8 +156,10 @@ public class AppState {
     }
 
     private static void unRegisterEmergency(SharedPreferences sharedPreferences, String emergencyKey, String type) {
-        Set<String> emergencies = sharedPreferences.getStringSet(type, new HashSet<String>());
-        if (emergencies.remove(emergencyKey)) sharedPreferences.edit().putStringSet(type, emergencies).apply();
+        Set<String> emergencies = new HashSet<>();
+        emergencies.addAll(sharedPreferences.getStringSet(type, new HashSet<String>()));
+        if (emergencies.remove(emergencyKey))
+            sharedPreferences.edit().putStringSet(type, emergencies).apply();
     }
 
     private static boolean emergencyActive(Context context, SharedPreferences sharedPreferences) {

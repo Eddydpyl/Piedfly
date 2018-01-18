@@ -13,7 +13,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -33,16 +32,15 @@ import com.google.firebase.auth.PhoneAuthProvider;
 import java.util.concurrent.TimeUnit;
 
 import dpyl.eddy.piedfly.AppPermissions;
-import dpyl.eddy.piedfly.AppState;
 import dpyl.eddy.piedfly.R;
 
 import static dpyl.eddy.piedfly.AppPermissions.REQUEST_READ_PHONE_STATE;
 
 public class PhoneActivity extends BaseActivity {
 
-
     private static final String TAG = PhoneActivity.class.getSimpleName();
-    private final static String VERIFYING_KEY = "VERIFYING_KEY";
+
+    private static final String VERIFYING_KEY = "VERIFYING_KEY";
 
     private Boolean mVerifying;
     private EditText mPhoneEditText;
@@ -74,6 +72,7 @@ public class PhoneActivity extends BaseActivity {
                 }
             }
         });
+
         Button verifyButton = (Button) findViewById(R.id.button_verify);
         verifyButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -87,6 +86,7 @@ public class PhoneActivity extends BaseActivity {
                 }
             }
         });
+
         if (AppPermissions.requestReadPhoneStatePermission(this)) writePhoneNumber();
     }
 
@@ -99,10 +99,8 @@ public class PhoneActivity extends BaseActivity {
     protected void onStart() {
         super.onStart();
         String phone = mPhoneEditText.getText().toString();
-        if (mVerifying && !phone.trim().isEmpty()) {
-            Log.d(TAG, "onStart() called !");
+        if (mVerifying && !phone.trim().isEmpty())
             PhoneAuthProvider.getInstance().verifyPhoneNumber(phone, 30L, TimeUnit.SECONDS, this, mCallbacks);
-        }
     }
 
     @Override
@@ -125,8 +123,11 @@ public class PhoneActivity extends BaseActivity {
     }
 
     @Override
-    protected AppState.AppStateListener buildAppStateListener() {
-        return null;
+    void toEmergencyAnimation() {
+    }
+
+    @Override
+    void toNormalAnimation() {
     }
 
     @SuppressLint("HardwareIds")
@@ -146,7 +147,6 @@ public class PhoneActivity extends BaseActivity {
 
             @Override
             public void onVerificationCompleted(final PhoneAuthCredential credential) {
-                Log.d(TAG, "onVerificationCompleted called !");
                 linkAccounts(credential);
                 mVerifying = false;
             }
@@ -166,8 +166,6 @@ public class PhoneActivity extends BaseActivity {
                     // Some other error
                 }
                 mVerifying = false;
-                Log.d(TAG, e.getMessage());
-
             }
 
             @Override
@@ -176,16 +174,12 @@ public class PhoneActivity extends BaseActivity {
                 // now need to ask the user to enter the code and then construct a credential
                 // by combining the code with a verification ID.
                 mVerificationId = verificationId;
-                Log.d(TAG, "onCodeSent token: " + token + " verificationId: " + verificationId);
-
             }
 
             @Override
             public void onCodeAutoRetrievalTimeOut(String s) {
                 super.onCodeAutoRetrievalTimeOut(s);
                 // TODO: Error handling
-                Log.d(TAG, "onCodeAutoRetrievalTimeOut " + s);
-
             }
         };
     }
@@ -223,9 +217,6 @@ public class PhoneActivity extends BaseActivity {
             // No user is currently authenticated
             exitActivityErrored();
         }
-
-        Log.d(TAG, "linkAccountsCalled()");
-
     }
 
     private void exitActivityErrored() {
