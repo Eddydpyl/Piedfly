@@ -707,6 +707,7 @@ public class MainActivity extends BaseActivity {
                     poke.setChecker(uid);
                     poke.setFinish(simpleLocation);
                     DataManager.stopPoke(poke);
+                    mUserAdapter.stopAnimation(key);
                     showToast(Toast.makeText(this, R.string.content_poke_flock, Toast.LENGTH_SHORT));
                 }
                 break;
