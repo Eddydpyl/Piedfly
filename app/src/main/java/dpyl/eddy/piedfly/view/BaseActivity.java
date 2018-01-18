@@ -1,5 +1,7 @@
 package dpyl.eddy.piedfly.view;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -27,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
@@ -78,6 +81,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
     String mPhoneNumber; // Used for replicating a user action after they grant an Android permission
     SharedPreferences mSharedPreferences;
     FirebaseAuth mAuth;
+    boolean mState; // Auxiliary variable used to avoid repeating animations when AppState changes
 
     private SharedPreferences.OnSharedPreferenceChangeListener mStateListener;
     private MessageAdapter mMessageAdapter;
@@ -91,6 +95,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         mAuth = FirebaseAuth.getInstance();
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         setUpNotificationsView();
+        mState = false;
     }
 
     @Override
@@ -216,7 +221,68 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
     }
 
     // Listen to changes to the app state and update the UI accordingly
-    abstract protected AppState.AppStateListener buildAppStateListener();
+    AppState.AppStateListener buildAppStateListener() {
+
+        return new AppState.AppStateListener() {
+
+            @Override
+            public void onUserEmergencyStart() {
+                // The user has activated an emergency
+                if (!mState) {
+                    mState = true;
+                    toEmergencyAnimation();
+                }
+            }
+
+            @Override
+            public void onUserEmergencyStop() {
+                // The user had an emergency active and now it has been stopped
+                if (mState && !AppState.emergencyFlock(BaseActivity.this, mSharedPreferences)) {
+                    mState = false;
+                    toNormalAnimation();
+                }
+            }
+
+            @Override
+            public void onFlockEmergencyStart() {
+                // There is at least one emergency active
+                if (!mState) {
+                    mState = true;
+                    toEmergencyAnimation();
+                }
+            }
+
+            @Override
+            public void onFlockEmergencyStop() {
+                // There was at least a flock emergency active and now they have all been stopped
+                if (mState && !AppState.emergencyUser(BaseActivity.this, mSharedPreferences)) {
+                    mState = false;
+                    toNormalAnimation();
+                }
+            }
+
+            @Override
+            public void onNearbyEmergencyStart() {
+                // TODO: There is at least one emergency active
+            }
+
+            @Override
+            public void onNearbyEmergencyStop() {
+                // TODO: There was at least a nearby emergency active and now they have all been stopped
+            }
+
+            @Override
+            public void onAllEmergencyStop() {
+                // TODO: There was at least an emergency active and now they have all been stopped
+            }
+        };
+    }
+
+    // Updates the Activity's look based on the AppState
+    abstract void toEmergencyAnimation();
+
+    // Updates the Activity's look based on the AppState
+    abstract void toNormalAnimation();
 
     // Avoid Toast queues within the application
     static void showToast(Toast toast) {
@@ -235,6 +301,21 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
                 if (intent.resolveActivity(getPackageManager()) != null) startActivity(intent);
             }
         } else showToast(Toast.makeText(this, R.string.content_no_phone, Toast.LENGTH_SHORT));
+    }
+
+    /**
+     * Returns a color value animator that can be used with along an update listener to obtain the values between two colors.
+     *
+     * @param colorFrom Starting color
+     * @param colorTo   End color
+     * @param duration  Animation duration in milliseconds
+     * @return Value Animator with the corresponding parameters
+     */
+    ValueAnimator getColorAnimator(int colorFrom, int colorTo, int duration) {
+        ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
+        colorAnimation.setDuration(duration);
+        colorAnimation.setInterpolator(new AccelerateDecelerateInterpolator());
+        return colorAnimation;
     }
 
     private void readyUserData() {

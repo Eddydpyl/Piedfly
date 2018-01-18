@@ -1,9 +1,11 @@
 package dpyl.eddy.piedfly.view;
 
 import android.Manifest;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.location.Address;
 import android.location.Location;
 import android.net.Uri;
@@ -15,6 +17,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,6 +48,7 @@ import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import dpyl.eddy.piedfly.AppState;
+import dpyl.eddy.piedfly.Constants;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.Utility;
 import dpyl.eddy.piedfly.firebase.DataManager;
@@ -59,11 +63,16 @@ import static dpyl.eddy.piedfly.Constants.ZOOM_LEVEL;
 
 public class MapsActivity extends BaseActivity implements OnMapReadyCallback, OnListItemClickListener {
 
+    private static final String TAG = MapsActivity.class.getSimpleName();
+
     private static final String FOCUS = "focus";
 
     private GoogleMap mMap;
     private Map<String, Marker> mMarkers;
     private Map<String, ValueEventListener> mListeners;
+
+    private Window mWindow;
+    private Toolbar mToolbar;
 
     private CircleImageView mContactDetailsImage;
     private TextView mContactDetailsName;
@@ -79,15 +88,16 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (AppState.emergencyUser(this, mSharedPreferences))
+        if (AppState.emergencyUser(this, mSharedPreferences) || AppState.emergencyFlock(this, mSharedPreferences)) {
             setTheme(R.style.AppThemeEmergency_NoActionBar);
-        else
-            setTheme(R.style.AppTheme_NoActionBar);
+            mState = true;
+        }
 
         setContentView(R.layout.activity_maps);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.map_toolbar);
-        setSupportActionBar(toolbar);
+        mWindow = this.getWindow();
+        mToolbar = (Toolbar) findViewById(R.id.map_toolbar);
+        setSupportActionBar(mToolbar);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -190,45 +200,53 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     }
 
     @Override
-    protected AppState.AppStateListener buildAppStateListener() {
+    void toEmergencyAnimation() {
+        ValueAnimator colorPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorPrimary), getResources().getColor(R.color.colorSecondary), Constants.TRANSITION_ANIM_TIME);
+        ValueAnimator colorDarkPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorPrimaryDark), getResources().getColor(R.color.colorSecondaryDark), Constants.TRANSITION_ANIM_TIME);
 
-        return new AppState.AppStateListener() {
-
+        colorPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
-            public void onUserEmergencyStart() {
-                // TODO: The user has activated an emergency
+            public void onAnimationUpdate(ValueAnimator animator) {
+                int animatorValue = (int) animator.getAnimatedValue();
+                mToolbar.setBackgroundColor(animatorValue);
             }
+        });
 
+        colorDarkPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
-            public void onUserEmergencyStop() {
-                // TODO: The user had an emergency active and now it has been stopped
+            public void onAnimationUpdate(ValueAnimator animator) {
+                int animatorValue = (int) animator.getAnimatedValue();
+                mWindow.setStatusBarColor(animatorValue);
             }
+        });
 
-            @Override
-            public void onFlockEmergencyStart() {
-                // TODO: There is at least one emergency active
-            }
+        colorPrimaryAnimator.start();
+        colorDarkPrimaryAnimator.start();
+    }
 
-            @Override
-            public void onFlockEmergencyStop() {
-                // TODO: There was at least a flock emergency active and now they have all been stopped
-            }
+    @Override
+    void toNormalAnimation() {
+        ValueAnimator colorPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorSecondary), getResources().getColor(R.color.colorPrimary), Constants.TRANSITION_ANIM_TIME);
+        ValueAnimator colorDarkPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorSecondaryDark), getResources().getColor(R.color.colorPrimaryDark), Constants.TRANSITION_ANIM_TIME);
 
+        colorPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
-            public void onNearbyEmergencyStart() {
-                // TODO: There is at least one emergency active
+            public void onAnimationUpdate(ValueAnimator animator) {
+                int animatorValue = (int) animator.getAnimatedValue();
+                mToolbar.setBackgroundColor(animatorValue);
             }
+        });
 
+        colorDarkPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
-            public void onNearbyEmergencyStop() {
-                // TODO: There was at least a nearby emergency active and now they have all been stopped
+            public void onAnimationUpdate(ValueAnimator animator) {
+                int animatorValue = (int) animator.getAnimatedValue();
+                mWindow.setStatusBarColor(animatorValue);
             }
+        });
 
-            @Override
-            public void onAllEmergencyStop() {
-                // TODO: There was at least an emergency active and now they have all been stopped
-            }
-        };
+        colorPrimaryAnimator.start();
+        colorDarkPrimaryAnimator.start();
     }
 
     private void attachRecyclerViewAdapter() {
@@ -330,12 +348,10 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
                         mContactDetailsLocation.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
-                                Uri gmmIntentUri = Uri.parse("geo:" + location.getLatitude() + "," + location.getLongitude());
-                                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                                mapIntent.setPackage("com.google.android.apps.maps");
-                                if (mapIntent.resolveActivity(getPackageManager()) != null) {
-                                    startActivity(mapIntent);
-                                }
+                                String geoUri = "https://www.google.com/maps/dir/?api=1&destination=" + location.getLatitude() + "," + location.getLongitude();
+                                Intent mapIntent = new Intent(Intent.ACTION_VIEW);
+                                mapIntent.setData(Uri.parse(geoUri));
+                                startActivity(mapIntent);
                             }
                         });
                     } else mContactDetailsLocation.setText(getString(R.string.content_no_location));

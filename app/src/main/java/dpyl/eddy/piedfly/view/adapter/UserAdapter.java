@@ -1,5 +1,6 @@
 package dpyl.eddy.piedfly.view.adapter;
 
+import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
@@ -18,6 +19,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.StorageReference;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import dpyl.eddy.piedfly.Constants;
@@ -33,6 +35,7 @@ import dpyl.eddy.piedfly.view.viewholder.UserHolder;
 public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
 
     private Map<String, String> mPokes;
+    private Map<String, Animator> mAnimators;
     private OnListItemClickListener mOnListItemClickListener;
     private boolean mEmergency;
 
@@ -43,7 +46,9 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
     }
 
     public UserAdapter(FirebaseRecyclerOptions<User> options, OnListItemClickListener onListItemClickListener, boolean mEmergency) {
+    public UserAdapter(FirebaseRecyclerOptions<User> options, OnListItemClickListener onListItemClickListener, boolean emergency) {
         super(options);
+        mAnimators = new HashMap<>();
         this.mOnListItemClickListener = onListItemClickListener;
         this.mEmergency = mEmergency;
     }
@@ -99,8 +104,18 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
         notifyDataSetChanged();
     }
 
-    private void setUpPokeIcon(final Context context, String uid, final ImageView imageView) {
-        String key = mPokes.get(uid);
+    public void stopAnimation(String key) {
+        if (mAnimators.containsKey(key)) {
+            Animator animator = mAnimators.get(key);
+            animator.end();
+            animator.setDuration(0);
+            ((ValueAnimator)animator).reverse();
+            mAnimators.remove(key);
+        }
+    }
+
+    private void setUpPokeIcon(final Context context, final String uid, final ImageView imageView) {
+        final String key = mPokes.get(uid);
         if (!key.equals(Constants.PLACEHOLDER)) {
             imageView.setImageDrawable(context.getDrawable(R.drawable.ic_poke_full));
             DataManager.getDatabase().getReference("pokes").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -109,9 +124,9 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
                     Poke poke = dataSnapshot.getValue(Poke.class);
                     if (poke != null) {
                         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-                        String uid = sharedPreferences.getString(context.getString(R.string.pref_uid), "");
-                        if (!poke.getTrigger().equals(uid)) {
-                            animatePoke(imageView);
+                        String uidFirebase = sharedPreferences.getString(context.getString(R.string.pref_uid), "");
+                        if (!poke.getTrigger().equals(uidFirebase)) {
+                            animatePoke(uid, imageView);
                             imageView.setTag(Constants.POKE_FLOCK);
                         } else imageView.setTag(Constants.POKE_USER);
                     }
@@ -125,17 +140,19 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
         } else {
             imageView.setTag(Constants.POKE_NONE);
             imageView.setImageDrawable(context.getDrawable(R.drawable.ic_poke_empty));
+            stopAnimation(uid);
         }
     }
 
-    private void animatePoke(ImageView imageView) {
+    private void animatePoke(String key, ImageView imageView) {
         PropertyValuesHolder scalex = PropertyValuesHolder.ofFloat(View.SCALE_X, 1.2f);
         PropertyValuesHolder scaley = PropertyValuesHolder.ofFloat(View.SCALE_Y, 1.2f);
-        ObjectAnimator anim = ObjectAnimator.ofPropertyValuesHolder(imageView, scalex, scaley);
-        anim.setRepeatCount(ValueAnimator.INFINITE);
-        anim.setRepeatMode(ValueAnimator.REVERSE);
-        anim.setDuration(1000);
-        anim.start();
+        ObjectAnimator animator = ObjectAnimator.ofPropertyValuesHolder(imageView, scalex, scaley);
+        animator.setRepeatCount(ValueAnimator.INFINITE);
+        animator.setRepeatMode(ValueAnimator.REVERSE);
+        animator.setDuration(1000);
+        animator.start();
+        mAnimators.put(key, animator);
     }
 
 }
