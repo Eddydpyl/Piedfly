@@ -100,6 +100,7 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
     public void stopAnimation(String key) {
         if (mAnimators.containsKey(key)) {
             Animator animator = mAnimators.get(key);
+            animator.end();
             animator.setDuration(0);
             ((ValueAnimator)animator).reverse();
             mAnimators.remove(key);
@@ -132,6 +133,7 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
         } else {
             imageView.setTag(Constants.POKE_NONE);
             imageView.setImageDrawable(context.getDrawable(R.drawable.ic_poke_empty));
+            stopAnimation(uid);
         }
     }
 
