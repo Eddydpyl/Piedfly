@@ -12,7 +12,6 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
@@ -35,7 +34,6 @@ import android.widget.Toast;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.ErrorCodes;
 import com.firebase.ui.auth.IdpResponse;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -52,10 +50,8 @@ import dpyl.eddy.piedfly.AppPermissions;
 import dpyl.eddy.piedfly.AppState;
 import dpyl.eddy.piedfly.MyApplication;
 import dpyl.eddy.piedfly.R;
-import dpyl.eddy.piedfly.Utility;
 import dpyl.eddy.piedfly.exceptions.ExceptionHandler;
 import dpyl.eddy.piedfly.firebase.DataManager;
-import dpyl.eddy.piedfly.firebase.FileManager;
 import dpyl.eddy.piedfly.firebase.model.User;
 import dpyl.eddy.piedfly.monitor.LocationService;
 import dpyl.eddy.piedfly.monitor.PassiveService;
@@ -327,24 +323,6 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
             user.setName(mAuth.getCurrentUser().getDisplayName());
             user.setPhone(mAuth.getCurrentUser().getPhoneNumber());
             DataManager.updateUser(user);
-            if (mAuth.getCurrentUser().getPhotoUrl() != null) {
-                Utility.loadIntoBitmap(getApplication(), mAuth.getCurrentUser().getPhotoUrl(), new Utility.BitMapTaskListener() {
-                    @Override
-                    public void onSuccess(Bitmap bitmap) {
-                        FileManager.uploadProfilePicture(mAuth, bitmap, null, new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                // TODO: Error Handling
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onFailure(Exception e) {
-                        // TODO: Error Handling
-                    }
-                });
-            }
             readyAppState();
         } else checkAuthState();
     }
