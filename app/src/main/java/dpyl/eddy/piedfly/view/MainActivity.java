@@ -7,7 +7,6 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -19,7 +18,6 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.NestedScrollView;
@@ -31,6 +29,7 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerOptions;
@@ -88,10 +87,10 @@ public class MainActivity extends BaseActivity {
     private CoordinatorLayout mCoordinatorLayout;
     private CircleImageView mCircleImageView;
     private SlideToActView mSlideForAlarm;
-    private static FloatingActionButton mFab;
     public static RecyclerView mRecyclerView;
     public static RecyclerView mSecondRecyclerView;
     private NestedScrollView mNestedScrollView;
+    private Button mButtonAddContact;
 
     private String mKey; // Used for replicating a user action after they grant an Android permission
     private String mPokeType; // Used for replicating a user action after they grant an Android permission
@@ -122,13 +121,13 @@ public class MainActivity extends BaseActivity {
 
         mCoordinatorLayout = findViewById(R.id.content);
         mCircleImageView = (CircleImageView) findViewById(R.id.userImage);
-        mFab = (FloatingActionButton) findViewById(R.id.fab);
+        mButtonAddContact = (Button) findViewById(R.id.btn_add_contact);
         mSlideForAlarm = (SlideToActView) findViewById(R.id.slide_for_alarm);
         mNestedScrollView = (NestedScrollView) findViewById(R.id.mainActivity_nestedScrollView);
 
         setUpSliderListeners();
 
-        mFab.setOnClickListener(new View.OnClickListener() {
+        mButtonAddContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startPickContact();
@@ -145,9 +144,9 @@ public class MainActivity extends BaseActivity {
         mNestedScrollView.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
             @Override
             public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-                // Floating button only appears at the end of the list
-                if (!v.canScrollVertically(1)) mFab.show();
-                else mFab.hide();
+                // Button only appears at the end of the list
+                /*if (!v.canScrollVertically(1)) mButtonAddContact.setVisibility(View.VISIBLE);
+                else mButtonAddContact.setVisibility(View.INVISIBLE);*/
             }
         });
 
@@ -342,7 +341,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     void toEmergencyAnimation() {
-        ValueAnimator colorPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorPrimary), getResources().getColor(R.color.colorSecondary), Constants.TRANSITION_ANIM_TIME);
+        final ValueAnimator colorPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorPrimary), getResources().getColor(R.color.colorSecondary), Constants.TRANSITION_ANIM_TIME);
         ValueAnimator colorDarkPrimaryAnimator = getColorAnimator(getResources().getColor(R.color.colorPrimaryDark), getResources().getColor(R.color.colorSecondaryDark), Constants.TRANSITION_ANIM_TIME);
 
         colorPrimaryAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -355,7 +354,7 @@ public class MainActivity extends BaseActivity {
                         new int[]{android.R.attr.state_enabled},
                         new int[]{-android.R.attr.state_enabled},
                 };
-                mFab.setBackgroundTintList(new ColorStateList(states, new int[]{animatorValue, animatorValue}));
+                mButtonAddContact.setBackgroundColor(animatorValue);
                 mSlideForAlarm.setMOuterColor(animatorValue);
             }
 
@@ -388,7 +387,7 @@ public class MainActivity extends BaseActivity {
                         new int[]{android.R.attr.state_enabled},
                         new int[]{-android.R.attr.state_enabled},
                 };
-                mFab.setBackgroundTintList(new ColorStateList(states, new int[]{animatorValue, animatorValue}));
+                mButtonAddContact.setBackgroundColor(animatorValue);
                 mSlideForAlarm.setMOuterColor(animatorValue);
             }
 
@@ -591,38 +590,6 @@ public class MainActivity extends BaseActivity {
         mRecyclerView.setNestedScrollingEnabled(false);
         mSecondRecyclerView.setNestedScrollingEnabled(false);
     }
-
-
-    //TODO: move to a utils class
-    /*public static void updateRecyclerOffset() {
-
-        ViewGroup.MarginLayoutParams marginLayoutParams =
-                (ViewGroup.MarginLayoutParams) mSecondRecyclerView.getLayoutParams();
-
-        int firstItems = mRecyclerView.getAdapter().getItemCount();
-        int secondItems = mSecondRecyclerView.getAdapter().getItemCount();
-
-        if (firstItems + secondItems <= 2) {
-            marginLayoutParams.setMargins(0, 0, 0, 0);
-            mSecondRecyclerView.setLayoutParams(marginLayoutParams);
-            mFab.show();
-            return;
-        }
-
-        if (firstItems + secondItems == 3) {
-            mFab.hide();
-        }
-        //TODO: make precise bottom margin, and make sure this methods executes after any changes in any of the two recyclers
-        int itemHeight = 0;
-        try {
-            itemHeight = mSecondRecyclerView.findViewHolderForAdapterPosition(0).itemView.getMeasuredHeight();
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-        }
-
-        marginLayoutParams.setMargins(0, 0, 0, itemHeight * (firstItems + secondItems - 1));
-        mSecondRecyclerView.setLayoutParams(marginLayoutParams);
-    }*/
 
     private void attachFirebaseRecyclerViewAdapter() {
         if (mAuth != null && mAuth.getCurrentUser() != null && mUserAdapter == null) {

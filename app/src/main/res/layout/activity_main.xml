@@ -41,8 +41,8 @@
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/userImage"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="250dp"
+                android:layout_height="250dp"
                 android:layout_above="@+id/slide_for_alarm"
                 android:layout_alignParentTop="true"
                 android:layout_centerHorizontal="true"
@@ -50,8 +50,6 @@
                 android:clickable="true"
                 android:elevation="@dimen/slider_elevation"
                 android:focusable="true"
-                android:maxHeight="250dp"
-                android:maxWidth="250dp"
                 android:src="@drawable/default_contact"
                 app:civ_border_color="@color/default_background_color"
                 app:civ_border_width="@dimen/default_civ_border_width" />
@@ -79,7 +77,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:orientation="vertical">
 
                 <android.support.v7.widget.RecyclerView
@@ -93,29 +91,23 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     tools:listitem="@layout/contact_list_item" />
-
-                <Button
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@color/colorPrimary"
-                    android:text="+"
-                    android:textColor="@color/full_white"
-                    android:textSize="@dimen/default_text_size"
-                    android:textAlignment="center" />
             </LinearLayout>
 
         </android.support.v4.widget.NestedScrollView>
 
+
+        <Button
+            android:id="@+id/btn_add_contact"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_gravity="bottom|center"
+            android:background="@color/colorPrimary"
+            android:text="+"
+            android:textAlignment="center"
+            android:textColor="@color/full_white"
+            android:textSize="@dimen/default_text_size" />
+
     </LinearLayout>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:clickable="true"
-        android:focusable="true"
-        app:srcCompat="@drawable/ic_add_white_24dp" />
 
 </android.support.design.widget.CoordinatorLayout>
