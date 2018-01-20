@@ -93,6 +93,15 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     tools:listitem="@layout/contact_list_item" />
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/colorPrimary"
+                    android:text="+"
+                    android:textColor="@color/full_white"
+                    android:textSize="@dimen/default_text_size"
+                    android:textAlignment="center" />
             </LinearLayout>
 
         </android.support.v4.widget.NestedScrollView>

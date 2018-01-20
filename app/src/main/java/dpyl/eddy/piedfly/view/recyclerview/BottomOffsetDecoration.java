@@ -17,6 +17,9 @@ public class BottomOffsetDecoration extends RecyclerView.ItemDecoration {
         //scrolling only implemented on the last element, if there are more than 2 elements in the list
         if (dataSize > 2 && position == dataSize - 1) {
 
+            int height1 = parent.findViewHolderForLayoutPosition(position - 1).itemView.getHeight();
+            int height2 = view.getHeight();
+            int height3 = parent.getHeight();
             int itemHeight = view.getHeight() > 0 ? view.getHeight() : parent.findViewHolderForLayoutPosition(position - 1).itemView.getHeight();
             //You can always scroll the whole recycler view up but the last item
             outRect.set(0, 0, 0, parent.getHeight() - itemHeight);

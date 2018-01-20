@@ -10,7 +10,6 @@ import java.util.List;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.firebase.GlideApp;
 import dpyl.eddy.piedfly.room.model.Contact;
-import dpyl.eddy.piedfly.view.MainActivity;
 import dpyl.eddy.piedfly.view.viewholder.OnListItemClickListener;
 import dpyl.eddy.piedfly.view.viewholder.UserHolder;
 
@@ -49,7 +48,6 @@ public class ContactAdapter extends RecyclerView.Adapter<UserHolder> {
 
     public void setContacts(List<Contact> mContacts) {
         this.mContacts = mContacts;
-        MainActivity.updateRecyclerOffset();
         this.notifyDataSetChanged();
     }
 

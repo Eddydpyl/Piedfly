@@ -5,13 +5,13 @@ import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.location.Address;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -78,6 +78,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     private TextView mContactDetailsName;
     private TextView mContactDetailsLocation;
     private ImageView mContactDetailsCall;
+    private CardView mMapDetailsCardView;
 
     private RecyclerView mRecyclerView;
     private MapUserAdapter mMapUserAdapter;
@@ -109,6 +110,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
         mContactDetailsLocation = (TextView) findViewById(R.id.map_contact_details_location);
         mContactDetailsName = (TextView) findViewById(R.id.map_contact_details_name);
         mContactDetailsCall = (ImageView) findViewById(R.id.map_contact_details_call);
+        mMapDetailsCardView = (CardView) findViewById(R.id.map_contact_details);
 
         CircleImageView userImage = (CircleImageView) findViewById(R.id.map_user_image);
         StorageReference storageReference = mAuth.getCurrentUser() != null && Utility.isFirebaseStorage(mAuth.getCurrentUser().getPhotoUrl()) ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
@@ -135,6 +137,8 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
         super.onStart();
         attachRecyclerViewAdapter();
         setCameraListener();
+        // Animate stuff
+        mContactDetailsLocation.setSelected(true);
     }
 
     @Override

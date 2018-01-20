@@ -30,7 +30,6 @@ import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Toast;
 
@@ -595,7 +594,7 @@ public class MainActivity extends BaseActivity {
 
 
     //TODO: move to a utils class
-    public static void updateRecyclerOffset() {
+    /*public static void updateRecyclerOffset() {
 
         ViewGroup.MarginLayoutParams marginLayoutParams =
                 (ViewGroup.MarginLayoutParams) mSecondRecyclerView.getLayoutParams();
@@ -623,7 +622,7 @@ public class MainActivity extends BaseActivity {
 
         marginLayoutParams.setMargins(0, 0, 0, itemHeight * (firstItems + secondItems - 1));
         mSecondRecyclerView.setLayoutParams(marginLayoutParams);
-    }
+    }*/
 
     private void attachFirebaseRecyclerViewAdapter() {
         if (mAuth != null && mAuth.getCurrentUser() != null && mUserAdapter == null) {

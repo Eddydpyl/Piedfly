@@ -45,12 +45,11 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
         this.mEmergency = false;
     }
 
-    public UserAdapter(FirebaseRecyclerOptions<User> options, OnListItemClickListener onListItemClickListener, boolean mEmergency) {
     public UserAdapter(FirebaseRecyclerOptions<User> options, OnListItemClickListener onListItemClickListener, boolean emergency) {
         super(options);
         mAnimators = new HashMap<>();
         this.mOnListItemClickListener = onListItemClickListener;
-        this.mEmergency = mEmergency;
+        this.mEmergency = emergency;
     }
 
     @Override
@@ -109,7 +108,7 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
             Animator animator = mAnimators.get(key);
             animator.end();
             animator.setDuration(0);
-            ((ValueAnimator)animator).reverse();
+            ((ValueAnimator) animator).reverse();
             mAnimators.remove(key);
         }
     }
