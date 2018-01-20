@@ -35,7 +35,6 @@ import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -233,6 +232,12 @@ public class MainActivity extends BaseActivity {
         } else if (requestCode == REQUEST_PICK_IMAGE && resultCode == RESULT_OK) {
             try {
                 updateProfilePicture(data.getData());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else if (requestCode == EMAIL_SIGN_IN && resultCode == RESULT_OK) {
+            try {
+                updateProfilePicture(null);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -630,28 +635,33 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    //TODO: maybe cache the profile image or save it locally too
+    private void updateProfilePicture(Uri uri) throws IOException {
+        if (mAuth.getCurrentUser() != null && (uri != null || mAuth.getCurrentUser().getPhotoUrl() != null)) {
+            uri = uri != null ? uri : mAuth.getCurrentUser().getPhotoUrl();
+            Utility.loadIntoBitmap(getApplication(), uri, new Utility.BitMapTaskListener() {
+                @Override
+                public void onSuccess(Bitmap bitmap) {
+                    GlideApp.with(mCircleImageView.getContext()).load(bitmap).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
+                    FileManager.uploadProfilePicture(mAuth, bitmap, null, new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(MainActivity.this, getString(R.string.content_upload_error), Toast.LENGTH_SHORT).show();
+                            GlideApp.with(mCircleImageView.getContext()).load(R.drawable.default_contact).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
+                        }
+                    });
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    // TODO: Error Handling
+                }
+            });
+        }
+    }
+
     private void setProfilePicture() {
         StorageReference storageReference = mAuth.getCurrentUser() != null && Utility.isFirebaseStorage(mAuth.getCurrentUser().getPhotoUrl()) ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
         GlideApp.with(this).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
-    }
-
-    private void updateProfilePicture(Uri uri) throws IOException {
-        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-        GlideApp.with(mCircleImageView.getContext()).load(bitmap).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
-        FileManager.uploadProfilePicture(mAuth, bitmap, new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                Log.i(TAG, "Image uploaded successfully. It can be found here: " + mAuth.getCurrentUser().getPhotoUrl());
-            }
-        }, new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(MainActivity.this, getString(R.string.content_upload_error), Toast.LENGTH_SHORT).show();
-                GlideApp.with(mCircleImageView.getContext()).load(R.drawable.default_contact).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
-
-            }
-        });
     }
 
     private void showUndoMessage(RecyclerView.ViewHolder viewHolder) {

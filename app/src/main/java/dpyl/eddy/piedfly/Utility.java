@@ -173,6 +173,8 @@ public class Utility {
 
         private WeakReference<Application> weakReference;
         private BitMapTaskListener listener;
+        private IOException exception;
+        private Bitmap bitmap;
 
         private BitMapTask(Application context, BitMapTaskListener listener) {
             weakReference = new WeakReference<Application>(context);
@@ -189,20 +191,27 @@ public class Utility {
                         connection.setDoInput(true);
                         connection.connect();
                         InputStream input = connection.getInputStream();
-                        Bitmap bitmap = BitmapFactory.decodeStream(input);
-                        listener.onSuccess(bitmap);
-                    } catch (IOException e) {
-                        listener.onFailure(e);
+                        bitmap = BitmapFactory.decodeStream(input);
+                    } catch (IOException exception) {
+                        this.exception = exception;
                     }
                 } else {
                     try {
-                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(weakReference.get().getContentResolver(), uri);
-                        listener.onSuccess(bitmap);
-                    } catch (IOException e) {
-                        listener.onFailure(e);
+                        bitmap = MediaStore.Images.Media.getBitmap(weakReference.get().getContentResolver(), uri);
+                    } catch (IOException exception) {
+                        this.exception = exception;
                     }
                 }
             } return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            if (bitmap != null)
+                listener.onSuccess(bitmap);
+            else
+                listener.onFailure(exception);
         }
     }
 
