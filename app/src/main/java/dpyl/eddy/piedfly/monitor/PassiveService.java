@@ -47,7 +47,7 @@ public class PassiveService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent.getExtras() != null && intent.getBooleanExtra(NOTIFICATION_CANCELED, false))
+        if (intent != null && intent.getExtras() != null && intent.getBooleanExtra(NOTIFICATION_CANCELED, false))
             createStickyNotification();
         return START_STICKY;
     }

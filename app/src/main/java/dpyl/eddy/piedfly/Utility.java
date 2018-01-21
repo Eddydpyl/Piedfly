@@ -19,6 +19,8 @@ import android.support.v4.app.ActivityCompat;
 import android.telephony.TelephonyManager;
 import android.webkit.URLUtil;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
@@ -27,6 +29,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Locale;
 
+import static dpyl.eddy.piedfly.Constants.DUMMY_LOCATION;
 import static dpyl.eddy.piedfly.Constants.SIGMIN;
 
 public class Utility {
@@ -35,29 +38,33 @@ public class Utility {
 
     /**
      * @param context Necessary for some inner method calls
-     * @return Last known location of the device
+     * @return Last known location of the device, or a dummy if none could be retrieved
      */
     public static Location getLastKnownLocation(Context context) {
         if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-            List<String> providers = locationManager.getProviders(true);
             Location bestLocation = null;
-            for (String provider : providers) {
-                Location location = locationManager.getLastKnownLocation(provider);
-                if(location != null && isBetterLocation(location, bestLocation)) bestLocation = location;
-            } return bestLocation;
+            if (locationManager != null) {
+                List<String> providers = locationManager.getProviders(true);
+                for (String provider : providers) {
+                    Location location = locationManager.getLastKnownLocation(provider);
+                    if (location != null && isBetterLocation(location, bestLocation))
+                        bestLocation = location;
+                }
+            }
+            if (bestLocation == null)
+                bestLocation = new Location(DUMMY_LOCATION);
+            return bestLocation;
         } else {
             throw new SecurityException("The App lacks the necessary permissions for retrieving the last known location");
         }
     }
 
-    // TODO: Add a 'minimum distance to last known location' check. Without this, points will "jump around" when GPS is not available
-    // (when the location is being triangulated from the cell towers), or you can check if the new location is outside of the accuracy value from the last known location.
-
     /**
      * Determines whether one Location reading is better than the current Location fix
-     * @param location  The new Location that you want to evaluate
-     * @param currentBestLocation  The current Location fix, to which you want to compare the new one
+     *
+     * @param location            The new Location that you want to evaluate
+     * @param currentBestLocation The current Location fix, to which you want to compare the new one
      */
     public static boolean isBetterLocation(Location location, Location currentBestLocation) {
         if (currentBestLocation == null) {
@@ -95,14 +102,16 @@ public class Utility {
             return true;
         } else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
             return true;
-        } return false;
+        }
+        return false;
     }
 
     /**
      * Determines whether one Location reading is better than the current Location fix, giving extra weight to the latter
-     * @param location  The new Location that you want to evaluate
-     * @param currentBestLocation  The current Location fix, to which you want to compare the new one
-     * @param greed Extra (positive) weight that is given to currentBestLocation, the new one must be at least this far away from the former
+     *
+     * @param location            The new Location that you want to evaluate
+     * @param currentBestLocation The current Location fix, to which you want to compare the new one
+     * @param greed               Extra (positive) weight that is given to currentBestLocation, the new one must be at least this far away from the former
      */
     public static boolean isBetterLocationGreedy(Location location, Location currentBestLocation, Double greed) {
         if (currentBestLocation == null) {
@@ -145,18 +154,34 @@ public class Utility {
             return true;
         } else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider && isFarEnough) {
             return true;
-        } return false;
+        }
+        return false;
+    }
+
+    /**
+     * @return Whether or not this Location is just a dummy
+     */
+    public static boolean isDummyLocation(Location location) {
+        return location.getLatitude() == 0.0 && location.getLongitude() == 0.0;
+    }
+
+    /**
+     * @return Whether or not this LatLng is just a dummy
+     */
+    public static boolean isDummyLatLng(LatLng latLng) {
+        return latLng.latitude == 0.0 && latLng.longitude == 0.0;
     }
 
     /**
      * Determines the address of a Location
+     *
      * @return Address of the provided Location, or null if it couldn't be retrieved
      */
     public static Address getAddress(Context context, Location location) throws IOException {
         List<Address> addresses = null;
         Geocoder geocoder = new Geocoder(context);
-        addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(),1);
-        if(addresses != null && addresses.size() > 0 ){
+        addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+        if (addresses != null && addresses.size() > 0) {
             return addresses.get(0);
         } else return null;
     }
@@ -184,7 +209,7 @@ public class Utility {
         @Override
         protected Void doInBackground(@NonNull Uri... uris) {
             for (Uri uri : uris) {
-                if (URLUtil.isValidUrl(uri.toString())) {
+                if (URLUtil.isNetworkUrl(uri.toString())) {
                     try {
                         URL url = new URL(uri.toString());
                         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -202,7 +227,8 @@ public class Utility {
                         this.exception = exception;
                     }
                 }
-            } return null;
+            }
+            return null;
         }
 
         @Override
@@ -217,11 +243,13 @@ public class Utility {
 
     public interface BitMapTaskListener {
         void onSuccess(Bitmap bitmap);
+
         void onFailure(Exception e);
     }
 
     /**
      * TODO: Only returns either 911 or 112 (default)
+     *
      * @param ISO3 The ISO3 code of the country from which the call is going to be made
      * @return Emergency number of the country with the given ISO3 code
      */
@@ -239,7 +267,8 @@ public class Utility {
         if (countryISO != null && countryISO.matches("[a-zA-Z]{2}")) {
             Locale locale = new Locale("", countryISO);
             return locale.getISO3Country();
-        } return countryISO;
+        }
+        return countryISO;
     }
 
     /**
@@ -269,7 +298,8 @@ public class Utility {
             countryISO = locale.getCountry();
             if (countryISO != null && !countryISO.isEmpty() && countryISO.matches("[a-zA-Z]{2,3}"))
                 return countryISO.toUpperCase();
-        } return null;
+        }
+        return null;
     }
 
     public static boolean isNetworkAvailable(Context context) {
@@ -283,10 +313,13 @@ public class Utility {
         return uri != null && uri.toString().startsWith(FIREBASE_STORAGE);
     }
 
-    /** Checks whether two providers are the same */
+    /**
+     * Checks whether two providers are the same
+     */
     private static boolean isSameProvider(String provider1, String provider2) {
         if (provider1 == null) {
             return provider2 == null;
-        } return provider1.equals(provider2);
+        }
+        return provider1.equals(provider2);
     }
 }

@@ -28,7 +28,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Toast;
@@ -107,7 +106,7 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
 
         // Once the Activity is ready, swap the splash screen for the actual theme
-        if (AppState.emergencyUser(this, mSharedPreferences) || AppState.emergencyFlock(this, mSharedPreferences)) {
+        if (AppState.emergencyUserFlock(this, mSharedPreferences)) {
             setTheme(R.style.AppThemeEmergency_NoActionBar);
             mState = true;
         } else
@@ -224,6 +223,7 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
+    @SuppressLint("ShowToast")
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_PICK_CONTACT && resultCode == RESULT_OK) {
@@ -233,7 +233,7 @@ public class MainActivity extends BaseActivity {
             try {
                 updateProfilePicture(data.getData());
             } catch (IOException e) {
-                e.printStackTrace();
+                showToast(Toast.makeText(this, R.string.content_upload_error, Toast.LENGTH_SHORT));
             }
         } else if (requestCode == EMAIL_SIGN_IN && resultCode == RESULT_OK) {
             try {
@@ -652,8 +652,9 @@ public class MainActivity extends BaseActivity {
                 }
 
                 @Override
+                @SuppressLint("ShowToast")
                 public void onFailure(Exception e) {
-                    // TODO: Error Handling
+                    showToast(Toast.makeText(MainActivity.this, R.string.content_upload_error, Toast.LENGTH_SHORT));
                 }
             });
         }
