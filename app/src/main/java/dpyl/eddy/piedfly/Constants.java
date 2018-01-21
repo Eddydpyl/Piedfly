@@ -14,6 +14,7 @@ public class Constants {
     public static final String PLACEHOLDER = "placeholder"; // Used to fill a value in the database when we don't want it to be null.
     public static final int ZOOM_LEVEL = 15; // Default zoom level for when a GoogleMap's camera position is set.
     public static final double RADIUS_KM = 0.5; // Distance in kilometers for someone to be considered nearby.
+    public static final String DUMMY_LOCATION = "dummy"; // Location provider used when instantiating a dummy Location
     public static final int SIGMIN = 1000 * 60 * 2; // Time in milliseconds for a location to be considered significantly older/newer.
     public static final long LOCATION_SLOWEST_INTERVAL = 10000L; // Maximum time in milliseconds between each lastKnownLocation update.
     public static final long LOCATION_FASTEST_INTERVAL = 5000L; // Minimum time in milliseconds between each lastKnownLocation update.

@@ -121,6 +121,13 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
         super.onStart();
         mStateListener = AppState.onSharedPreferenceChangeListener(this, mSharedPreferences, buildAppStateListener());
         mSharedPreferences.registerOnSharedPreferenceChangeListener(mStateListener);
+        if (!mState && AppState.emergencyUserFlock(this, mSharedPreferences)) {
+            toEmergencyAnimation();
+            mState = true;
+        } else if (mState && !AppState.emergencyUserFlock(this, mSharedPreferences)) {
+            toNormalAnimation();
+            mState = false;
+        }
         checkAuthState();
     }
 

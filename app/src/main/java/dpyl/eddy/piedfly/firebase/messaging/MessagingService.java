@@ -5,6 +5,8 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 
@@ -221,20 +223,24 @@ public class MessagingService extends FirebaseMessagingService {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Poke poke = dataSnapshot.getValue(Poke.class);
                         if (poke != null) {
-                            mDatabase.getReference("users").child(poke.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    User user = dataSnapshot.getValue(User.class);
-                                    if (user != null) {
-                                        pushNotification(user.getName() + " " + getString(R.string.content_push_poke_end_title), getString(R.string.content_push_poke_end_text), MainActivity.class);
+                            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MessagingService.this);
+                            String uid = sharedPreferences.getString(getString(R.string.pref_uid), "");
+                            if (!uid.equals(poke.getUid())) {
+                                mDatabase.getReference("users").child(poke.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        User user = dataSnapshot.getValue(User.class);
+                                        if (user != null) {
+                                            pushNotification(user.getName() + " " + getString(R.string.content_push_poke_end_title), getString(R.string.content_push_poke_end_text), MainActivity.class);
+                                        }
                                     }
-                                }
 
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-                                    // TODO: Error handling
-                                }
-                            });
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+                                        // TODO: Error handling
+                                    }
+                                });
+                            }
                         }
                     }
 

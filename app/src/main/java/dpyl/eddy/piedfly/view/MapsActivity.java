@@ -254,11 +254,13 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     }
 
     private void attachRecyclerViewAdapter() {
-        if (mAuth != null && mAuth.getCurrentUser() != null && mMapUserAdapter == null && mMap != null) {
+        if (mAuth.getCurrentUser() != null && mMapUserAdapter == null && mMap != null) {
             if (mMarkers == null) mMarkers = new HashMap<>();
-            Location location = Utility.getLastKnownLocation(this);
-            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-            placeMarker(mAuth.getCurrentUser().getUid(), mAuth.getCurrentUser().getDisplayName(), latLng);
+            if (!mMarkers.containsKey(mAuth.getCurrentUser().getUid())) {
+                Location location = Utility.getLastKnownLocation(this);
+                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                placeMarker(mAuth.getCurrentUser().getUid(), mAuth.getCurrentUser().getDisplayName(), latLng);
+            }
 
             Query keyQuery = DataManager.getDatabase().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("flock");
             DatabaseReference dataQuery = DataManager.getDatabase().getReference().child("users");
@@ -320,7 +322,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     @SuppressLint("ShowToast")
     private void focusCamera(String uid) {
         if (mMap != null && mMarkers != null) {
-            if (mMarkers.containsKey(uid)) {
+            if (mMarkers.containsKey(uid) && !Utility.isDummyLatLng(mMarkers.get(uid).getPosition())) {
                 CameraPosition cameraAnimation = new CameraPosition.Builder().target(mMarkers.get(uid).getPosition()).zoom(ZOOM_LEVEL)
                         .tilt(mMap.getCameraPosition().tilt).bearing(mMap.getCameraPosition().bearing).build();
                 mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraAnimation));
