@@ -26,7 +26,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -144,8 +143,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
                 // Button only appears at the end of the list
-                /*if (!v.canScrollVertically(1)) mButtonAddContact.setVisibility(View.VISIBLE);
-                else mButtonAddContact.setVisibility(View.INVISIBLE);*/
+                if (!v.canScrollVertically(1)) ;
             }
         });
 
@@ -733,4 +731,5 @@ public class MainActivity extends BaseActivity {
             }
         }
     }
+
 }
