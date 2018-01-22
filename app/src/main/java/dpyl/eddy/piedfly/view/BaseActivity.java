@@ -7,7 +7,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -44,11 +43,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.inject.Inject;
-
 import dpyl.eddy.piedfly.AppPermissions;
 import dpyl.eddy.piedfly.AppState;
-import dpyl.eddy.piedfly.MyApplication;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.exceptions.ExceptionHandler;
 import dpyl.eddy.piedfly.firebase.DataManager;
@@ -70,10 +66,6 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
 
     static Toast mToast;
     static MessageCollectionViewModel mMessageCollectionViewModel;
-
-    @Inject
-    ViewModelProvider.Factory mCustomViewModelFactory;
-
     String mPhoneNumber; // Used for replicating a user action after they grant an Android permission
     SharedPreferences mSharedPreferences;
     FirebaseAuth mAuth;
@@ -87,7 +79,6 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
-        ((MyApplication) getApplication()).getApplicationComponent().inject(this);
         mAuth = FirebaseAuth.getInstance();
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         setUpNotificationsView();
@@ -455,7 +446,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Firebase
 
     private void setUpNotificationsMenuItem(final MenuItem menuCounter, final MenuItem menuEmpty) {
         ActionItemBadge.hide(menuCounter);
-        mMessageCollectionViewModel = ViewModelProviders.of(this, mCustomViewModelFactory).get(MessageCollectionViewModel.class);
+        mMessageCollectionViewModel = ViewModelProviders.of(this).get(MessageCollectionViewModel.class);
         mMessageCollectionViewModel.getMessagesByTimestamp().observe(this, new Observer<List<Message>>() {
             @Override
             public void onChanged(@Nullable List<Message> messages) {

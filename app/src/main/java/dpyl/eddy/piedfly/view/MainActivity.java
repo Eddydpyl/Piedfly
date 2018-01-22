@@ -91,7 +91,7 @@ public class MainActivity extends BaseActivity {
     private Button mButtonAddContact;
 
     private String mKey; // Used for replicating a user action after they grant an Android permission
-    private String mPokeType; // Used for replicating a user action after they grant an Android permission
+    private String mPokeType; // Used for replica ting a user action after they grant an Android permission
     private DatabaseReference mPokeReference;
     private ValueEventListener mPokeListener;
 
@@ -151,7 +151,7 @@ public class MainActivity extends BaseActivity {
         setUpRecyclerViews();
 
         // Getting our ViewModels and data observing
-        mContactCollectionViewModel = ViewModelProviders.of(this, mCustomViewModelFactory).get(ContactCollectionViewModel.class);
+        mContactCollectionViewModel = ViewModelProviders.of(this).get(ContactCollectionViewModel.class);
         mContactCollectionViewModel.getListOfContactsByName().observe(this, new Observer<List<Contact>>() {
             @Override
             public void onChanged(@Nullable List<Contact> contacts) {
@@ -538,7 +538,6 @@ public class MainActivity extends BaseActivity {
                 final String normalized = cursor.getString(2);
                 cursor.close();
                 if (name != null && (phone != null || normalized != null)) {
-                    // TODO: Format phone so that it matches the ones in the database
                     final String target = (normalized != null ? normalized : phone).replaceAll("\\s+", "");
                     DataManager.getDatabase().getReference("users").orderByChild("phone").equalTo(target).limitToFirst(1).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
@@ -554,7 +553,6 @@ public class MainActivity extends BaseActivity {
                                     }
                                 }
                             } else {
-                                // TODO: A User with the provided phone does not exist
                                 Contact localContact = new Contact();
                                 localContact.setName(name);
                                 localContact.setPhone(target);

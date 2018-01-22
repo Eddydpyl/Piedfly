@@ -4,8 +4,6 @@ import android.arch.lifecycle.LiveData;
 
 import java.util.List;
 
-import javax.inject.Inject;
-
 import dpyl.eddy.piedfly.room.dao.MessageDao;
 import dpyl.eddy.piedfly.room.model.Message;
 
@@ -15,10 +13,19 @@ import dpyl.eddy.piedfly.room.model.Message;
 
 public class MessageRepository {
 
+    private static MessageRepository sInstance;
+
     private final MessageDao messageDao;
 
-    @Inject
-    public MessageRepository(MessageDao messageDao) {
+
+    public static MessageRepository getInstance(MessageDao messageDao) {
+        if (sInstance == null) {
+            sInstance = new MessageRepository(messageDao);
+        }
+        return sInstance;
+    }
+
+    private MessageRepository(MessageDao messageDao) {
         this.messageDao = messageDao;
     }
 

@@ -4,8 +4,6 @@ import android.arch.lifecycle.LiveData;
 
 import java.util.List;
 
-import javax.inject.Inject;
-
 import dpyl.eddy.piedfly.room.dao.ContactDao;
 import dpyl.eddy.piedfly.room.model.Contact;
 
@@ -15,13 +13,23 @@ import dpyl.eddy.piedfly.room.model.Contact;
 
 public class ContactRepository {
 
+    private static ContactRepository sInstance;
+
     private final ContactDao contactDao;
 
-    @Inject
-    public ContactRepository(ContactDao contactDao) {
-        this.contactDao = contactDao;
+
+    public static ContactRepository getInstance(ContactDao contactDao) {
+
+        if (sInstance == null) {
+            sInstance = new ContactRepository(contactDao);
+        }
+
+        return sInstance;
     }
 
+    private ContactRepository(ContactDao contactDao) {
+        this.contactDao = contactDao;
+    }
 
     public LiveData<List<Contact>> getAllContactsByName() {
         return contactDao.findAllByName();
@@ -38,5 +46,7 @@ public class ContactRepository {
     public void deleteAllContacts(Contact... contacts) {
         contactDao.deleteAll(contacts);
     }
+
+
 
 }

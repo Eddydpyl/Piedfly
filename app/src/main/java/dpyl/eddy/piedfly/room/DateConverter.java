@@ -5,10 +5,9 @@ import android.arch.persistence.room.TypeConverter;
 import java.util.Date;
 
 /**
- * Converters for room.
+ * DateConverter for room.
  */
-
-public class Converters {
+public class DateConverter {
 
     @TypeConverter
     public static Date fromTimestamp(Long value) {
