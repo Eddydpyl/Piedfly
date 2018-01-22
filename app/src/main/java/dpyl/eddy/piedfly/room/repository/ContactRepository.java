@@ -41,11 +41,11 @@ public class ContactRepository {
     }
 
     public void insertAllContacts(Contact... contacts) {
-        sInstance.insertAllContacts(contacts);
+        new AddContactTask().execute(contacts);
     }
 
     public void deleteAllContacts(Contact... contacts) {
-        sInstance.deleteAllContacts(contacts);
+        new DeleteContactTask().execute(contacts);
     }
 
 
