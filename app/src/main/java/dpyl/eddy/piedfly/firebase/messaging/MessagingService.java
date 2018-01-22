@@ -28,9 +28,10 @@ import dpyl.eddy.piedfly.firebase.model.EventType;
 import dpyl.eddy.piedfly.firebase.model.Poke;
 import dpyl.eddy.piedfly.firebase.model.Request;
 import dpyl.eddy.piedfly.firebase.model.User;
-import dpyl.eddy.piedfly.room.RoomManager;
+import dpyl.eddy.piedfly.room.AppLocalDatabase;
 import dpyl.eddy.piedfly.room.model.Message;
 import dpyl.eddy.piedfly.room.model.MessageType;
+import dpyl.eddy.piedfly.room.repository.MessageRepository;
 import dpyl.eddy.piedfly.view.MainActivity;
 
 public class MessagingService extends FirebaseMessagingService {
@@ -85,7 +86,7 @@ public class MessagingService extends FirebaseMessagingService {
                                             pushNotification(user.getName() + " " + getString(R.string.content_push_emergency_flock_title), getString(R.string.content_push_emergency_flock_text), MainActivity.class);
                                             emergencies.put(emergency, mNotificationID);
                                             Message message = buildMessage(emergency, user.getName() + " " + getString(R.string.content_push_emergency_flock_title), MessageType.EMERGENCY_START, null);
-                                            storeMessage(message, null);
+                                            storeMessage(message);
                                         }
                                     }
 
@@ -106,7 +107,7 @@ public class MessagingService extends FirebaseMessagingService {
                                             pushNotification(user.getName() + " " + getString(R.string.content_push_emergency_finish_title), getString(R.string.content_push_emergency_finish_text), MainActivity.class);
                                             removeNotification(emergencies.remove(emergency));
                                             Message message = buildMessage(emergency, user.getName() + " " + getString(R.string.content_push_emergency_finish_title), MessageType.EMERGENCY_FINISH, null);
-                                            storeMessage(message, null);
+                                            storeMessage(message);
                                         }
                                     }
 
@@ -139,7 +140,7 @@ public class MessagingService extends FirebaseMessagingService {
                                 pushNotification(getString(R.string.content_push_emergency_nearby_title), getString(R.string.content_push_emergency_nearby_text), MainActivity.class);
                                 emergencies.put(emergency.getKey(), mNotificationID);
                                 Message message = buildMessage(emergency.getKey(), getString(R.string.content_push_emergency_nearby_title), MessageType.EMERGENCY_NEARBY, null);
-                                storeMessage(message, null);
+                                storeMessage(message);
                             } else {
                                 // The user has left the perimeter
                                 AppState.unRegisterEmergencyNearby(getBaseContext(), key);
@@ -168,7 +169,7 @@ public class MessagingService extends FirebaseMessagingService {
                                     if (user != null) {
                                         pushNotification(user.getName() + " " + getString(R.string.content_push_request_title), getString(R.string.content_push_request_text), MainActivity.class);
                                         Message message = buildMessage(user.getUid(), user.getName() + " " + getString(R.string.content_push_request_title), MessageType.REQUEST_FLOCK, null);
-                                        storeMessage(message, null);
+                                        storeMessage(message);
                                     }
                                 }
 
@@ -292,8 +293,7 @@ public class MessagingService extends FirebaseMessagingService {
         return message;
     }
 
-    private void storeMessage(Message message, RoomManager.LocalDataCallback callback) {
-        RoomManager roomManager = new RoomManager(this);
-        roomManager.saveMessage(message, callback);
+    private void storeMessage(Message message) {
+        MessageRepository.getInstance(AppLocalDatabase.getInstance(this).messageDao()).insertAllMessages(message);
     }
 }

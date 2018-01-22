@@ -1,6 +1,7 @@
 package dpyl.eddy.piedfly.room.repository;
 
 import android.arch.lifecycle.LiveData;
+import android.os.AsyncTask;
 
 import java.util.List;
 
@@ -42,11 +43,29 @@ public class MessageRepository {
     }
 
     public void insertAllMessages(Message... messages) {
-        messageDao.insertAll(messages);
+        new AddMessageTask().execute(messages);
     }
 
     public void deleteAllMessages(Message... messages) {
-        messageDao.deleteAll(messages);
+        new DeleteMessageTask().execute(messages);
+    }
+
+
+    // Async Tasks:
+    private class DeleteMessageTask extends AsyncTask<Message, Void, Void> {
+        @Override
+        protected Void doInBackground(Message... messages) {
+            messageDao.deleteAll(messages);
+            return null;
+        }
+    }
+
+    private class AddMessageTask extends AsyncTask<Message, Void, Void> {
+        @Override
+        protected Void doInBackground(Message... messages) {
+            messageDao.insertAll(messages);
+            return null;
+        }
     }
 
 }

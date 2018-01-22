@@ -3,7 +3,6 @@ package dpyl.eddy.piedfly.view.viewmodel;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
 import java.util.List;
@@ -32,27 +31,12 @@ public class MessageCollectionViewModel extends AndroidViewModel {
 
 
     public void addMessage(Message message) {
-        new AddMessageTask().execute(message);
+        mRepository.insertAllMessages(message);
     }
 
     public void deleteMessage(Message message) {
-        new DeleteMessageTask().execute(message);
+        mRepository.deleteAllMessages(message);
     }
 
-    // Async Tasks:
-    private class DeleteMessageTask extends AsyncTask<Message, Void, Void> {
-        @Override
-        protected Void doInBackground(Message... messages) {
-            mRepository.deleteAllMessages(messages);
-            return null;
-        }
-    }
 
-    private class AddMessageTask extends AsyncTask<Message, Void, Void> {
-        @Override
-        protected Void doInBackground(Message... messages) {
-            mRepository.insertAllMessages(messages);
-            return null;
-        }
-    }
 }

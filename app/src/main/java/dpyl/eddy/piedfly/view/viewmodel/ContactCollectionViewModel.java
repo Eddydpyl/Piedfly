@@ -3,7 +3,6 @@ package dpyl.eddy.piedfly.view.viewmodel;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
 import java.util.List;
@@ -33,27 +32,11 @@ public class ContactCollectionViewModel extends AndroidViewModel {
     }
 
     public void addContact(Contact contact) {
-        new AddContactTask().execute(contact);
+        mRepository.insertAllContacts(contact);
     }
 
     public void deleteContact(Contact contact) {
-        new DeleteContactTask().execute(contact);
+        mRepository.deleteAllContacts(contact);
     }
 
-    // Async Tasks:
-    private class DeleteContactTask extends AsyncTask<Contact, Void, Void> {
-        @Override
-        protected Void doInBackground(Contact... contacts) {
-            mRepository.deleteAllContacts(contacts);
-            return null;
-        }
-    }
-
-    private class AddContactTask extends AsyncTask<Contact, Void, Void> {
-        @Override
-        protected Void doInBackground(Contact... contacts) {
-            mRepository.insertAllContacts(contacts);
-            return null;
-        }
-    }
 }

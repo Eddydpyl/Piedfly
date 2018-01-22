@@ -1,6 +1,7 @@
 package dpyl.eddy.piedfly.room.repository;
 
 import android.arch.lifecycle.LiveData;
+import android.os.AsyncTask;
 
 import java.util.List;
 
@@ -40,13 +41,30 @@ public class ContactRepository {
     }
 
     public void insertAllContacts(Contact... contacts) {
-        contactDao.insertAll(contacts);
+        sInstance.insertAllContacts(contacts);
     }
 
     public void deleteAllContacts(Contact... contacts) {
-        contactDao.deleteAll(contacts);
+        sInstance.deleteAllContacts(contacts);
     }
 
+
+    // Async Tasks:
+    private class DeleteContactTask extends AsyncTask<Contact, Void, Void> {
+        @Override
+        protected Void doInBackground(Contact... contacts) {
+            contactDao.deleteAll(contacts);
+            return null;
+        }
+    }
+
+    private class AddContactTask extends AsyncTask<Contact, Void, Void> {
+        @Override
+        protected Void doInBackground(Contact... contacts) {
+            contactDao.insertAll(contacts);
+            return null;
+        }
+    }
 
 
 }
