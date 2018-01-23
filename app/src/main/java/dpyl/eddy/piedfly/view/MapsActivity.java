@@ -79,7 +79,6 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
     private TextView mContactDetailsLocation;
     private ImageView mContactDetailsCall;
     private CardView mMapDetailsCardView;
-
     private RecyclerView mRecyclerView;
     private MapUserAdapter mMapUserAdapter;
 

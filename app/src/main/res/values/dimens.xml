@@ -8,6 +8,8 @@
     <dimen name="recycler_view_overscroll">204dp</dimen>
     <dimen name="map_contactDetails_height">180dp</dimen>
     <dimen name="map_contactDetails_circle_image">82dp</dimen>
+    <dimen name="map_user_image">62dp</dimen>
+
 
 
     <!--Default-->
@@ -16,8 +18,8 @@
     <dimen name="default_margin">16dp</dimen>
     <dimen name="default_big_margin">32dp</dimen>
     <dimen name="default_card_corner_radius">2dp</dimen>
-    <dimen name="map_user_image">62dp</dimen>
     <dimen name="default_civ_border_width">3dp</dimen>
+    <dimen name="touchable_icon_padding">8dp</dimen>
 
 
 </resources>
