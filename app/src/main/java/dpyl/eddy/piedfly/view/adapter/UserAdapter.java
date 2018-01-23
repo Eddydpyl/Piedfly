@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.firebase.ui.common.ChangeEventType;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.database.DataSnapshot;
@@ -34,6 +35,7 @@ import dpyl.eddy.piedfly.view.viewholder.UserHolder;
 
 public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
 
+    private Map<String, User> mUsers;
     private Map<String, String> mPokes;
     private Map<String, Animator> mAnimators;
     private OnListItemClickListener mOnListItemClickListener;
@@ -41,13 +43,16 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
 
     public UserAdapter(FirebaseRecyclerOptions<User> options, OnListItemClickListener onListItemClickListener) {
         super(options);
+        this.mUsers = new HashMap<>();
+        this.mAnimators = new HashMap<>();
         this.mOnListItemClickListener = onListItemClickListener;
         this.mEmergency = false;
     }
 
     public UserAdapter(FirebaseRecyclerOptions<User> options, OnListItemClickListener onListItemClickListener, boolean emergency) {
         super(options);
-        mAnimators = new HashMap<>();
+        this.mUsers = new HashMap<>();
+        this.mAnimators = new HashMap<>();
         this.mOnListItemClickListener = onListItemClickListener;
         this.mEmergency = emergency;
     }
@@ -56,6 +61,16 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
     public void onDataChanged() {
         super.onDataChanged();
         // Called when the necessary data has been retrieved (may be of use when using a loading spinner)
+    }
+
+    @Override
+    public void onChildChanged(ChangeEventType type, DataSnapshot snapshot, int newIndex, int oldIndex) {
+        // Don't notify the RecyclerView if the changes are not relevant
+        if (type == ChangeEventType.CHANGED) {
+            User user = snapshot.getValue(User.class);
+            if (user != null && mUsers.containsKey(user.getUid()) && !mUsers.get(user.getUid()).different(user)) return;
+        }
+        super.onChildChanged(type, snapshot, newIndex, oldIndex);
     }
 
     @Override
@@ -87,6 +102,7 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
             holder.mContactCall.setVisibility(View.INVISIBLE);
             if (mPokes != null) setUpPokeIcon(context, model.getUid(), holder.mContactPoke);
         }
+        mUsers.put(model.getUid(), model);
     }
 
     public void setEmergency(boolean emergency) {

@@ -47,6 +47,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -354,10 +355,6 @@ public class MainActivity extends BaseActivity {
             public void onAnimationUpdate(ValueAnimator animator) {
                 int animatorValue = (int) animator.getAnimatedValue();
                 mToolbar.setBackgroundColor(animatorValue);
-                int[][] states = new int[][]{
-                        new int[]{android.R.attr.state_enabled},
-                        new int[]{-android.R.attr.state_enabled},
-                };
                 mButtonAddContact.setBackgroundColor(animatorValue);
                 mSlideForAlarm.setMOuterColor(animatorValue);
             }
@@ -387,10 +384,6 @@ public class MainActivity extends BaseActivity {
             public void onAnimationUpdate(ValueAnimator animator) {
                 int animatorValue = (int) animator.getAnimatedValue();
                 mToolbar.setBackgroundColor(animatorValue);
-                int[][] states = new int[][]{
-                        new int[]{android.R.attr.state_enabled},
-                        new int[]{-android.R.attr.state_enabled},
-                };
                 mButtonAddContact.setBackgroundColor(animatorValue);
                 mSlideForAlarm.setMOuterColor(animatorValue);
             }
@@ -410,16 +403,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void showAppropriateSlider() {
-        boolean userEmergency = AppState.emergencyUser(this, mSharedPreferences);
-        if (userEmergency || AppState.emergencyFlock(this, mSharedPreferences)) {
-            int color = getResources().getColor(R.color.colorSecondary);
-            mSlideForAlarm.setMOuterColor(color);
-            mState = true;
-        } else {
-            int color = getResources().getColor(R.color.colorPrimary);
-            mSlideForAlarm.setMOuterColor(color);
-        }
-        if (userEmergency)
+        if (AppState.emergencyUser(this, mSharedPreferences))
             mSlideForAlarm.setText(getString(R.string.content_slide_to_cancel));
         else
             mSlideForAlarm.setText(getString(R.string.content_slide_for_alarm));
@@ -538,6 +522,7 @@ public class MainActivity extends BaseActivity {
                 final String normalized = cursor.getString(2);
                 cursor.close();
                 if (name != null && (phone != null || normalized != null)) {
+                    // TODO: Format phone so that it matches the ones in the database
                     final String target = (normalized != null ? normalized : phone).replaceAll("\\s+", "");
                     DataManager.getDatabase().getReference("users").orderByChild("phone").equalTo(target).limitToFirst(1).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
@@ -545,11 +530,26 @@ public class MainActivity extends BaseActivity {
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             if (dataSnapshot.exists()) {
                                 for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
-                                    User user = childSnapshot.getValue(User.class);
+                                    final User user = childSnapshot.getValue(User.class);
                                     if (user != null) {
-                                        Request request = new Request(user.getUid(), uid, RequestType.JOIN_FLOCK);
-                                        DataManager.requestJoinFlock(request);
-                                        showToast(Toast.makeText(weakReference.get(), weakReference.get().getString(R.string.content_join_flock_request) + " " + user.getName() + ".", Toast.LENGTH_SHORT));
+                                        DataManager.getDatabase().getReference("users").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                                Map<String, String> flock = dataSnapshot.exists() ? dataSnapshot.getValue(User.class).getFlock() : new HashMap<String, String>();
+                                                if (flock.containsKey(user.getUid())) {
+                                                    showToast(Toast.makeText(weakReference.get(), user.getName() + " " + weakReference.get().getString(R.string.content_join_flock_already), Toast.LENGTH_SHORT));
+                                                } else {
+                                                    Request request = new Request(user.getUid(), uid, RequestType.JOIN_FLOCK);
+                                                    DataManager.requestJoinFlock(request);
+                                                    showToast(Toast.makeText(weakReference.get(), weakReference.get().getString(R.string.content_join_flock_request) + " " + user.getName() + ".", Toast.LENGTH_SHORT));
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onCancelled(DatabaseError databaseError) {
+                                                // TODO: Error Handling
+                                            }
+                                        });
                                     }
                                 }
                             } else {

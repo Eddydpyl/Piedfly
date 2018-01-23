@@ -46,7 +46,7 @@ public class LocationService extends Service {
                 if (bestLocation != null && (lastKnownLocation == null || Utility.isBetterLocationGreedy(bestLocation, lastKnownLocation, 5.0))) {
                     final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
                     String uid = sharedPreferences.getString(getBaseContext().getString(R.string.pref_uid), ""); if (uid.isEmpty()) stopSelf();
-                    SimpleLocation simpleLocation = new SimpleLocation(bestLocation.getTime(), bestLocation.getLatitude(), bestLocation.getLongitude());
+                    SimpleLocation simpleLocation = new SimpleLocation(bestLocation);
                     DataManager.setLastKnownLocation(uid, simpleLocation);
                     lastKnownLocation = bestLocation;
                 }

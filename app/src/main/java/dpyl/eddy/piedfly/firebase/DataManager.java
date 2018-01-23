@@ -211,9 +211,7 @@ public class DataManager {
         triggerRef.setValue(Constants.PLACEHOLDER);
     }
 
-    /**
-     * Stops all active Pokes that target the User with the provided uid
-     */
+    //Stops all active Pokes that target the User with the provided uid
     private static void stopAllPokes(final String uid) {
         mDatabase.getReference("users").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

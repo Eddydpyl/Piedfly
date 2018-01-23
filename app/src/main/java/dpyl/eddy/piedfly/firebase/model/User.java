@@ -149,6 +149,21 @@ public class User {
         flock.put(uid, key);
     }
 
+    @Exclude
+    public boolean different(User user) {
+        if (uid != null ? !uid.equals(user.uid) : user.uid != null) return true;
+        if (tinyID != null ? !tinyID.equals(user.tinyID) : user.tinyID != null) return true;
+        if (token != null ? !token.equals(user.token) : user.token != null) return true;
+        if (name != null ? !name.equals(user.name) : user.name != null) return true;
+        if (age != null ? !age.equals(user.age) : user.age != null) return true;
+        if (phone != null ? !phone.equals(user.phone) : user.phone != null) return true;
+        if (email != null ? !email.equals(user.email) : user.email != null) return true;
+        if (photoUrl != null ? !photoUrl.equals(user.photoUrl) : user.photoUrl != null) return true;
+        if (countryISO != null ? !countryISO.equals(user.countryISO) : user.countryISO != null) return true;
+        if (flock != null ? !flock.equals(user.flock) : user.flock != null) return true;
+        return !(emergency != null ? emergency.equals(user.emergency) : user.emergency == null);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -163,13 +178,10 @@ public class User {
         if (age != null ? !age.equals(user.age) : user.age != null) return false;
         if (phone != null ? !phone.equals(user.phone) : user.phone != null) return false;
         if (email != null ? !email.equals(user.email) : user.email != null) return false;
-        if (photoUrl != null ? !photoUrl.equals(user.photoUrl) : user.photoUrl != null)
-            return false;
-        if (countryISO != null ? !countryISO.equals(user.countryISO) : user.countryISO != null)
-            return false;
+        if (photoUrl != null ? !photoUrl.equals(user.photoUrl) : user.photoUrl != null) return false;
+        if (countryISO != null ? !countryISO.equals(user.countryISO) : user.countryISO != null) return false;
         if (flock != null ? !flock.equals(user.flock) : user.flock != null) return false;
-        if (lastKnownLocation != null ? !lastKnownLocation.equals(user.lastKnownLocation) : user.lastKnownLocation != null)
-            return false;
+        if (lastKnownLocation != null ? !lastKnownLocation.equals(user.lastKnownLocation) : user.lastKnownLocation != null) return false;
         return emergency != null ? emergency.equals(user.emergency) : user.emergency == null;
 
     }

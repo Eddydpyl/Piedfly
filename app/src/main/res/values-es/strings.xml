@@ -5,6 +5,7 @@
     <string name="content_notification_title">Estás Protegid@</string>
     <string name="content_notification_text">En caso de peligro, pulsa repetidamente el botón de bloqueo</string>
     <string name="content_join_flock_request">Se ha enviado una solititud a</string>
+    <string name="content_join_flock_already">ya forma parte de tu Flock.</string>
     <string name="content_yes">Si</string>
     <string name="content_no">No</string>
     <string name="content_undo_caps">DESHACER</string>

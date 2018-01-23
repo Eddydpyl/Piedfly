@@ -22,6 +22,7 @@
     <string name="content_notification_title">You Are Protected</string>
     <string name="content_notification_text">If in danger, press the power button repeatedly</string>
     <string name="content_join_flock_request">A request to join your Flock has been sent to</string>
+    <string name="content_join_flock_already">is already part of your flock.</string>
     <string name="content_yes">Yes</string>
     <string name="content_no">No</string>
     <string name="content_undo_caps">UNDO</string>

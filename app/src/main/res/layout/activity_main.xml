@@ -63,7 +63,7 @@
                 android:layout_centerHorizontal="true"
                 android:layout_marginBottom="@dimen/default_small_margin"
                 android:elevation="@dimen/slider_elevation"
-                app:outer_color="@color/colorPrimary"
+                app:outer_color="?colorPrimary"
                 app:slider_height="@dimen/slider_height"
                 app:text="@string/content_slide_for_alarm"
                 app:text_size="15sp" />
@@ -102,11 +102,12 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_gravity="bottom|center"
-            android:background="@color/colorPrimary"
+            android:background="?colorPrimary"
             android:text="+"
             android:textAlignment="center"
             android:textColor="@color/full_white"
-            android:textSize="30sp" />
+            android:textSize="30sp"
+            tools:ignore="HardcodedText" />
 
     </LinearLayout>
 

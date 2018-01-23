@@ -336,7 +336,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
         }
     }
 
-    private void setDetailsScreen(String uid) {
+    private void setDetailsScreen(final String uid) {
         DataManager.getDatabase().getReference("users").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -346,7 +346,8 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
                     StorageReference storageReference = user.getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(user.getPhotoUrl()) : null;
                     GlideApp.with(mContactDetailsImage.getContext()).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mContactDetailsImage);
                     if (user.getLastKnownLocation() != null) {
-                        final Location location = new Location("");
+                        String provider = user.getLastKnownLocation().getProvider() == null ? "" : user.getLastKnownLocation().getProvider();
+                        final Location location = new Location(provider);
                         location.setLatitude(user.getLastKnownLocation().getLatitude());
                         location.setLongitude(user.getLastKnownLocation().getLongitude());
                         mContactDetailsLocation.setText(lastSeen(location));
@@ -360,12 +361,17 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
                             }
                         });
                     } else mContactDetailsLocation.setText(getString(R.string.content_no_location));
-                    mContactDetailsCall.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            startPhoneCall(user.getPhone());
-                        }
-                    });
+                    if (mAuth.getCurrentUser() != null && uid.equals(mAuth.getCurrentUser().getUid()))
+                        mContactDetailsCall.setVisibility(View.INVISIBLE);
+                    else {
+                        mContactDetailsCall.setVisibility(View.VISIBLE);
+                        mContactDetailsCall.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                startPhoneCall(user.getPhone());
+                            }
+                        });
+                    }
                 }
             }
 
