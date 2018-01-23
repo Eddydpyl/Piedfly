@@ -1,4 +1,4 @@
-<!--TODO: only image content description missing-->
+<!--TODO: make this prettier, specially after rebranding-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/message_item"
     android:layout_width="match_parent"
@@ -17,7 +17,8 @@
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:layout_marginEnd="@dimen/default_big_margin"
+            android:layout_marginEnd="@dimen/default_margin"
+            android:contentDescription="@string/content_description_swipe_delete_message"
             android:src="@drawable/ic_delete_white_24dp" />
 
         <TextView
@@ -45,6 +46,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:contentDescription="@string/content_description_message_icon"
             android:padding="@dimen/default_margin"
             android:src="@drawable/ic_action_logo_dark" />
 
