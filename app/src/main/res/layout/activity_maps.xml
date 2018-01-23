@@ -138,7 +138,7 @@
                     android:layout_centerVertical="true"
                     android:layout_marginEnd="@dimen/default_big_margin"
                     android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Call"
+                    android:contentDescription="@string/content_description_contact_call"
                     android:src="@drawable/ic_call_48dp" />
 
             </RelativeLayout>
