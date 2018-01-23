@@ -96,6 +96,7 @@
 
         </android.support.v4.widget.NestedScrollView>
 
+        <!--TODO: make this button prettier, as a vector or drawable-->
         <Button
             android:id="@+id/btn_add_contact"
             android:layout_width="match_parent"
