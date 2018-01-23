@@ -37,12 +37,11 @@ public class WifiScanReceiver extends BroadcastReceiver {
     }
 
     private void startEmergency(final Beacon beacon) {
-        final FirebaseDatabase database = FirebaseDatabase.getInstance();
-        database.getReference("tinyID").child(beacon.getTinyID()).addListenerForSingleValueEvent(new ValueEventListener() {
+        DataManager.getDatabase().getReference("tinyID").child(beacon.getTinyID()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 final String uid = dataSnapshot.getValue(String.class);
-                database.getReference("users").child(uid).child("emergency").addListenerForSingleValueEvent(new ValueEventListener() {
+                DataManager.getDatabase().getReference("users").child(uid).child("emergency").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         // If there's already an Emergency ongoing for the User, there's no need to start another

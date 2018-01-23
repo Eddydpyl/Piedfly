@@ -22,6 +22,7 @@ import java.util.Map;
 
 import dpyl.eddy.piedfly.AppState;
 import dpyl.eddy.piedfly.R;
+import dpyl.eddy.piedfly.firebase.DataManager;
 import dpyl.eddy.piedfly.firebase.model.Emergency;
 import dpyl.eddy.piedfly.firebase.model.Event;
 import dpyl.eddy.piedfly.firebase.model.EventType;
@@ -42,14 +43,12 @@ public class MessagingService extends FirebaseMessagingService {
     private static final String MESSAGE_TYPE_START_POKE = "START_POKE";
     private static final String MESSAGE_TYPE_END_POKE = "END_POKE";
 
-    private FirebaseDatabase mDatabase;
     private int mNotificationID;
     private Map<String, Integer> emergencies;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mDatabase = FirebaseDatabase.getInstance();
         mNotificationID = 0;
         emergencies = new HashMap<>();
     }
@@ -70,7 +69,7 @@ public class MessagingService extends FirebaseMessagingService {
             case MESSAGE_TYPE_EVENT:
                 // An Event in an Emergency the user is taking part in has been created
                 final String emergency = data.get("emergency");
-                mDatabase.getReference("events").child(emergency).child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                DataManager.getDatabase().getReference("events").child(emergency).child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         final Event event = dataSnapshot.getValue(Event.class);
@@ -78,7 +77,7 @@ public class MessagingService extends FirebaseMessagingService {
                             if (event.getEventType().equals(EventType.START)) {
                                 // An Emergency has been triggered by someone in the user's flock
                                 AppState.registerEmergencyFlock(getBaseContext(), emergency);
-                                mDatabase.getReference("users").child(event.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                DataManager.getDatabase().getReference("users").child(event.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
                                         User user = dataSnapshot.getValue(User.class);
@@ -99,7 +98,7 @@ public class MessagingService extends FirebaseMessagingService {
                                 // An Emergency has been terminated by some user
                                 AppState.unRegisterEmergencyFlock(getBaseContext(), emergency);
                                 AppState.unRegisterEmergencyNearby(getBaseContext(), emergency);
-                                mDatabase.getReference("users").child(event.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                DataManager.getDatabase().getReference("users").child(event.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
                                         User user = dataSnapshot.getValue(User.class);
@@ -129,7 +128,7 @@ public class MessagingService extends FirebaseMessagingService {
             case MESSAGE_TYPE_EMERGENCY_NEARBY:
                 // The user has either entered or left the perimeter of an Emergency
                 final Boolean state = Boolean.valueOf(data.get("state"));
-                mDatabase.getReference("emergencies").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                DataManager.getDatabase().getReference("emergencies").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Emergency emergency = dataSnapshot.getValue(Emergency.class);
@@ -157,12 +156,12 @@ public class MessagingService extends FirebaseMessagingService {
                 break;
             case MESSAGE_TYPE_REQUEST:
                 // A Request has been sent to the user
-                mDatabase.getReference("requests").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                DataManager.getDatabase().getReference("requests").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Request request = dataSnapshot.getValue(Request.class);
                         if (request != null) {
-                            mDatabase.getReference("users").child(request.getTrigger()).addListenerForSingleValueEvent(new ValueEventListener() {
+                            DataManager.getDatabase().getReference("users").child(request.getTrigger()).addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {
                                     User user = dataSnapshot.getValue(User.class);
@@ -189,12 +188,12 @@ public class MessagingService extends FirebaseMessagingService {
                 break;
             case MESSAGE_TYPE_START_POKE:
                 // A Poke has been sent to the user
-                mDatabase.getReference("pokes").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                DataManager.getDatabase().getReference("pokes").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Poke poke = dataSnapshot.getValue(Poke.class);
                         if (poke != null) {
-                            mDatabase.getReference("users").child(poke.getTrigger()).addListenerForSingleValueEvent(new ValueEventListener() {
+                            DataManager.getDatabase().getReference("users").child(poke.getTrigger()).addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {
                                     User user = dataSnapshot.getValue(User.class);
@@ -219,7 +218,7 @@ public class MessagingService extends FirebaseMessagingService {
                 break;
             case MESSAGE_TYPE_END_POKE:
                 // A Poke involving the user has been checked
-                mDatabase.getReference("pokes").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                DataManager.getDatabase().getReference("pokes").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Poke poke = dataSnapshot.getValue(Poke.class);
@@ -227,7 +226,7 @@ public class MessagingService extends FirebaseMessagingService {
                             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MessagingService.this);
                             String uid = sharedPreferences.getString(getString(R.string.pref_uid), "");
                             if (!uid.equals(poke.getUid())) {
-                                mDatabase.getReference("users").child(poke.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                DataManager.getDatabase().getReference("users").child(poke.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
                                         User user = dataSnapshot.getValue(User.class);
