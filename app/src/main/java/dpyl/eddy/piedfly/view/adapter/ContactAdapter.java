@@ -34,7 +34,7 @@ public class ContactAdapter extends RecyclerView.Adapter<UserHolder> {
         Contact model = mContacts.get(position);
         holder.mContactName.setText(model.getName());
         holder.mContactCall.setTag(model.getPhone());
-        GlideApp.with(holder.itemView.getContext()).load(model.getPhoto()).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(holder.mContactImage);
+        GlideApp.with(holder.itemView.getContext()).load(model.getPhoto()).fitCenter().centerInside().placeholder(R.drawable.default_user_pic).error(R.drawable.default_user_pic).into(holder.mContactImage);
     }
 
     @Override

@@ -68,7 +68,8 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
         // Don't notify the RecyclerView if the changes are not relevant
         if (type == ChangeEventType.CHANGED) {
             User user = snapshot.getValue(User.class);
-            if (user != null && mUsers.containsKey(user.getUid()) && !mUsers.get(user.getUid()).different(user)) return;
+            if (user != null && mUsers.containsKey(user.getUid()) && !mUsers.get(user.getUid()).different(user))
+                return;
         }
         super.onChildChanged(type, snapshot, newIndex, oldIndex);
     }
@@ -93,7 +94,7 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
         holder.mContactCall.setTag(model.getPhone());
         final Context context = holder.itemView.getContext();
         StorageReference storageReference = model.getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(model.getPhotoUrl()) : null;
-        GlideApp.with(context).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).dontAnimate().into(holder.mContactImage);
+        GlideApp.with(context).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_flock).error(R.drawable.default_flock).into(holder.mContactImage);
         if (mEmergency || model.getEmergency() != null) {
             holder.mContactPoke.setVisibility(View.INVISIBLE);
             holder.mContactCall.setVisibility(View.VISIBLE);

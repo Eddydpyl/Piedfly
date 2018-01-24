@@ -62,7 +62,8 @@ public class MapUserAdapter extends FirebaseRecyclerAdapter<User, MapHolder> {
         // Don't notify the RecyclerView if the changes are not relevant
         if (type == ChangeEventType.CHANGED) {
             User user = snapshot.getValue(User.class);
-            if (user != null && mUsers.containsKey(user.getUid()) && !mUsers.get(user.getUid()).different(user)) return;
+            if (user != null && mUsers.containsKey(user.getUid()) && !mUsers.get(user.getUid()).different(user))
+                return;
         }
         super.onChildChanged(type, snapshot, newIndex, oldIndex);
     }
@@ -83,7 +84,7 @@ public class MapUserAdapter extends FirebaseRecyclerAdapter<User, MapHolder> {
 
     private void bindImage(MapHolder holder, User model) {
         StorageReference storageReference = model.getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(model.getPhotoUrl()) : null;
-        GlideApp.with(holder.itemView.getContext()).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).dontAnimate().into(holder.mMapContactImage);
+        GlideApp.with(holder.itemView.getContext()).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_flock).error(R.drawable.default_flock).into(holder.mMapContactImage);
     }
 
     @Override

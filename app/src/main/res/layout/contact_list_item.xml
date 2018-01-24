@@ -50,7 +50,7 @@
             android:layout_marginEnd="@dimen/default_small_margin"
             android:layout_marginStart="@dimen/default_margin"
             android:layout_marginTop="@dimen/default_margin"
-            android:src="@drawable/default_contact" />
+            android:src="@drawable/default_user_pic" />
 
         <TextView
             android:id="@+id/contact_name"

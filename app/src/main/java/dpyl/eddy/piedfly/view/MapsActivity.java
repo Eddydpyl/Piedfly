@@ -113,7 +113,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
 
         CircleImageView userImage = (CircleImageView) findViewById(R.id.map_user_image);
         StorageReference storageReference = mAuth.getCurrentUser() != null && Utility.isFirebaseStorage(mAuth.getCurrentUser().getPhotoUrl()) ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
-        GlideApp.with(this).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(userImage);
+        GlideApp.with(this).load(storageReference).fitCenter().centerInside().placeholder(R.drawable.default_flock).error(R.drawable.default_flock).into(userImage);
         userImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -344,7 +344,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
                 if (user != null) {
                     mContactDetailsName.setText(user.getName());
                     StorageReference storageReference = user.getPhotoUrl() != null ? FileManager.getStorage().getReferenceFromUrl(user.getPhotoUrl()) : null;
-                    GlideApp.with(mContactDetailsImage.getContext()).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mContactDetailsImage);
+                    GlideApp.with(mContactDetailsImage.getContext()).load(storageReference).fitCenter().placeholder(R.drawable.default_flock).error(R.drawable.default_flock).into(mContactDetailsImage);
                     if (user.getLastKnownLocation() != null) {
                         String provider = user.getLastKnownLocation().getProvider() == null ? "" : user.getLastKnownLocation().getProvider();
                         final Location location = new Location(provider);

@@ -637,12 +637,12 @@ public class MainActivity extends BaseActivity {
             Utility.loadIntoBitmap(getApplication(), uri, new Utility.BitMapTaskListener() {
                 @Override
                 public void onSuccess(Bitmap bitmap) {
-                    GlideApp.with(mCircleImageView.getContext()).load(bitmap).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
+                    GlideApp.with(mCircleImageView.getContext()).load(bitmap).fitCenter().placeholder(R.drawable.default_user_pic).error(R.drawable.default_user_pic).into(mCircleImageView);
                     FileManager.uploadProfilePicture(mAuth, bitmap, null, new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
                             Toast.makeText(MainActivity.this, getString(R.string.content_upload_error), Toast.LENGTH_SHORT).show();
-                            GlideApp.with(mCircleImageView.getContext()).load(R.drawable.default_contact).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
+                            GlideApp.with(mCircleImageView.getContext()).load(R.drawable.default_user_pic).fitCenter().placeholder(R.drawable.default_user_pic).error(R.drawable.default_user_pic).into(mCircleImageView);
                         }
                     });
                 }
@@ -658,7 +658,7 @@ public class MainActivity extends BaseActivity {
 
     private void setProfilePicture() {
         StorageReference storageReference = mAuth.getCurrentUser() != null && Utility.isFirebaseStorage(mAuth.getCurrentUser().getPhotoUrl()) ? FileManager.getStorage().getReferenceFromUrl(mAuth.getCurrentUser().getPhotoUrl().toString()) : null;
-        GlideApp.with(this).load(storageReference).fitCenter().placeholder(R.drawable.default_contact).error(R.drawable.default_contact).into(mCircleImageView);
+        GlideApp.with(this).load(storageReference).fitCenter().placeholder(R.drawable.default_user_pic).error(R.drawable.default_user_pic).into(mCircleImageView);
     }
 
     private void showUndoMessage(RecyclerView.ViewHolder viewHolder) {

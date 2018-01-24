@@ -51,7 +51,7 @@
             android:layout_marginStart="@dimen/default_margin"
             android:layout_marginTop="@dimen/default_margin"
             android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/default_contact" />
+            android:src="@drawable/default_flock" />
 
         <TextView
             android:id="@+id/contact_name"

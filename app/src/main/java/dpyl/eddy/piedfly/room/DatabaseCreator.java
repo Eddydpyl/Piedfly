@@ -15,6 +15,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * A class to deal with the room database directly.
  */
 
+
+//TODO: this class is not used right now, but's useful in case we find any problems with the current modeling of the db
+
 public class DatabaseCreator {
 
 
