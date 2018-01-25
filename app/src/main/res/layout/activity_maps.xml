@@ -41,6 +41,7 @@
                 android:layout_width="@dimen/map_user_image"
                 android:layout_height="@dimen/map_user_image"
                 android:layout_margin="@dimen/default_margin"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/default_flock" />
 
             <View
@@ -76,6 +77,8 @@
             android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
             tools:context="michaelstevan.saveme.activities.MapsActivity" />
 
         <android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
@@ -97,9 +100,31 @@
                     android:layout_height="@dimen/map_contactDetails_circle_image"
                     android:layout_alignParentTop="true"
                     android:layout_margin="@dimen/default_margin"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
                     android:focusable="true"
                     android:src="@drawable/default_flock" />
+
+
+                <ImageView
+                    android:id="@+id/map_contact_details_call"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignTop="@+id/map_contact_details_image"
+                    android:layout_alignBottom="@+id/map_contact_details_name"
+                    android:layout_margin="@dimen/default_big_margin"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/content_description_contact_directions"
+                    android:src="@drawable/ic_call_48dp" />
+
+                <ImageView
+                    android:id="@+id/map_contact_directions"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignEnd="@+id/map_contact_details_image"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_directions_32dp" />
 
                 <TextView
                     android:id="@+id/map_contact_details_name"
@@ -118,7 +143,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/map_contact_details_name"
-                    android:layout_marginEnd="@dimen/default_margin"
                     android:layout_marginStart="@dimen/default_margin"
                     android:ellipsize="marquee"
                     android:focusable="true"
@@ -130,16 +154,6 @@
                     android:textSize="@dimen/material_typography_caption"
                     tools:text="Last seen in Avd la Coruña 3 mins ago." />
 
-                <ImageView
-                    android:id="@+id/map_contact_details_call"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginEnd="@dimen/default_big_margin"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/content_description_contact_call"
-                    android:src="@drawable/ic_call_48dp" />
 
             </RelativeLayout>
 

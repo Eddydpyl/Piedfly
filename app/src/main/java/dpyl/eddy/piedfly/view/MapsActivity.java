@@ -351,7 +351,7 @@ public class MapsActivity extends BaseActivity implements OnMapReadyCallback, On
                         location.setLatitude(user.getLastKnownLocation().getLatitude());
                         location.setLongitude(user.getLastKnownLocation().getLongitude());
                         mContactDetailsLocation.setText(lastSeen(location));
-                        mContactDetailsLocation.setOnClickListener(new View.OnClickListener() {
+                        mContactDetailsImage.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
                                 String geoUri = "https://www.google.com/maps/dir/?api=1&destination=" + location.getLatitude() + "," + location.getLongitude();

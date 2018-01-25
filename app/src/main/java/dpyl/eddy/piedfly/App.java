@@ -21,8 +21,12 @@ public class App extends Application {
         return sInstance;
     }
 
+
+
     public static Context getContext() {
         return getInstance().getApplicationContext();
     }
+
+
 
 }

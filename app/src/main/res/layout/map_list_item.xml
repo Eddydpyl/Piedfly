@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><!--TODO: make it clickable, that a border appears-->
+<?xml version="1.0" encoding="utf-8"?><!--TODO: Improve click-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
@@ -8,6 +8,7 @@
         android:layout_width="@dimen/map_user_image"
         android:layout_height="@dimen/map_user_image"
         android:layout_marginEnd="@dimen/default_small_margin"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
         android:src="@drawable/default_flock" />
 
 </FrameLayout>
