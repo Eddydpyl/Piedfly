@@ -28,7 +28,7 @@ import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 import android.view.Window;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerOptions;
@@ -89,7 +89,7 @@ public class MainActivity extends BaseActivity {
     public static RecyclerView mRecyclerView;
     public static RecyclerView mSecondRecyclerView;
     private NestedScrollView mNestedScrollView;
-    private Button mButtonAddContact;
+    private ImageButton mButtonAddContact;
 
     private String mKey; // Used for replicating a user action after they grant an Android permission
     private String mPokeType; // Used for replica ting a user action after they grant an Android permission
@@ -120,7 +120,7 @@ public class MainActivity extends BaseActivity {
 
         mCoordinatorLayout = findViewById(R.id.content);
         mCircleImageView = (CircleImageView) findViewById(R.id.userImage);
-        mButtonAddContact = (Button) findViewById(R.id.btn_add_contact);
+        mButtonAddContact = (ImageButton) findViewById(R.id.btn_add_contact);
         mSlideForAlarm = (SlideToActView) findViewById(R.id.slide_for_alarm);
         mNestedScrollView = (NestedScrollView) findViewById(R.id.mainActivity_nestedScrollView);
 

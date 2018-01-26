@@ -97,19 +97,14 @@
 
         </android.support.v4.widget.NestedScrollView>
 
-        <!--TODO: make this button prettier, as a vector or drawable-->
-        <Button
+        <ImageButton
             android:id="@+id/btn_add_contact"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_gravity="bottom|center"
+            android:layout_height="@dimen/add_contact_btn_height"
+            android:layout_gravity="center|bottom"
             android:background="?colorPrimary"
-            android:text="+"
-            android:textAlignment="center"
-            android:textColor="@color/full_white"
-            android:textSize="30sp"
-            tools:ignore="HardcodedText" />
-
+            android:foreground="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_add_white_24dp" />
     </LinearLayout>
 
 
