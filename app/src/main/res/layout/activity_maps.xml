@@ -115,13 +115,14 @@
                     android:layout_alignBottom="@+id/map_contact_details_name"
                     android:layout_margin="@dimen/default_big_margin"
                     android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/content_description_contact_directions"
+                    android:contentDescription="@string/content_description_contact_call"
                     android:src="@drawable/ic_call_48dp" />
 
                 <ImageView
                     android:id="@+id/map_contact_directions"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:contentDescription="@string/content_description_contact_directions"
                     android:layout_alignEnd="@+id/map_contact_details_image"
                     android:layout_centerVertical="true"
                     android:src="@drawable/ic_directions_32dp" />
