@@ -34,7 +34,7 @@
     <string name="content_delete_caps">DELETE</string>
     <string name="content_last_seen_place">Last seen at</string>
     <string name="content_only_local_user_warning">This user only exists locally.</string>
-    <string name="content_push_emergency_user_title">You have triggered an mEmergency!</string>
+    <string name="content_push_emergency_user_title">You have triggered an Emergency!</string>
     <string name="content_push_emergency_user_text">Your Flock has been notified. Help is on the way.</string>
     <string name="content_push_emergency_flock_title">is in danger!</string>
     <string name="content_push_emergency_flock_text">Click on this notification to help in the intervention.</string>

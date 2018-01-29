@@ -1,1 +1,53 @@
-<resources></resources>
+<!--@author Tiago Nunes Leite de Castro de Quintana -->
+
+<resources>
+    <!-- Content Strings-->
+    <string name="content_request_permission_title"> Necessário Permissão</string>
+    <string name="content_request_permission_message">Esta aplicação requer que tu lhe permitas ler e escrever as definições do sistema.</string>
+    <string name="content_notification_title">Tu estás protegido/a</string>
+    <string name="content_notification_text">Se estiveres em perigo, clica no botão de energia repetidamente</string>
+    <string name="content_join_flock_request">Foi enviado um pedido para</string>
+    <string name="content_join_flock_already">faz parte do teu Flock.</string>
+    <string name="content_yes">Sim</string>
+    <string name="content_no">Não</string>
+    <string name="content_undo_caps">DESFAZER</string>
+    <string name="content_removed">Removido</string>
+    <string name="content_upload_error">Image upload unsuccessful, please try again.</string>
+    <string name="content_slide_for_alarm">Iniciar Emergência</string>
+    <string name="content_delete_caps">ELIMINAR</string>
+    <string name="content_last_seen_place">Visto pela última vez em</string>
+    <string name="content_only_local_user_warning">This user only exists locally.</string>
+    <string name="content_push_emergency_user_title">You have triggered an Emergency!</string>
+    <string name="content_push_emergency_user_text">Your Flock has been notified. Help is on the way.</string>
+    <string name="content_push_emergency_flock_title">está em perigo!</string>
+    <string name="content_push_emergency_flock_text">Click on this notification to help in the intervention.</string>
+    <string name="content_push_emergency_nearby_title">Someone nearby is in danger!</string>
+    <string name="content_push_emergency_nearby_text">Click on this notification to help in the intervention.</string>
+    <string name="content_push_emergency_finish_title">is no longer in danger.</string>
+    <string name="content_push_emergency_finish_text">Thanks for your help!</string>
+    <string name="content_push_request_title">wants to join your Flock.</string>
+    <string name="content_push_request_text">Keep each other safe by accepting the request.</string>
+    <string name="content_push_poke_start_title">wants to know if you\'re alright.</string>
+    <string name="content_push_poke_start_text">Indicate that you\'re fine by clicking on this notification.</string>
+    <string name="content_push_poke_end_title">seems to be fine.</string>
+    <string name="content_push_poke_end_text">No need to worry!</string>
+    <string name="content_poke_none">A poke has been sent and we\'re waiting for an answer.</string>
+    <string name="content_poke_flock">¡You\'re fine! No need to worry.</string>
+    <string name="content_poke_user">You have cancelled the poke.</string>
+    <string name="content_dialog_flock">Do you want to add this User to your Flock?</string>
+    <string name="content_no_phone">This user has no verified phone number.</string>
+    <string name="content_no_location">Couldn\'t retrieve this user\'s location.</string>
+    <string name="content_action_settings">Definições</string>
+    <string name="content_permission_location_cancelled">We need your location for the map to work.</string>
+    <string name="content_map_activity_label">Mapa</string>
+    <string name="content_slide_to_cancel">Cancelar Emergência</string>
+
+    <!-- Accessibility, this should also be translated -->
+    <string name="content_description_contact_directions">Find where this contact is.</string>
+    <string name="content_description_contact_call">Call this contact.</string>
+    <string name="content_description_contact_poke">Poke this contact.</string>
+    <string name="content_description_swipe_delete_contact">Swipe left to delete this contact.</string>
+    <string name="content_description_swipe_delete_message">Swipe left to delete this message.</string>
+    <string name="content_description_message_icon">Message icon.</string>
+
+</resources>
