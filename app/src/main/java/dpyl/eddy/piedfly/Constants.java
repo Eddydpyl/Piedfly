@@ -12,6 +12,7 @@ public class Constants {
     public static final String POKE_USER = "userPoke"; // Used as a Tag to identify the state of a poke icon in MainActivity.
     public static final String POKE_FLOCK = "flockPoke"; // Used as a Tag to identify the state of a poke icon in MainActivity.
     public static final String PLACEHOLDER = "placeholder"; // Used to fill a value in the database when we don't want it to be null.
+    public static final String NOTIFICATION_CHANNEL = "Piedfly Notifications"; // Notification channel, needed for API 26 and above.
     public static final int ZOOM_LEVEL = 15; // Default zoom level for when a GoogleMap's camera position is set.
     public static final double RADIUS_KM = 0.5; // Distance in kilometers for someone to be considered nearby.
     public static final String DUMMY_LOCATION = "dummy"; // Location provider used when instantiating a dummy Location

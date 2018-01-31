@@ -36,7 +36,8 @@ public class PassiveService extends Service {
 
     private BroadcastReceiver mBroadcastReceiver;
 
-    public PassiveService() {}
+    public PassiveService() {
+    }
 
     @Override
     public void onCreate() {
@@ -64,38 +65,6 @@ public class PassiveService extends Service {
         stopForeground(true);
     }
 
-    private void startEmergency(Context context) {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        String uid = sharedPreferences.getString(context.getString(R.string.pref_uid), "");
-        Emergency emergency = new Emergency();
-        emergency.setUid(uid);
-        emergency.setTrigger(uid);
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
-            emergency.setStart(simpleLocation);
-        }
-        String key = DataManager.startEmergency(emergency);
-        AppState.registerEmergencyUser(context, key);
-
-        final long[] pattern = {250,500,250,500};
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.ic_logo)
-                        .setContentTitle(context.getString(R.string.content_push_emergency_user_title))
-                        .setContentText(context.getString(R.string.content_push_emergency_user_text))
-                        .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
-                        .setVibrate(pattern)
-                        .setAutoCancel(true)
-                        .setPriority(Notification.PRIORITY_HIGH);
-        Intent intent = new Intent(this, MainActivity.class);
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addNextIntent(intent);
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-        mBuilder.setContentIntent(resultPendingIntent);
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(PUSH_ID, mBuilder.build());
-    }
-
     private void registerBroadcastReceiver() {
         mBroadcastReceiver = new BroadcastReceiver() {
 
@@ -112,7 +81,8 @@ public class PassiveService extends Service {
                         if (Constants.POWER_CLICKS <= counter++) {
                             if (!AppState.emergencyUser(context)) {
                                 startEmergency(context);
-                            } counter = 0;
+                            }
+                            counter = 0;
                         }
                     } else counter = 0;
                     lastReceived = currentTime;
@@ -122,8 +92,40 @@ public class PassiveService extends Service {
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
-        filter.addAction(Intent.ACTION_USER_PRESENT);
         registerReceiver(mBroadcastReceiver, filter);
+    }
+
+    private void startEmergency(Context context) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String uid = sharedPreferences.getString(context.getString(R.string.pref_uid), "");
+        Emergency emergency = new Emergency();
+        emergency.setUid(uid);
+        emergency.setTrigger(uid);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            SimpleLocation simpleLocation = new SimpleLocation(Utility.getLastKnownLocation(this));
+            emergency.setStart(simpleLocation);
+        }
+        String key = DataManager.startEmergency(emergency);
+        AppState.registerEmergencyUser(context, sharedPreferences, key);
+
+        final long[] pattern = {0, 500, 250, 500};
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addNextIntent(intent);
+        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this, Constants.NOTIFICATION_CHANNEL)
+                        .setSmallIcon(R.drawable.ic_logo)
+                        .setContentTitle(context.getString(R.string.content_push_emergency_user_title))
+                        .setContentText(context.getString(R.string.content_push_emergency_user_text))
+                        .setContentIntent(resultPendingIntent)
+                        .setPriority(Notification.PRIORITY_HIGH)
+                        .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
+                        .setVibrate(pattern)
+                        .setAutoCancel(true);
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (mNotificationManager != null) mNotificationManager.notify(PUSH_ID, mBuilder.build());
     }
 
     private void createStickyNotification() {

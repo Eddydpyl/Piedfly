@@ -6,7 +6,7 @@ import android.arch.persistence.room.PrimaryKey;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A phone contact that it's not yet in firebase.
+ * A phone contact that it's not yet in Firebase.
  */
 
 @Entity(tableName = "contacts")
@@ -41,5 +41,20 @@ public class Contact {
 
     public void setPhoto(String photo) {
         this.photo = photo;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Contact contact = (Contact) o;
+
+        return phone.equals(contact.phone);
+    }
+
+    @Override
+    public int hashCode() {
+        return phone.hashCode();
     }
 }

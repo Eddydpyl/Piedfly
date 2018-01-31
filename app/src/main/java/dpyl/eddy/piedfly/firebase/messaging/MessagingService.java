@@ -7,12 +7,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import dpyl.eddy.piedfly.AppState;
+import dpyl.eddy.piedfly.Constants;
 import dpyl.eddy.piedfly.R;
 import dpyl.eddy.piedfly.firebase.DataManager;
 import dpyl.eddy.piedfly.firebase.model.Emergency;
@@ -254,22 +255,24 @@ public class MessagingService extends FirebaseMessagingService {
     }
 
     private void pushNotification(String title, String text, Class<?> target) {
-        final long[] pattern = {250, 500, 250, 500};
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.ic_logo)
-                        .setContentTitle(title)
-                        .setContentText(text)
-                        .setVibrate(pattern)
-                        .setAutoCancel(true)
-                        .setPriority(Notification.PRIORITY_HIGH);
+        final long[] pattern = {0, 500, 250, 500};
         Intent intent = new Intent(this, target);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         if (!target.isAssignableFrom(MainActivity.class))
             stackBuilder.addParentStack(MainActivity.class);
         stackBuilder.addNextIntent(intent);
         PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-        mBuilder.setContentIntent(resultPendingIntent);
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this, Constants.NOTIFICATION_CHANNEL)
+                        .setSmallIcon(R.drawable.ic_logo)
+                        .setContentTitle(title)
+                        .setContentText(text)
+                        .setContentIntent(resultPendingIntent)
+                        .setPriority(Notification.PRIORITY_HIGH)
+                        .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
+                        .setVibrate(pattern)
+                        .setAutoCancel(true);
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager != null)
             notificationManager.notify(mNotificationID++, mBuilder.build());

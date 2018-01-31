@@ -17,6 +17,9 @@ public interface ContactDao {
     @Query("SELECT * FROM contacts ORDER BY name")
     LiveData<List<Contact>> findAllByName();
 
+    @Query("SELECT * FROM contacts")
+    List<Contact> findAll();
+
     @Query("SELECT * FROM contacts WHERE phone=:phoneNumber")
     LiveData<Contact> findOneByPhone(String phoneNumber);
 

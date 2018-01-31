@@ -43,15 +43,15 @@
         <service
             android:name=".monitor.LocationService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="false" />
         <service
             android:name=".monitor.PassiveService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="false" />
         <service
             android:name=".hotbeacon.WifiScanService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="false" />
 
         <receiver
             android:name=".hotbeacon.WifiScanReceiver"

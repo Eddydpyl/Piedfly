@@ -536,9 +536,14 @@ public class MainActivity extends BaseActivity {
                                             @Override
                                             public void onDataChange(DataSnapshot dataSnapshot) {
                                                 Map<String, String> flock = dataSnapshot.exists() ? dataSnapshot.getValue(User.class).getFlock() : new HashMap<String, String>();
-                                                if (flock.containsKey(user.getUid())) {
+                                                if (flock != null && flock.containsKey(user.getUid())) {
                                                     showToast(Toast.makeText(weakReference.get(), user.getName() + " " + weakReference.get().getString(R.string.content_join_flock_already), Toast.LENGTH_SHORT));
                                                 } else {
+                                                    Contact localContact = new Contact();
+                                                    localContact.setName(name);
+                                                    localContact.setPhone(target);
+                                                    localContact.setPhoto(user.getPhotoUrl());
+                                                    mContactCollectionViewModel.addContact(localContact);
                                                     Request request = new Request(user.getUid(), uid, RequestType.JOIN_FLOCK);
                                                     DataManager.requestJoinFlock(request);
                                                     showToast(Toast.makeText(weakReference.get(), weakReference.get().getString(R.string.content_join_flock_request) + " " + user.getName() + ".", Toast.LENGTH_SHORT));
@@ -598,7 +603,7 @@ public class MainActivity extends BaseActivity {
             Query keyQuery = DataManager.getDatabase().getReference().child("users").child(mAuth.getCurrentUser().getUid()).child("flock");
             DatabaseReference dataQuery = DataManager.getDatabase().getReference().child("users");
             FirebaseRecyclerOptions<User> options = new FirebaseRecyclerOptions.Builder<User>().setIndexedQuery(keyQuery, dataQuery, User.class).build();
-            mUserAdapter = new UserAdapter(options, this, AppState.emergencyUser(this, mSharedPreferences));
+            mUserAdapter = new UserAdapter(this, options, this, AppState.emergencyUser(this, mSharedPreferences));
             mRecyclerView.setAdapter(mUserAdapter);
         }
     }
@@ -609,9 +614,11 @@ public class MainActivity extends BaseActivity {
             mPokeListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    Map<String, String> pokes = (Map<String, String>) dataSnapshot.getValue();
-                    if (pokes != null) mUserAdapter.setPokes(pokes);
-                    mUserAdapter.notifyDataSetChanged();
+                    if (dataSnapshot.exists()) {
+                        Map<String, String> pokes = (Map<String, String>) dataSnapshot.getValue();
+                        if (pokes != null) mUserAdapter.setPokes(pokes);
+                        mUserAdapter.notifyDataSetChanged();
+                    }
                 }
 
                 @Override

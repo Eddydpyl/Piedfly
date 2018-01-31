@@ -23,7 +23,6 @@ public class ContactCollectionViewModel extends AndroidViewModel {
 
     }
 
-
     public LiveData<List<Contact>> getListOfContactsByName() {
         if (mContacts == null) {
             mContacts = mRepository.getAllContactsByName();

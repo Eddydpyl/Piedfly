@@ -36,6 +36,10 @@ public class ContactRepository {
         return contactDao.findAllByName();
     }
 
+    public List<Contact> getAllContacts() {
+        return contactDao.findAll();
+    }
+
     public LiveData<Contact> getContactByPhone(String phoneNumber) {
         return contactDao.findOneByPhone(phoneNumber);
     }

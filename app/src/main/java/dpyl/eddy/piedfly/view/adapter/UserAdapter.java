@@ -21,6 +21,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.StorageReference;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import dpyl.eddy.piedfly.Constants;
@@ -30,27 +31,33 @@ import dpyl.eddy.piedfly.firebase.FileManager;
 import dpyl.eddy.piedfly.firebase.GlideApp;
 import dpyl.eddy.piedfly.firebase.model.Poke;
 import dpyl.eddy.piedfly.firebase.model.User;
+import dpyl.eddy.piedfly.room.AppLocalDatabase;
+import dpyl.eddy.piedfly.room.model.Contact;
+import dpyl.eddy.piedfly.room.repository.ContactRepository;
 import dpyl.eddy.piedfly.view.viewholder.OnListItemClickListener;
 import dpyl.eddy.piedfly.view.viewholder.UserHolder;
 
 public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
 
+    private Context context;
     private Map<String, User> mUsers;
     private Map<String, String> mPokes;
     private Map<String, Animator> mAnimators;
     private OnListItemClickListener mOnListItemClickListener;
     private boolean mEmergency;
 
-    public UserAdapter(FirebaseRecyclerOptions<User> options, OnListItemClickListener onListItemClickListener) {
+    public UserAdapter(Context context, FirebaseRecyclerOptions<User> options, OnListItemClickListener onListItemClickListener) {
         super(options);
+        this.context = context;
         this.mUsers = new HashMap<>();
         this.mAnimators = new HashMap<>();
         this.mOnListItemClickListener = onListItemClickListener;
         this.mEmergency = false;
     }
 
-    public UserAdapter(FirebaseRecyclerOptions<User> options, OnListItemClickListener onListItemClickListener, boolean emergency) {
+    public UserAdapter(Context context, FirebaseRecyclerOptions<User> options, OnListItemClickListener onListItemClickListener, boolean emergency) {
         super(options);
+        this.context = context;
         this.mUsers = new HashMap<>();
         this.mAnimators = new HashMap<>();
         this.mOnListItemClickListener = onListItemClickListener;
@@ -60,7 +67,22 @@ public class UserAdapter extends FirebaseRecyclerAdapter<User, UserHolder> {
     @Override
     public void onDataChanged() {
         super.onDataChanged();
-        // Called when the necessary data has been retrieved (may be of use when using a loading spinner)
+        // Called when the necessary data has been retrieved. Check if any local Contacts are now members of the user's Flock.
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ContactRepository contactRepository = ContactRepository.getInstance(AppLocalDatabase.getInstance(context).contactDao());
+                List<Contact> contacts = contactRepository.getAllContacts();
+                if (contacts != null) {
+                    for (Contact contact : contacts) {
+                        for (int i = 0; i < getItemCount(); i++) {
+                            if (getItem(i).getPhone().equals(contact.getPhone()))
+                                contactRepository.deleteAllContacts(contact);
+                        }
+                    }
+                }
+            }
+        }).start();
     }
 
     @Override
