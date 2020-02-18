@@ -4,6 +4,7 @@ De acuerdo con la fundación XPRIZE, hasta un 90% de las mujeres en Nueva Delhi 
 <p align="center"><img src="/app/src/main/ic_launcher-web.png" alt="Logo" width="250"/></p>
 
 El desarrollo de esta aplicación nativa Android ha sido abandonado. En su estado actual, posee algunas funcionalidades muy limitadas que permiten al usuario monitorizar a sus contactos de confianza, para asegurarse en cualquier momento de su bienestar. También es posible indicar que uno se encuentra en una situación de emergencia, notificando a tus contactos del peligro, a través de la interfaz de la aplicación, o pulsando repetidamente el botón de bloqueo de pantalla del móvil.
+<br><br>
 
 <p align="center">
   <img src="/app/src/main/res/Screenshot_20180818-131256.png" alt="screenshot-1" width="250"/>
