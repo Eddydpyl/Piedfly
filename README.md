@@ -1,4 +1,4 @@
-# Piedfly [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) ![Status: abandoned](https://img.shields.io/badge/status-abandoned-red.svg)
+# Piedfly [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) ![Status: Abandoned](https://img.shields.io/badge/Status-Abandoned-red.svg)
 De acuerdo con la fundación XPRIZE, hasta un 90% de las mujeres en Nueva Delhi han sido asaltadas en vías públicas. Nuestro proyecto pretende ayudar a garantizar este derecho fundamental que es la seguridad personal. Para lograrlo, formamos comunidades y exprimimos las capacidades comunes a la enorme mayoría de los smartphones, en un esfuerzo por garantizar funcionalidad aún en ausencia de cobertura. ¿Pero por qué curar cuando puedes prevenir? También, con los datos recopilados, ayudamos a evitar zonas de delincuencia.
 
 <p align="center"><img src="/app/src/main/ic_launcher-web.png" alt="Logo" width="250"/></p>
